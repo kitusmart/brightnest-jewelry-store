@@ -9,13 +9,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // This tells Vercel to ignore the small code errors during build
+  // Correct way to ignore errors in newer Next.js versions
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // Removed the 'eslint' block that was causing the error
 };
 
 export default nextConfig;
