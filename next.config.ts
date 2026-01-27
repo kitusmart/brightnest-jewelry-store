@@ -12,8 +12,13 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // In Next.js 16, this is a top-level stable property
+  // Stable top-level property in v16
   reactCompiler: true,
+
+  // New stable Turbopack configuration for v16
+  turbopack: {
+    root: "./",
+  },
 };
 
 export default nextConfig;
