@@ -1,10 +1,9 @@
-import { type SchemaTypeDefinition } from 'sanity'
+// sanity/schemas/index.ts
 
-import { categoryType } from './categoryType'
-import { customerType } from './customerType'
-import { orderType } from './orderType'
-import { productType } from './productType'
+import { categoryType } from "./categoryType";
+import { customerType } from "./customerType";
+import { orderType } from "./orderType";
+import { productType } from "./productType";
 
-export const schema: { types: SchemaTypeDefinition[] } = {
-  types: [categoryType, customerType, productType, orderType],
-}
+// This is a NAMED export
+export const schemaTypes = [categoryType, customerType, orderType, productType];
