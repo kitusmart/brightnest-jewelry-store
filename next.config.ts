@@ -9,11 +9,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Correct way to ignore errors in newer Next.js versions
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Removed the 'eslint' block that was causing the error
 };
 
 export default nextConfig;
