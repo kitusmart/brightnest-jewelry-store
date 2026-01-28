@@ -113,6 +113,7 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
     { name: "Combos", href: "/?category=combos" },
     // NEW LINK ADDED HERE
     { name: "My Orders", href: "/orders" }, 
+    { name: "Policies", href: "/policies" },
   ];
 
   return (
