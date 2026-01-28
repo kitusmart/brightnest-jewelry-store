@@ -2,7 +2,7 @@ import { client } from "@/sanity/lib/client";
 import { notFound, redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
-import { ArrowLeft, Package } from "lucide-react";
+import { ArrowLeft, Package, MessageCircle, Printer, RefreshCw } from "lucide-react";
 
 async function getOrderDetails(id: string) {
   return client.fetch(
@@ -13,8 +13,7 @@ async function getOrderDetails(id: string) {
         "product": product->{
           name,
           price,
-          // This digs into your 'images' array, grabs the first one [0], 
-          // and follows the asset reference to get the URL
+          "slug": slug.current,
           "image": images[0].asset->url
         }
       }
@@ -33,20 +32,30 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
   const order = await getOrderDetails(id);
 
+  // Security check: Use the 'email' field found in your Sanity Inspector
   if (!order || order.email?.toLowerCase() !== userEmail?.toLowerCase()) {
     notFound();
   }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-24">
-      <Link href="/orders" className="flex items-center text-sm text-zinc-500 hover:text-black mb-8 transition-colors">
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back to My Orders
-      </Link>
+      {/* 1. Print/Download Invoice Header */}
+      <div className="flex justify-between items-center mb-8 no-print">
+        <Link href="/orders" className="flex items-center text-sm text-zinc-500 hover:text-black transition-colors">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to My Orders
+        </Link>
+        <button 
+          onClick={() => window.print()} 
+          className="flex items-center gap-2 text-sm font-semibold text-zinc-600 hover:text-black"
+        >
+          <Printer className="h-4 w-4" /> Print Invoice
+        </button>
+      </div>
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b pb-8">
         <div>
           <h1 className="text-3xl font-bold text-zinc-900">Order Details</h1>
-          <p className="text-zinc-500 font-mono text-sm mt-1">{order.orderNumber}</p>
+          <p className="text-zinc-500 font-mono text-sm mt-1">Order ID: {order.orderNumber}</p>
         </div>
         <div className="px-4 py-2 rounded-full bg-blue-50 text-blue-700 font-bold text-xs uppercase tracking-widest border border-blue-100">
           {order.status}
@@ -56,10 +65,17 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
           <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b bg-zinc-50/50">
+            <div className="px-6 py-4 border-b bg-zinc-50/50 flex justify-between items-center">
               <h2 className="font-bold flex items-center gap-2 text-sm text-zinc-700">
                 <Package className="h-4 w-4" /> Items Ordered
               </h2>
+              {/* 2. Need Help Link */}
+              <Link 
+                href={`mailto:support@brightnest.com?subject=Help with Order ${order.orderNumber}`}
+                className="text-xs text-blue-600 flex items-center gap-1 hover:underline no-print"
+              >
+                <MessageCircle className="h-3 w-3" /> Need Help?
+              </Link>
             </div>
             <div className="divide-y">
               {order.items?.map((item: any, idx: number) => {
@@ -67,32 +83,32 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 const quantity = item.quantity ?? 1;
 
                 return (
-                  <div key={idx} className="p-6 flex gap-4 items-center">
-                    {/* --- UPDATED IMAGE PART START --- */}
-                    <div className="h-20 w-20 rounded-lg bg-zinc-50 overflow-hidden shrink-0 border border-zinc-100 flex items-center justify-center">
-                      {item.product?.image ? (
-                        <img 
-                          src={item.product.image} 
-                          alt="" 
-                          className="h-full w-full object-cover" 
-                        />
-                      ) : (
-                        <div className="text-center">
-                          <Package className="h-4 w-4 mx-auto text-zinc-300 mb-1" />
-                          <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-tighter">No Image</p>
-                        </div>
-                      )}
+                  <div key={idx} className="p-6">
+                    <div className="flex gap-4 items-center mb-4">
+                      {/* Fixed Image Resolution */}
+                      <div className="h-20 w-20 rounded-lg bg-zinc-50 overflow-hidden shrink-0 border border-zinc-100 flex items-center justify-center">
+                        {item.product?.image ? (
+                          <img src={item.product.image} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="text-center">
+                            <Package className="h-4 w-4 mx-auto text-zinc-300 mb-1" />
+                            <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-tighter">No Image</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-zinc-900 truncate">{item.product?.name || "Jewelry Piece"}</h3>
+                        <p className="text-sm text-zinc-500">Quantity: {quantity}</p>
+                        <p className="font-bold text-zinc-900 mt-1">${unitPrice * quantity}</p>
+                      </div>
                     </div>
-                    {/* --- UPDATED IMAGE PART END --- */}
-
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-zinc-900 truncate">{item.product?.name || "Jewelry Piece"}</h3>
-                      <p className="text-sm text-zinc-500">Quantity: {quantity}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-zinc-900">${unitPrice * quantity}</p>
-                      {quantity > 1 && <p className="text-[10px] text-zinc-400">${unitPrice} each</p>}
-                    </div>
+                    {/* 3. Buy Again Button */}
+                    <Link 
+                      href={`/products/${item.product?.slug || ''}`}
+                      className="flex items-center justify-center gap-2 w-full py-2 border rounded-lg text-sm font-semibold hover:bg-zinc-50 transition no-print"
+                    >
+                      <RefreshCw className="h-3 w-3" /> Buy Again
+                    </Link>
                   </div>
                 );
               })}
