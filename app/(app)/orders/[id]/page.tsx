@@ -2,7 +2,9 @@ import { client } from "@/sanity/lib/client";
 import { notFound, redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
-import { ArrowLeft, Package, MessageCircle, Printer, RefreshCw } from "lucide-react";
+import { ArrowLeft, Package, MessageCircle, RefreshCw } from "lucide-react";
+// This is the functional button that won't crash your site
+import PrintButton from "@/components/PrintButton";
 
 async function getOrderDetails(id: string) {
   return client.fetch(
@@ -32,26 +34,24 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
   const order = await getOrderDetails(id);
 
+  // Security check to ensure the user only sees their own jewelry orders
   if (!order || order.email?.toLowerCase() !== userEmail?.toLowerCase()) {
     notFound();
   }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-24">
-      {/* Navigation Header */}
+      {/* --- NAVIGATION HEADER --- */}
       <div className="flex justify-between items-center mb-8">
         <Link href="/orders" className="flex items-center text-sm text-zinc-500 hover:text-black transition-colors">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to My Orders
         </Link>
-        {/* Safe print button: Hidden during server render */}
-        <button 
-          className="flex items-center gap-2 text-sm font-semibold text-zinc-600 hover:text-black hidden md:flex"
-          // We don't use window.print directly here to avoid the server crash
-        >
-          <Printer className="h-4 w-4" /> Order Summary
-        </button>
+        
+        {/* WE REPLACED THE OLD BUTTON WITH THIS ONE COMPONENT */}
+        <PrintButton />
       </div>
 
+      {/* --- ORDER TITLE AND STATUS --- */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b pb-8">
         <div>
           <h1 className="text-3xl font-bold text-zinc-900">Order Details</h1>
@@ -63,6 +63,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       </div>
 
       <div className="grid gap-8 lg:grid-cols-3">
+        {/* --- ITEMS LIST --- */}
         <div className="lg:col-span-2 space-y-4">
           <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b bg-zinc-50/50 flex justify-between items-center">
@@ -84,6 +85,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 return (
                   <div key={idx} className="p-6">
                     <div className="flex gap-4 items-center mb-4">
+                      {/* Fixed Jewelry Image Resolution */}
                       <div className="h-20 w-20 rounded-lg bg-zinc-50 overflow-hidden shrink-0 border border-zinc-100 flex items-center justify-center">
                         {item.product?.image ? (
                           <img src={item.product.image} alt="" className="h-full w-full object-cover" />
@@ -100,7 +102,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                         <p className="font-bold text-zinc-900 mt-1">${unitPrice * quantity}</p>
                       </div>
                     </div>
-                    {/* Safe Buy Again link */}
+                    {/* Buy Again Link */}
                     <Link 
                       href={`/products/${item.product?.slug || ''}`}
                       className="flex items-center justify-center gap-2 w-full py-2 border rounded-lg text-sm font-semibold hover:bg-zinc-50 transition"
@@ -114,6 +116,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           </div>
         </div>
 
+        {/* --- SUMMARY SIDEBAR --- */}
         <div className="space-y-6">
           <div className="rounded-xl border bg-white p-6 shadow-sm">
             <h2 className="font-bold mb-4 text-sm text-zinc-700">Order Summary</h2>
