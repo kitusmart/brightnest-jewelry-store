@@ -1,4 +1,4 @@
-import { ShippingEmail } from "@/components/emails/ShippingEmail";
+import ShippingEmail from "@/components/emails/ShippingEmail";
 import { Resend } from "resend";
 import { NextResponse } from "next/server";
 
