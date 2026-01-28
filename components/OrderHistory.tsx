@@ -1,39 +1,57 @@
 import React from 'react';
+import Link from 'next/link';
 
 interface Order {
   _id: string;
   orderNumber: string;
   orderDate: string;
   status: string;
-  totalPrice: number;
+  totalPrice: number | string;
   trackingNumber?: string;
 }
 
 export default function OrderHistory({ orders }: { orders: Order[] }) {
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-6" style={{ color: '#D4AF37' }}>My Jewelry Orders</h2>
+    <div className="max-w-4xl mx-auto p-6">
+      <h2 className="text-3xl font-bold mb-8" style={{ color: '#D4AF37' }}>My Jewelry Orders</h2>
+      
       {orders.length === 0 ? (
-        <p>You haven't placed any orders yet.</p>
+        <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
+          <p className="text-gray-500 mb-4">You haven't placed any orders yet.</p>
+          <Link href="/" className="font-semibold" style={{ color: '#D4AF37' }}>
+            Start Shopping
+          </Link>
+        </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {orders.map((order) => (
-            <div key={order._id} className="border rounded-lg p-4 shadow-sm bg-white">
-              <div className="flex justify-between items-center border-b pb-2 mb-2">
-                <span className="font-semibold text-sm text-gray-500">Order #{order.orderNumber}</span>
-                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                  order.status === 'Shipped' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                }`}>
-                  {order.status}
-                </span>
-              </div>
-              <p className="text-sm">Placed on: {new Date(order.orderDate).toLocaleDateString()}</p>
-              <p className="font-bold mt-2">Total: ${order.totalPrice}</p>
-              {order.trackingNumber && (
-                <div className="mt-3 p-2 bg-gray-50 rounded text-sm">
-                  <strong>Tracking:</strong> {order.trackingNumber}
+            <div key={order._id} className="bg-white border rounded-xl p-6 shadow-sm hover:shadow-md transition">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <p className="text-xs text-gray-400 uppercase font-bold">Order ID</p>
+                  <p className="font-mono font-bold">#{order.orderNumber}</p>
                 </div>
-              )}
+                <div className="text-right">
+                   <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                    order.status === 'Shipped' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {order.status}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <p className="text-sm text-gray-600">Date: {new Date(order.orderDate).toLocaleDateString()}</p>
+                <p className="text-sm font-bold text-right">Total: ${order.totalPrice}</p>
+              </div>
+
+              {/* Dynamic Link to your [id] folder */}
+              <Link 
+                href={`/orders/${order._id}`} 
+                className="w-full block text-center bg-black text-white py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 transition"
+              >
+                View Order Details
+              </Link>
             </div>
           ))}
         </div>
