@@ -138,11 +138,15 @@ export const orderType = defineType({
       email: "email",
       currency: "currency",
     },
-    prepare({ name, amount, orderId, email }) {
+    prepare({ name, amount, orderId, email, currency }) {
       const orderIdSnippet = `${orderId?.slice(0, 10)}...` || "New Order";
+
+      // Check if the currency is AUD to show $, otherwise default to ₹
+      const currencySymbol = currency?.toUpperCase() === "AUD" ? "$" : "₹";
+
       return {
         title: `${name || email || "Unknown Customer"}`,
-        subtitle: `₹${amount || 0} - ${orderIdSnippet}`,
+        subtitle: `${currencySymbol}${amount || 0} - ${orderIdSnippet}`,
         media: BasketIcon,
       };
     },
