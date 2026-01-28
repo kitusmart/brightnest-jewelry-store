@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCartStore } from "@/store/useCartStore";
-import { ShoppingBag, Check, XCircle } from "lucide-react";
+import { ShoppingBag, Check, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 export function ProductCard({ product }: { product: any }) {
@@ -19,87 +19,61 @@ export function ProductCard({ product }: { product: any }) {
     e.preventDefault();
     e.stopPropagation();
     if (isOutOfStock) return;
-
-    const itemInCart = cartItems.find((item: any) => item.product._id === product._id);
-    if (itemInCart && itemInCart.quantity >= product.stock) {
-      toast.error(`Only ${product.stock} pieces available`);
-      return;
-    }
-
     addItem(product, 1);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
 
   return (
-    <div className="group relative flex flex-col bg-white transition-all duration-700">
-      {/* 🖼️ IMAGE SECTION - Portrait 4:5 Aspect Ratio */}
+    <div className="group relative flex flex-col bg-white transition-all duration-1000">
+      {/* 🖼️ THE CANVAS - Increased spacing and softer shadows */}
       <Link
         href={`/products/${product.slug}`}
-        className="relative aspect-[4/5] w-full block overflow-hidden rounded-sm bg-[#fcfcfc]"
+        className="relative aspect-[3/4] w-full block overflow-hidden bg-[#F9F9F9]"
       >
         <img
           src={mainImage}
           alt={product.name}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110"
         />
         <img
           src={hoverImage}
           alt={product.name}
-          className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-700 ease-in-out group-hover:opacity-100"
+          className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000 group-hover:opacity-100"
         />
 
-        {/* 💎 MINIMALIST BADGES */}
-        <div className="absolute top-4 left-4 z-10">
+        {/* 💎 FLOATING MINIMALIST BADGE */}
+        <div className="absolute top-5 left-5 z-10">
           {product.badge && !isOutOfStock && (
-            <div className="bg-white/80 backdrop-blur-md text-[#D4AF37] text-[8px] font-bold px-3 py-1.5 uppercase tracking-[0.2em] shadow-sm border border-[#fbf7ed] flex items-center gap-2">
-              <span className="h-1 w-1 bg-[#D4AF37] rounded-full animate-pulse" />
+            <div className="bg-white/90 backdrop-blur-sm text-black text-[7px] font-black px-4 py-2 uppercase tracking-[0.3em] border border-zinc-100 shadow-sm">
               {product.badge}
             </div>
           )}
-          {isOutOfStock && (
-            <div className="bg-zinc-100/90 backdrop-blur-md text-zinc-500 text-[8px] font-bold px-3 py-1.5 uppercase tracking-[0.2em]">
-              Sold Out
-            </div>
-          )}
         </div>
 
-        {/* 🛒 FLOATING QUICK ADD - Appears on Hover */}
-        <div className="absolute inset-x-0 bottom-6 px-6 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 z-20">
-          <button
-            onClick={handleQuickAdd}
-            disabled={isAdded || isOutOfStock}
-            className={`w-full py-4 text-[9px] font-bold uppercase tracking-[0.3em] transition-all duration-300 shadow-xl flex items-center justify-center gap-3 ${
-              isAdded 
-                ? "bg-green-600 text-white" 
-                : "bg-white text-black hover:bg-black hover:text-white"
-            }`}
-          >
-            {isAdded ? (
-              <><Check size={14} strokeWidth={3} /> In Bag</>
-            ) : isOutOfStock ? (
-              "Out of Stock"
-            ) : (
-              <><ShoppingBag size={14} strokeWidth={1.5} /> Add to Bag</>
-            )}
-          </button>
-        </div>
+        {/* 🛒 ELEGANT QUICK ADD - Minimalist Plus Button */}
+        <button
+          onClick={handleQuickAdd}
+          disabled={isAdded || isOutOfStock}
+          className="absolute bottom-5 right-5 w-12 h-12 bg-white/95 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 border border-zinc-50 hover:bg-black hover:text-white"
+        >
+          {isAdded ? <Check size={18} strokeWidth={3} /> : <Plus size={20} strokeWidth={1} />}
+        </button>
       </Link>
 
-      {/* 📝 CONTENT SECTION - Centered & Refined */}
-      <div className="pt-6 pb-2 flex flex-col items-center text-center space-y-2">
-        <Link href={`/products/${product.slug}`} className="max-w-[90%]">
-          <h3 className="text-[11px] font-medium text-zinc-500 uppercase tracking-[0.15em] leading-relaxed transition-colors group-hover:text-black">
+      {/* 📝 THE TYPOGRAPHY - Centered, light, and airy */}
+      <div className="pt-8 pb-4 flex flex-col items-center text-center px-4">
+        <Link href={`/products/${product.slug}`}>
+          <h3 className="text-[10px] md:text-[11px] font-medium text-zinc-400 uppercase tracking-[0.25em] mb-3 transition-colors group-hover:text-black leading-relaxed max-w-[200px]">
             {product.name}
           </h3>
         </Link>
         
-        <div className="flex flex-col items-center">
-          <span className="text-[13px] font-serif tracking-widest text-zinc-900 mt-1">
-            ${product.price?.toLocaleString("en-AU")}
-          </span>
-          {/* Subtle "Offer" price text removed for cleaner look, added back if needed */}
-        </div>
+        <div className="h-[1px] w-8 bg-[#D4AF37]/30 mb-4 transition-all group-hover:w-16 group-hover:bg-[#D4AF37]" />
+
+        <span className="text-[14px] font-light tracking-[0.1em] text-black">
+          ${product.price?.toLocaleString("en-AU")}
+        </span>
       </div>
     </div>
   );
