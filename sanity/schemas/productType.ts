@@ -23,8 +23,8 @@ export const productType = defineType({
       group: "details",
       validation: (rule) => rule.required().error("Product name is required"),
     }),
-    
-    // 💎 NEW: LUXURY PRODUCT BADGE FIELD
+
+    // 💎 LUXURY PRODUCT BADGE (MOVED TO TOP FOR VISIBILITY)
     defineField({
       name: "badge",
       title: "Product Badge",
