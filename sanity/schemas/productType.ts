@@ -23,6 +23,16 @@ export const productType = defineType({
       group: "details",
       validation: (rule) => rule.required().error("Product name is required"),
     }),
+    
+    // 💎 NEW: LUXURY PRODUCT BADGE FIELD
+    defineField({
+      name: "badge",
+      title: "Product Badge",
+      type: "string",
+      group: "details",
+      description: "Text for the luxury badge (e.g., '18K GOLD', 'TARNISH FREE', 'BEST SELLER')",
+    }),
+
     defineField({
       name: "slug",
       title: "Slug",
@@ -34,7 +44,6 @@ export const productType = defineType({
       },
       validation: (rule) => rule.required().error("Slug is required"),
     }),
-    // 🟢 ADDED BACK: Description Field
     defineField({
       name: "description",
       title: "Description",

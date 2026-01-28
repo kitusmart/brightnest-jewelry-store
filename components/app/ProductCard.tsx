@@ -4,12 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { useCartStore } from "@/store/useCartStore";
 import { ShoppingCart, Check, XCircle } from "lucide-react";
-import { toast } from "sonner"; // Assuming you use sonner for errors
+import { toast } from "sonner";
 
 export function ProductCard({ product }: { product: any }) {
   const [isAdded, setIsAdded] = useState(false);
 
-  // 🟢 Access the items and addItem function from the store
   const addItem = useCartStore((state) => state.addItem);
   const cartItems = useCartStore((state) => state.items);
 
@@ -21,13 +20,11 @@ export function ProductCard({ product }: { product: any }) {
 
     if (isOutOfStock) return;
 
-    // 🟢 NEW: Check how many are already in the cart
     const itemInCart = cartItems.find(
       (item: any) => item.product._id === product._id,
     );
     const quantityInCart = itemInCart ? itemInCart.quantity : 0;
 
-    // 🟢 NEW: Block adding if it reaches the stock of 8
     if (quantityInCart >= product.stock) {
       toast.error(`Only ${product.stock} pieces available`);
       return;
@@ -62,16 +59,34 @@ export function ProductCard({ product }: { product: any }) {
           className="absolute inset-0 w-full h-full object-cover opacity-0 transition-all duration-700 group-hover:opacity-100 group-hover:scale-110"
         />
 
-        {/* Sold Out Badge */}
-        {isOutOfStock ? (
-          <div className="absolute top-3 left-3 bg-red-600 text-white text-[9px] font-black px-3 py-1 rounded-full tracking-[0.2em] z-10 uppercase shadow-lg">
-            Sold Out
-          </div>
-        ) : (
-          <div className="absolute top-3 left-3 bg-black text-white text-[9px] font-black px-3 py-1 rounded-full tracking-[0.2em] z-10 uppercase shadow-lg">
-            Offer
-          </div>
-        )}
+        {/* 💎 LUXURY DYNAMIC BADGES */}
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
+          {isOutOfStock ? (
+            <div className="bg-red-600 text-white text-[9px] font-black px-3 py-1.5 rounded-full tracking-[0.2em] uppercase shadow-lg">
+              Sold Out
+            </div>
+          ) : (
+            <>
+              {/* This shows the badge text you type in Sanity (e.g., "Tarnish Free" or "18k Gold") */}
+              {product.badge && (
+                <div className="bg-white/90 backdrop-blur-md text-[#D4AF37] text-[9px] font-black px-3 py-1.5 rounded-full tracking-[0.2em] uppercase shadow-sm border border-[#fbf7ed] flex items-center gap-1.5">
+                   <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D4AF37] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#D4AF37]"></span>
+                  </span>
+                  {product.badge}
+                </div>
+              )}
+              
+              {/* Fallback "Offer" badge only if no custom badge is set */}
+              {!product.badge && (
+                <div className="bg-black text-white text-[9px] font-black px-3 py-1.5 rounded-full tracking-[0.2em] uppercase shadow-lg">
+                  Offer
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </Link>
 
       {/* 📝 CONTENT SECTION */}
@@ -90,7 +105,6 @@ export function ProductCard({ product }: { product: any }) {
           </span>
         </div>
 
-        {/* 🟢 The Button */}
         <button
           onClick={handleQuickAdd}
           disabled={isAdded || isOutOfStock}
