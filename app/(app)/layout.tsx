@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { SanityLive } from "@/sanity/lib/live";
 import { Toaster } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer"; // 1. Added Import
 import { CartSheet } from "@/components/app/CartSheet";
 import { ChatSheet } from "@/components/app/ChatSheet";
 import { AppShell } from "@/components/app/AppShell";
@@ -16,6 +17,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
           <AppShell>
             <Navbar />
             <main>{children}</main>
+            <Footer /> {/* 2. Added Footer Here */}
           </AppShell>
           <CartSheet />
           <ChatSheet />
