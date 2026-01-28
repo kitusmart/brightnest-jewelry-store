@@ -58,13 +58,11 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
     id,
     amount_total,
     currency,
-    metadata,
     payment_intent,
     customer_details,
     total_details,
   } = session;
 
-  // Retrieve expanded line items to get product metadata
   const { line_items } = await stripe.checkout.sessions.retrieve(id, {
     expand: ["line_items.data.price.product"],
   });
@@ -75,7 +73,7 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
       _key: crypto.randomUUID(),
       product: {
         _type: "reference",
-        _ref: product?.metadata?.sanityProductId, // Ensure this matches your metadata key
+        _ref: product?.metadata?.sanityProductId,
       },
       quantity: item.quantity,
     };
@@ -97,8 +95,15 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
     status: "pending",
     orderDate: new Date().toISOString(),
     items: orderItems,
-    // Note: If you add shippingAddress to your schema,
-    // you would map customer_details.address here.
+    // This section maps the Stripe address to your Sanity shippingAddress object
+    shippingAddress: {
+      city: customer_details?.address?.city,
+      country: customer_details?.address?.country,
+      line1: customer_details?.address?.line1,
+      line2: customer_details?.address?.line2,
+      postalCode: customer_details?.address?.postal_code,
+      state: customer_details?.address?.state,
+    },
   });
 
   return order;

@@ -48,6 +48,20 @@ export const orderType = defineType({
       group: "customer",
     }),
     defineField({
+      name: "shippingAddress",
+      title: "Shipping Address",
+      type: "object",
+      group: "customer",
+      fields: [
+        { name: "city", type: "string" },
+        { name: "country", type: "string" },
+        { name: "line1", type: "string" },
+        { name: "line2", type: "string" },
+        { name: "postalCode", type: "string" },
+        { name: "state", type: "string" },
+      ],
+    }),
+    defineField({
       name: "items",
       title: "Products Ordered",
       type: "array",
