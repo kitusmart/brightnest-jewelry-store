@@ -30,10 +30,7 @@ export default async function OrdersPage() {
 
   return (
     <main className="min-h-screen pt-24 bg-gray-50">
-      {/* This yellow box will tell us exactly what Clerk is seeing */}
-      <div className="bg-yellow-100 p-2 text-center text-xs border-b">
-        Debug: Clerk Email is <strong>{userEmail}</strong>
-      </div>
+      
       <OrderHistory orders={orders} />
     </main>
   );
