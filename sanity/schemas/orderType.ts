@@ -42,6 +42,12 @@ export const orderType = defineType({
       group: "payment",
     }),
     defineField({
+      name: "stripeCustomerId",
+      title: "Stripe Customer ID",
+      type: "string",
+      group: "customer",
+    }),
+    defineField({
       name: "items",
       title: "Products Ordered",
       type: "array",
@@ -65,7 +71,7 @@ export const orderType = defineType({
             },
             prepare({ product, quantity, image }) {
               return {
-                title: `${product} x ${quantity}`,
+                title: `${product || "Product"} x ${quantity}`,
                 media: image,
               };
             },
@@ -83,6 +89,12 @@ export const orderType = defineType({
     defineField({
       name: "currency",
       type: "string",
+      group: "payment",
+    }),
+    defineField({
+      name: "amountDiscount",
+      title: "Amount Discount",
+      type: "number",
       group: "payment",
     }),
     defineField({

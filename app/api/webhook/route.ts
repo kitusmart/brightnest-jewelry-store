@@ -64,18 +64,22 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
     total_details,
   } = session;
 
+  // Retrieve expanded line items to get product metadata
   const { line_items } = await stripe.checkout.sessions.retrieve(id, {
-    expand: ["line_items"],
+    expand: ["line_items.data.price.product"],
   });
 
-  const orderItems = line_items?.data?.map((item) => ({
-    _key: crypto.randomUUID(),
-    product: {
-      _type: "reference",
-      _ref: (item.price?.product as Stripe.Product)?.metadata?.sanityProductId,
-    },
-    quantity: item.quantity,
-  }));
+  const orderItems = line_items?.data?.map((item) => {
+    const product = item.price?.product as Stripe.Product;
+    return {
+      _key: crypto.randomUUID(),
+      product: {
+        _type: "reference",
+        _ref: product?.metadata?.sanityProductId, // Ensure this matches your metadata key
+      },
+      quantity: item.quantity,
+    };
+  });
 
   const order = await backendClient.create({
     _type: "order",
@@ -83,7 +87,7 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
     stripeCheckoutSessionId: id,
     stripePaymentIntentId: payment_intent as string,
     customerName: customer_details?.name,
-    stripeCustomerId: customer_details?.email, // Using email as customer ID for now
+    stripeCustomerId: session.customer as string,
     email: customer_details?.email,
     currency,
     amountDiscount: total_details?.amount_discount
@@ -93,6 +97,8 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
     status: "pending",
     orderDate: new Date().toISOString(),
     items: orderItems,
+    // Note: If you add shippingAddress to your schema,
+    // you would map customer_details.address here.
   });
 
   return order;
