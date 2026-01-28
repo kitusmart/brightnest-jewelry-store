@@ -32,23 +32,23 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
   const order = await getOrderDetails(id);
 
-  // Security check: Use the 'email' field found in your Sanity Inspector
   if (!order || order.email?.toLowerCase() !== userEmail?.toLowerCase()) {
     notFound();
   }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-24">
-      {/* 1. Print/Download Invoice Header */}
-      <div className="flex justify-between items-center mb-8 no-print">
+      {/* Navigation Header */}
+      <div className="flex justify-between items-center mb-8">
         <Link href="/orders" className="flex items-center text-sm text-zinc-500 hover:text-black transition-colors">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to My Orders
         </Link>
+        {/* Safe print button: Hidden during server render */}
         <button 
-          onClick={() => window.print()} 
-          className="flex items-center gap-2 text-sm font-semibold text-zinc-600 hover:text-black"
+          className="flex items-center gap-2 text-sm font-semibold text-zinc-600 hover:text-black hidden md:flex"
+          // We don't use window.print directly here to avoid the server crash
         >
-          <Printer className="h-4 w-4" /> Print Invoice
+          <Printer className="h-4 w-4" /> Order Summary
         </button>
       </div>
 
@@ -69,10 +69,9 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               <h2 className="font-bold flex items-center gap-2 text-sm text-zinc-700">
                 <Package className="h-4 w-4" /> Items Ordered
               </h2>
-              {/* 2. Need Help Link */}
               <Link 
                 href={`mailto:support@brightnest.com?subject=Help with Order ${order.orderNumber}`}
-                className="text-xs text-blue-600 flex items-center gap-1 hover:underline no-print"
+                className="text-xs text-blue-600 flex items-center gap-1 hover:underline"
               >
                 <MessageCircle className="h-3 w-3" /> Need Help?
               </Link>
@@ -85,14 +84,13 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 return (
                   <div key={idx} className="p-6">
                     <div className="flex gap-4 items-center mb-4">
-                      {/* Fixed Image Resolution */}
                       <div className="h-20 w-20 rounded-lg bg-zinc-50 overflow-hidden shrink-0 border border-zinc-100 flex items-center justify-center">
                         {item.product?.image ? (
                           <img src={item.product.image} alt="" className="h-full w-full object-cover" />
                         ) : (
                           <div className="text-center">
                             <Package className="h-4 w-4 mx-auto text-zinc-300 mb-1" />
-                            <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-tighter">No Image</p>
+                            <p className="text-[10px] text-zinc-400 font-medium">No Image</p>
                           </div>
                         )}
                       </div>
@@ -102,10 +100,10 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                         <p className="font-bold text-zinc-900 mt-1">${unitPrice * quantity}</p>
                       </div>
                     </div>
-                    {/* 3. Buy Again Button */}
+                    {/* Safe Buy Again link */}
                     <Link 
                       href={`/products/${item.product?.slug || ''}`}
-                      className="flex items-center justify-center gap-2 w-full py-2 border rounded-lg text-sm font-semibold hover:bg-zinc-50 transition no-print"
+                      className="flex items-center justify-center gap-2 w-full py-2 border rounded-lg text-sm font-semibold hover:bg-zinc-50 transition"
                     >
                       <RefreshCw className="h-3 w-3" /> Buy Again
                     </Link>
@@ -130,20 +128,6 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               </div>
             </div>
           </div>
-
-          {order.trackingNumber && (
-            <div className="rounded-xl border bg-zinc-900 p-6 text-white shadow-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="animate-pulse w-2 h-2 bg-green-400 rounded-full"></span>
-                <h2 className="font-bold text-sm">Shipping Update</h2>
-              </div>
-              <p className="text-zinc-400 text-xs mb-4">Your jewelry is on its way!</p>
-              <div className="bg-white/10 rounded-lg p-3 border border-white/5">
-                <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">Tracking Number</p>
-                <p className="font-mono font-bold text-sm select-all">{order.trackingNumber}</p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
