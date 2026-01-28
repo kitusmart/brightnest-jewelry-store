@@ -1,6 +1,5 @@
 import { BasketIcon } from "@sanity/icons";
 import { defineArrayMember, defineField, defineType } from "sanity";
-import { ORDER_STATUS_SANITY_LIST } from "@/lib/constants/orderStatus";
 
 export const orderType = defineType({
   name: "order",
@@ -18,10 +17,33 @@ export const orderType = defineType({
       type: "string",
       group: "details",
       readOnly: true,
-      validation: (rule) => [rule.required().error("Order number is required")],
+    }),
+    defineField({
+      name: "stripeCheckoutSessionId",
+      type: "string",
+      group: "payment",
+      readOnly: true,
+    }),
+    defineField({
+      name: "customerName",
+      title: "Customer Name",
+      type: "string",
+      group: "customer",
+    }),
+    defineField({
+      name: "email",
+      title: "Customer Email",
+      type: "string",
+      group: "customer",
+    }),
+    defineField({
+      name: "stripePaymentIntentId",
+      type: "string",
+      group: "payment",
     }),
     defineField({
       name: "items",
+      title: "Products Ordered",
       type: "array",
       group: "details",
       of: [
@@ -32,33 +54,19 @@ export const orderType = defineType({
               name: "product",
               type: "reference",
               to: [{ type: "product" }],
-              validation: (rule) => rule.required(),
             }),
-            defineField({
-              name: "quantity",
-              type: "number",
-              initialValue: 1,
-              validation: (rule) => rule.required().min(1),
-            }),
-            defineField({
-              name: "priceAtPurchase",
-              type: "number",
-              description: "Price at time of purchase",
-              validation: (rule) => rule.required(),
-            }),
+            defineField({ name: "quantity", type: "number" }),
           ],
           preview: {
             select: {
-              title: "product.name",
+              product: "product.name",
               quantity: "quantity",
-              price: "priceAtPurchase",
-              media: "product.images.0",
+              image: "product.image",
             },
-            prepare({ title, quantity, price, media }) {
+            prepare({ product, quantity, image }) {
               return {
-                title: title ?? "Product",
-                subtitle: `Qty: ${quantity} • $${price}`,
-                media,
+                title: `${product} x ${quantity}`,
+                media: image,
               };
             },
           },
@@ -66,69 +74,49 @@ export const orderType = defineType({
       ],
     }),
     defineField({
-      name: "total", // 🟢 This must match the webhook's 'total'
+      name: "totalPrice",
       title: "Total Price",
       type: "number",
-      group: "details",
-      readOnly: true,
-      description: "Total order amount in AUD",
+      group: "payment",
+      validation: (Rule) => Rule.required().min(0),
+    }),
+    defineField({
+      name: "currency",
+      type: "string",
+      group: "payment",
     }),
     defineField({
       name: "status",
       type: "string",
       group: "details",
-      initialValue: "paid",
       options: {
-        list: ORDER_STATUS_SANITY_LIST,
-        layout: "radio",
+        list: [
+          { title: "Pending", value: "pending" },
+          { title: "Paid", value: "paid" },
+          { title: "Shipped", value: "shipped" },
+          { title: "Delivered", value: "delivered" },
+        ],
       },
     }),
     defineField({
-      name: "customerName", // 🟢 Added this to store the name sent by the webhook
-      type: "string",
-      title: "Customer Name",
-      group: "customer",
-    }),
-    defineField({
-      name: "customer",
-      type: "reference",
-      to: [{ type: "customer" }],
-      group: "customer",
-      description: "Reference to the customer record",
-    }),
-    defineField({
-      name: "email",
-      type: "string",
-      group: "customer",
-      readOnly: true,
-    }),
-    defineField({
-      name: "stripePaymentId",
-      title: "Stripe Payment ID",
-      type: "string",
-      group: "payment",
-      readOnly: true,
-      description: "Stripe payment intent ID",
-    }),
-    defineField({
-      name: "createdAt",
+      name: "orderDate",
       type: "datetime",
       group: "details",
-      readOnly: true,
-      initialValue: () => new Date().toISOString(),
     }),
   ],
   preview: {
     select: {
-      orderNumber: "orderNumber",
+      name: "customerName",
+      amount: "totalPrice",
+      orderId: "orderNumber",
       email: "email",
-      total: "total", // 🟢 Matches the field name above
-      status: "status",
     },
-    prepare({ orderNumber, email, total, status }) {
+    prepare({ name, amount, orderId, email }) {
+      const orderIdSnippet = `${orderId?.slice(0, 10)}...` || "New Order";
       return {
-        title: `Order ${orderNumber ?? "N/A"}`,
-        subtitle: `${email ?? "No email"} • $${total ?? 0} • ${status ?? "paid"}`,
+        title: `${name || email || "Unknown Customer"}`,
+        subtitle: `₹${amount || 0} - ${orderIdSnippet}`,
+        media: BasketIcon,
       };
     },
   },
