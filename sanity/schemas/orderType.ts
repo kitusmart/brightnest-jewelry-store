@@ -10,6 +10,7 @@ export const orderType = defineType({
     { name: "details", title: "Order Details", default: true },
     { name: "customer", title: "Customer" },
     { name: "payment", title: "Payment" },
+    { name: "shipping", title: "Shipping" }, // 🟢 New Group
   ],
   fields: [
     defineField({
@@ -60,6 +61,20 @@ export const orderType = defineType({
         { name: "postalCode", type: "string" },
         { name: "state", type: "string" },
       ],
+    }),
+    // 🟢 NEW SHIPPING FIELDS
+    defineField({
+      name: "trackingNumber",
+      title: "Tracking Number",
+      type: "string",
+      group: "shipping",
+      description: "Enter the courier tracking ID here",
+    }),
+    defineField({
+      name: "shippedDate",
+      title: "Shipped Date",
+      type: "datetime",
+      group: "shipping",
     }),
     defineField({
       name: "items",
@@ -140,8 +155,6 @@ export const orderType = defineType({
     },
     prepare({ name, amount, orderId, email, currency }) {
       const orderIdSnippet = `${orderId?.slice(0, 10)}...` || "New Order";
-
-      // Check if the currency is AUD to show $, otherwise default to ₹
       const currencySymbol = currency?.toUpperCase() === "AUD" ? "$" : "₹";
 
       return {
