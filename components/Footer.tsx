@@ -37,7 +37,10 @@ export default function Footer() {
             <ul className="space-y-4 text-sm text-zinc-500">
               <li><Link href="/orders" className="hover:text-[#D4AF37] transition">My Orders</Link></li>
               <li><Link href="/policies" className="hover:text-[#D4AF37] transition">Shipping & Returns</Link></li>
-              <li><Link href="/policies" className="hover:text-[#D4AF37] transition">Jewelry Care</Link></li>
+              
+              {/* UPDATED THIS LINE BELOW TO POINT TO CARE-GUIDE */}
+              <li><Link href="/care-guide" className="hover:text-[#D4AF37] transition">Jewelry Care</Link></li>
+              
               <li><Link href="#" className="hover:text-[#D4AF37] transition">Contact Us</Link></li>
             </ul>
           </div>
