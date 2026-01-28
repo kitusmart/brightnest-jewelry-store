@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Instagram, Facebook, Twitter, Mail, MapPin, Phone } from "lucide-react";
+import { Instagram, Facebook, Twitter, MessageCircle } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -37,11 +37,18 @@ export default function Footer() {
             <ul className="space-y-4 text-sm text-zinc-500">
               <li><Link href="/orders" className="hover:text-[#D4AF37] transition">My Orders</Link></li>
               <li><Link href="/policies" className="hover:text-[#D4AF37] transition">Shipping & Returns</Link></li>
-              
-              {/* UPDATED THIS LINE BELOW TO POINT TO CARE-GUIDE */}
               <li><Link href="/care-guide" className="hover:text-[#D4AF37] transition">Jewelry Care</Link></li>
               
-              <li><Link href="#" className="hover:text-[#D4AF37] transition">Contact Us</Link></li>
+              {/* UPDATED: WHATSAPP SUPPORT LINK */}
+              <li>
+                <Link 
+                  href="https://wa.me/919985394369?text=Hello%20Brightnest!%20I%20have%20a%20question%20about%20your%20jewelry." 
+                  target="_blank"
+                  className="hover:text-[#D4AF37] transition flex items-center gap-2"
+                >
+                  <MessageCircle size={14} /> WhatsApp Support
+                </Link>
+              </li>
             </ul>
           </div>
 

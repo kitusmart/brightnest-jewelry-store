@@ -70,13 +70,17 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               <h2 className="font-bold flex items-center gap-2 text-sm text-zinc-700">
                 <Package className="h-4 w-4" /> Items Ordered
               </h2>
+              
+              {/* UPDATED: WHATSAPP LINK WITH YOUR NUMBER */}
               <Link 
-                href={`mailto:support@brightnest.com?subject=Help with Order ${order.orderNumber}`}
-                className="text-xs text-blue-600 flex items-center gap-1 hover:underline"
+                href={`https://wa.me/919985394369?text=Hello%20Brightnest!%20I%20need%20help%20with%20my%20Order%3A%20${order.orderNumber}`}
+                target="_blank"
+                className="text-xs text-green-600 flex items-center gap-1 hover:underline no-print font-semibold"
               >
-                <MessageCircle className="h-3 w-3" /> Need Help?
+                <MessageCircle className="h-3 w-3" /> Chat on WhatsApp
               </Link>
             </div>
+            
             <div className="divide-y">
               {order.items?.map((item: any, idx: number) => {
                 const unitPrice = item.priceAtPurchase ?? item.product?.price ?? 0;
