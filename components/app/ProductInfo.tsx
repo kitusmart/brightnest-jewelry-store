@@ -8,11 +8,10 @@ export function ProductInfo({ product }: { product: any }) {
   const [isAdded, setIsAdded] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
 
-  // 🟢 NEW: Check if the item is completely sold out
+  // 🟢 Stock Logic
   const isOutOfStock = product.stock <= 0;
 
   const handleAddToCart = () => {
-    // 🟢 NEW: Extra safety - don't add if quantity exceeds stock
     if (quantity > product.stock) return;
 
     addItem(product, quantity);
@@ -21,74 +20,126 @@ export function ProductInfo({ product }: { product: any }) {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-serif text-gray-900 tracking-tight uppercase">
+    <div className="flex flex-col gap-8">
+      {/* 1. HEADER SECTION (Name, Price, Stock) */}
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-serif text-gray-900 tracking-tight uppercase leading-snug">
           {product.name}
         </h1>
-        <p className="text-2xl font-bold text-[#D4AF37]">
-          ${product.price?.toLocaleString("en-AU")}
-        </p>
 
-        {/* 🟢 NEW: Show current stock status */}
-        <p
-          className={`text-[11px] font-bold uppercase tracking-widest ${isOutOfStock ? "text-red-500" : "text-green-600"}`}
+        <div className="flex items-center justify-between">
+          <p className="text-2xl font-bold text-[#D4AF37]">
+            ${product.price?.toLocaleString("en-AU")}
+          </p>
+
+          {/* Stock Status Badge */}
+          <div
+            className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
+              isOutOfStock
+                ? "bg-red-50 text-red-600 border-red-100"
+                : "bg-green-50 text-green-700 border-green-100"
+            }`}
+          >
+            {isOutOfStock ? "Sold Out" : `${product.stock} In Stock`}
+          </div>
+        </div>
+      </div>
+
+      {/* 🟢 2. JEWELRY DETAILS GRID (Material, Color, Weight) */}
+      <div className="grid grid-cols-3 gap-4 border-y border-gray-100 py-6">
+        {/* Material */}
+        <div className="flex flex-col gap-1 border-r border-gray-100 last:border-0">
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            Material
+          </span>
+          <span className="text-sm font-semibold text-gray-900 capitalize">
+            {product.material || "N/A"}
+          </span>
+        </div>
+
+        {/* Color */}
+        <div className="flex flex-col gap-1 border-r border-gray-100 last:border-0 pl-4">
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            Color
+          </span>
+          <span className="text-sm font-semibold text-gray-900 capitalize">
+            {product.color || "N/A"}
+          </span>
+        </div>
+
+        {/* Weight */}
+        <div className="flex flex-col gap-1 pl-4">
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            Weight
+          </span>
+          <span className="text-sm font-semibold text-gray-900">
+            {product.weight || "-"}
+          </span>
+        </div>
+      </div>
+
+      {/* 3. ACTIONS SECTION */}
+      <div className="flex flex-col gap-4">
+        {/* Quantity Selector */}
+        <div
+          className={`flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 bg-white ${isOutOfStock ? "opacity-50 pointer-events-none" : ""}`}
+        >
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+            Quantity
+          </span>
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-lg transition-colors"
+            >
+              −
+            </button>
+            <span className="font-bold text-gray-900 w-4 text-center">
+              {quantity}
+            </span>
+            <button
+              onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-lg transition-colors"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Add to Cart Button */}
+        <button
+          onClick={handleAddToCart}
+          disabled={isAdded || isOutOfStock}
+          className={`w-full py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[11px] transition-all duration-300 shadow-lg active:scale-95 flex items-center justify-center gap-2 ${
+            isOutOfStock
+              ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+              : isAdded
+                ? "bg-green-700 text-white cursor-default"
+                : "bg-black text-white hover:bg-[#D4AF37] hover:text-black"
+          }`}
         >
           {isOutOfStock
-            ? "❌ Sold Out"
-            : `✅ ${product.stock} pieces Available`}
-        </p>
-      </div>
-
-      {/* 🔢 Modern Quantity Selector */}
-      <div
-        className={`flex items-center border border-gray-200 rounded-lg w-full max-w-[400px] h-12 bg-white overflow-hidden ${isOutOfStock ? "opacity-30 pointer-events-none" : ""}`}
-      >
-        <button
-          onClick={() => setQuantity(Math.max(1, quantity - 1))}
-          className="flex-1 h-full flex items-center justify-center hover:bg-gray-50 transition-colors text-lg"
-        >
-          −
-        </button>
-        <span className="flex-1 text-center font-bold text-sm border-x border-gray-100">
-          {quantity}
-        </span>
-        <button
-          // 🟢 NEW: Prevent increasing quantity past the stock limit
-          onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-          className="flex-1 h-full flex items-center justify-center hover:bg-gray-50 transition-colors text-lg"
-        >
-          +
-        </button>
-      </div>
-
-      {/* 🛒 PRO BUTTON */}
-      <button
-        onClick={handleAddToCart}
-        // 🟢 NEW: Disable button if out of stock OR recently added
-        disabled={isAdded || isOutOfStock}
-        className={`w-full max-w-[400px] py-4 rounded-lg font-black uppercase tracking-[0.2em] text-[11px] transition-all duration-300 shadow-md active:scale-95 ${
-          isOutOfStock
-            ? "bg-gray-400 text-white cursor-not-allowed shadow-none"
+            ? "Sold Out"
             : isAdded
-              ? "bg-green-600 text-white cursor-default"
-              : "bg-black text-white hover:bg-[#D4AF37] hover:text-black"
-        }`}
-      >
-        {isOutOfStock
-          ? "Out of Stock 🚫"
-          : isAdded
-            ? "Added to Bag! ✓"
-            : "Add to Basket 🛍️"}
-      </button>
+              ? "Added to Bag ✓"
+              : "Add to Basket"}
+        </button>
 
-      <button className="w-full max-w-[400px] bg-[#e65100] text-white py-3 rounded-lg font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 opacity-90 hover:opacity-100 transition-opacity">
-        ✨ Ask AI for similar products
-      </button>
+        {/* AI Button */}
+        <button className="w-full bg-[#FF6B00]/10 text-[#FF6B00] py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-[#FF6B00] hover:text-white transition-all duration-300">
+          ✨ Ask AI for Similar Products
+        </button>
+      </div>
 
-      <div className="mt-4 text-[13px] text-gray-500 leading-relaxed border-t border-gray-100 pt-6">
-        {product.description ||
-          "Indulge in the unmatched elegance of our handcrafted collections."}
+      {/* 4. DESCRIPTION TEXT */}
+      <div className="pt-4 border-t border-gray-100">
+        <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+          Description
+        </h3>
+        <p className="text-sm text-gray-600 leading-relaxed font-light">
+          {product.description ||
+            "Indulge in the unmatched elegance of our handcrafted collections."}
+        </p>
       </div>
     </div>
   );

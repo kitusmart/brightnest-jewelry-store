@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingBag, Search, Menu, User } from "lucide-react";
+import { useState } from "react";
+import { ShoppingBag, Search, Menu, User, X } from "lucide-react";
 import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { useCartStore } from "@/store/useCartStore";
 
 export default function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
   const items = useCartStore((state) => state.items);
   const cartCount = items.reduce((total, item) => total + item.quantity, 0);
+
+  const toggleMenu = () => setIsOpen(!isOpen);
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white shadow-sm">
@@ -16,9 +20,14 @@ export default function Navbar() {
         <div className="flex justify-between items-center relative">
           {/* Left: Search & Mobile Menu */}
           <div className="flex items-center gap-4 flex-1">
-            <button className="md:hidden text-[#D4AF37]">
-              <Menu size={24} />
+            {/* 🟢 FIXED MOBILE MENU BUTTON */}
+            <button
+              onClick={toggleMenu}
+              className="md:hidden text-[#D4AF37] hover:opacity-80 transition-opacity"
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
+
             <button className="hidden md:block text-[#D4AF37] hover:opacity-80 transition-opacity">
               <Search size={22} strokeWidth={1.5} />
             </button>
@@ -29,6 +38,7 @@ export default function Navbar() {
             <Link
               href="/"
               className="flex flex-col items-center justify-center"
+              onClick={() => setIsOpen(false)} // Close menu if logo clicked
             >
               <h1 className="text-3xl md:text-5xl font-serif tracking-widest text-[#D4AF37] font-normal">
                 BRIGHTNEST
@@ -72,59 +82,50 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* 2. NAVIGATION LINKS ROW */}
+      {/* 2. DESKTOP NAVIGATION LINKS (Hidden on Mobile) */}
       <div className="hidden md:flex justify-center border-t border-[#fbf7ed] bg-white relative">
         <div className="flex items-center gap-10 text-[12px] font-medium tracking-[0.15em] text-[#D4AF37] py-4 uppercase">
-          <Link
-            href="/"
-            className="hover:text-black transition-colors duration-300"
-          >
-            Home
-          </Link>
-
-          <Link
-            href="/?category=necklaces"
-            className="hover:text-black transition-colors duration-300"
-          >
-            Necklaces
-          </Link>
-
-          <Link
-            href="/?category=earrings"
-            className="hover:text-black transition-colors duration-300"
-          >
-            Earrings
-          </Link>
-
-          <Link
-            href="/?category=rings"
-            className="hover:text-black transition-colors duration-300"
-          >
-            Rings
-          </Link>
-
-          <Link
-            href="/?category=bracelets"
-            className="hover:text-black transition-colors duration-300"
-          >
-            Bangles
-          </Link>
-
-          <Link
-            href="/?category=kada"
-            className="hover:text-black transition-colors duration-300"
-          >
-            Kada
-          </Link>
-
-          <Link
-            href="/?category=combos"
-            className="hover:text-black transition-colors duration-300"
-          >
-            Combos
-          </Link>
+          <NavLinks />
         </div>
       </div>
+
+      {/* 3. 🟢 MOBILE MENU DROPDOWN (Visible only when open) */}
+      {isOpen && (
+        <div className="md:hidden absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-lg py-6 flex flex-col items-center gap-6 z-50 animate-in slide-in-from-top-5 duration-300">
+          <div className="flex flex-col items-center gap-6 text-[14px] font-medium tracking-[0.15em] text-[#D4AF37] uppercase">
+            {/* We pass a close function so the menu closes when you click a link */}
+            <NavLinks onClick={() => setIsOpen(false)} />
+          </div>
+        </div>
+      )}
     </nav>
+  );
+}
+
+// Helper Component for Links (Prevents code duplication)
+function NavLinks({ onClick }: { onClick?: () => void }) {
+  const links = [
+    { name: "Home", href: "/" },
+    { name: "Necklaces", href: "/?category=necklaces" },
+    { name: "Earrings", href: "/?category=earrings" },
+    { name: "Rings", href: "/?category=rings" },
+    { name: "Bangles", href: "/?category=bangles" },
+    { name: "Kada", href: "/?category=kada" },
+    { name: "Combos", href: "/?category=combos" },
+  ];
+
+  return (
+    <>
+      {links.map((link) => (
+        <Link
+          key={link.name}
+          href={link.href}
+          onClick={onClick}
+          className="hover:text-black transition-colors duration-300"
+        >
+          {link.name}
+        </Link>
+      ))}
+    </>
   );
 }

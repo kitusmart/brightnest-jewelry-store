@@ -10,29 +10,6 @@ export const productType = defineType({
   title: "Product",
   type: "document",
   icon: PackageIcon,
-
-  // --- INVENTORY GUARD START ---
-  // This rule runs before you can publish a product
-  validation: (Rule) =>
-    Rule.custom(async (_, context) => {
-      // 1. Get the Sanity Client to check the database
-      const client = context.getClient({ apiVersion: "2024-01-01" });
-
-      // 2. Count existing products (excluding the current draft you are working on)
-      // We look for documents of type 'product' that are NOT in the 'drafts' path
-      const count = await client.fetch(
-        'count(*[_type == "product" && !(_id in path("drafts.**"))])',
-      );
-
-      // 3. The Logic: If we have 8 or more, stop the publication
-      if (count >= 8) {
-        return "🛑 LIMIT REACHED: You cannot have more than 8 products. Please delete an old product to add a new one.";
-      }
-
-      return true;
-    }),
-  // --- INVENTORY GUARD END ---
-
   groups: [
     { name: "details", title: "Details", default: true },
     { name: "media", title: "Media" },
@@ -44,7 +21,7 @@ export const productType = defineType({
       title: "Product Name",
       type: "string",
       group: "details",
-      validation: (rule) => [rule.required().error("Product name is required")],
+      validation: (rule) => rule.required().error("Product name is required"),
     }),
     defineField({
       name: "slug",
@@ -55,27 +32,26 @@ export const productType = defineType({
         source: "name",
         maxLength: 96,
       },
-      validation: (rule) => [
-        rule.required().error("Slug is required for URL generation"),
-      ],
+      validation: (rule) => rule.required().error("Slug is required"),
     }),
+    // 🟢 ADDED BACK: Description Field
     defineField({
       name: "description",
       title: "Description",
       type: "text",
       group: "details",
       rows: 4,
-      description: "Product description",
+      description: "Detailed description of the jewelry piece",
     }),
     defineField({
       name: "price",
       title: "Price",
       type: "number",
       group: "details",
-      description: "Price in AUD (e.g., 599.99)",
+      description: "Price in INR or USD",
       validation: (rule) => [
         rule.required().error("Price is required"),
-        rule.positive().error("Price must be a positive number"),
+        rule.positive().error("Price must be positive"),
       ],
     }),
     defineField({
@@ -84,16 +60,16 @@ export const productType = defineType({
       type: "reference",
       to: [{ type: "category" }],
       group: "details",
-      validation: (rule) => [rule.required().error("Category is required")],
+      validation: (rule) => rule.required().error("Category is required"),
     }),
     defineField({
       name: "material",
-      title: "Material",
+      title: "Material / Metal",
       type: "string",
       group: "details",
       options: {
         list: MATERIALS_SANITY_LIST,
-        layout: "radio",
+        layout: "dropdown",
       },
     }),
     defineField({
@@ -103,60 +79,39 @@ export const productType = defineType({
       group: "details",
       options: {
         list: COLORS_SANITY_LIST,
-        layout: "radio",
+        layout: "dropdown",
       },
     }),
     defineField({
-      name: "dimensions",
-      title: "Dimensions",
+      name: "weight",
+      title: "Weight (grams)",
       type: "string",
       group: "details",
-      description: 'e.g., "120cm x 80cm x 75cm"',
+      description: 'e.g., "15g" or "0.5 carats"',
     }),
     defineField({
       name: "images",
       title: "Images",
       type: "array",
       group: "media",
-      of: [
-        {
-          type: "image",
-          options: {
-            hotspot: true,
-          },
-        },
-      ],
-      validation: (rule) => [
-        rule.min(1).error("At least one image is required"),
-      ],
+      of: [{ type: "image", options: { hotspot: true } }],
+      validation: (rule) => rule.min(1).error("At least one image is required"),
     }),
     defineField({
       name: "stock",
-      title: "Stock Level",
+      title: "Stock Quantity",
       type: "number",
       group: "inventory",
-      initialValue: 0,
-      description: "Number of items in stock",
-      validation: (rule) => [
-        rule.min(0).error("Stock cannot be negative"),
-        rule.integer().error("Stock must be a whole number"),
-      ],
+      initialValue: 1,
+      validation: (rule) => rule.min(0),
     }),
     defineField({
-      name: "featured",
-      title: "Featured Product",
+      name: "isFeatured",
+      title: "Featured Product?",
       type: "boolean",
       group: "inventory",
       initialValue: false,
-      description: "Show on homepage and promotions",
-    }),
-    defineField({
-      name: "assemblyRequired",
-      title: "Assembly Required",
-      type: "boolean",
-      group: "inventory",
-      initialValue: false,
-      description: "Does this product require assembly?",
+      description: "Toggle ON to show this on the homepage",
     }),
   ],
   preview: {
@@ -165,12 +120,13 @@ export const productType = defineType({
       subtitle: "category.title",
       media: "images.0",
       price: "price",
+      stock: "stock",
     },
-    prepare({ title, subtitle, media, price }) {
+    prepare({ title, subtitle, media, price, stock }) {
       return {
-        title,
-        subtitle: `${subtitle ? subtitle + " • " : ""}$${price ?? 0}`,
-        media,
+        title: title,
+        subtitle: `$${price} | Stock: ${stock}`,
+        media: media,
       };
     },
   },

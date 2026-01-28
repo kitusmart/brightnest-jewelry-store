@@ -150,36 +150,26 @@ export const PRODUCTS_BY_CATEGORY_QUERY = defineQuery(`*[
  * Get single product by slug
  * Used on product detail page
  */
-export const PRODUCT_BY_SLUG_QUERY = defineQuery(`*[
-  _type == "product"
-  && slug.current == $slug
-][0] {
-  _id,
-  name,
-  "slug": slug.current,
-  description,
-  price,
-  "image": images[0].asset->url,
-  "images": images[]{
-    _key,
-    asset->{
-      _id,
-      url
-    },
-    hotspot
-  },
-  category->{
+export const PRODUCT_BY_SLUG_QUERY = defineQuery(`
+  *[_type == "product" && slug.current == $slug][0] {
     _id,
-    title,
-    "slug": slug.current
-  },
-  material,
-  color,
-  dimensions,
-  stock,
-  featured,
-  assemblyRequired
-}`);
+    name,
+    slug,
+    price,
+    stock,
+    description,    // 🟢 Added
+    material,       // 🟢 Added
+    color,          // 🟢 Added
+    weight,         // 🟢 Added
+    "category": category->title,
+    images[]{
+      asset->{
+        url,
+        metadata { dimensions }
+      }
+    }
+  }
+`);
 
 // ============================================
 // Search & Filter Queries (Server-Side)

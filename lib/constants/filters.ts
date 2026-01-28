@@ -4,20 +4,28 @@
 // ============================================
 
 export const COLORS = [
+  { value: "gold", label: "Gold Color" },
+  { value: "silver", label: "Silver Color" },
+  { value: "ruby", label: "Ruby Pink" },
+  { value: "green", label: "Emerald Green" },
+  { value: "blue", label: "Sapphire Blue" },
+  { value: "white", label: "White / Clear" },
   { value: "black", label: "Black" },
-  { value: "white", label: "White" },
-  { value: "oak", label: "Oak" },
-  { value: "walnut", label: "Walnut" },
-  { value: "grey", label: "Grey" },
-  { value: "natural", label: "Natural" },
+  { value: "mint", label: "Mint Green" },
+  { value: "peach", label: "Peach" },
+  { value: "multicolor", label: "Multicolor" },
 ] as const;
 
 export const MATERIALS = [
-  { value: "wood", label: "Wood" },
-  { value: "metal", label: "Metal" },
-  { value: "fabric", label: "Fabric" },
-  { value: "leather", label: "Leather" },
-  { value: "glass", label: "Glass" },
+  { value: "gold-plated", label: "Gold Plated" },
+  { value: "matte-gold", label: "Matte Gold Finish" },
+  { value: "rose-gold-plated", label: "Rose Gold Plated" },
+  { value: "oxidized", label: "Oxidized Silver" },
+  { value: "silver-plated", label: "Silver Plated" },
+  { value: "brass", label: "Brass" },
+  { value: "copper", label: "Copper" },
+  { value: "kundan", label: "Kundan / Polki" },
+  { value: "ad-stone", label: "American Diamond (AD)" },
 ] as const;
 
 export const SORT_OPTIONS = [
