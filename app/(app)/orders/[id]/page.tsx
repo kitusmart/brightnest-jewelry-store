@@ -13,7 +13,8 @@ async function getOrderDetails(id: string) {
         product->{
           name,
           price,
-          "image": image.asset->url
+          // Robust image fetching using coalesce
+          "image": coalesce(image.asset->url, productImage.asset->url, mainImage.asset->url)
         }
       }
     }`, 
@@ -31,7 +32,6 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
   const order = await getOrderDetails(id);
 
-  // Security check: Use the 'email' field we found in your Sanity Inspector
   if (!order || order.email?.toLowerCase() !== userEmail?.toLowerCase()) {
     notFound();
   }
@@ -53,7 +53,6 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       </div>
 
       <div className="grid gap-8 lg:grid-cols-3">
-        {/* Items List */}
         <div className="lg:col-span-2 space-y-4">
           <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b bg-zinc-50/50">
@@ -63,19 +62,28 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             </div>
             <div className="divide-y">
               {order.items?.map((item: any, idx: number) => {
-                // Safety logic: Use purchase price if available, otherwise fallback to product price
                 const unitPrice = item.priceAtPurchase ?? item.product?.price ?? 0;
                 const quantity = item.quantity ?? 1;
 
                 return (
                   <div key={idx} className="p-6 flex gap-4 items-center">
-                    <div className="h-20 w-20 rounded-lg bg-zinc-50 overflow-hidden shrink-0 border border-zinc-100">
+                    {/* --- UPDATED IMAGE PART START --- */}
+                    <div className="h-20 w-20 rounded-lg bg-zinc-50 overflow-hidden shrink-0 border border-zinc-100 flex items-center justify-center">
                       {item.product?.image ? (
-                        <img src={item.product.image} alt="" className="h-full w-full object-cover" />
+                        <img 
+                          src={item.product.image} 
+                          alt="" 
+                          className="h-full w-full object-cover" 
+                        />
                       ) : (
-                        <div className="h-full w-full flex items-center justify-center text-[10px] text-zinc-400">No Image</div>
+                        <div className="text-center">
+                          <Package className="h-4 w-4 mx-auto text-zinc-300 mb-1" />
+                          <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-tighter">No Image</p>
+                        </div>
                       )}
                     </div>
+                    {/* --- UPDATED IMAGE PART END --- */}
+
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-zinc-900 truncate">{item.product?.name || "Jewelry Piece"}</h3>
                       <p className="text-sm text-zinc-500">Quantity: {quantity}</p>
@@ -91,7 +99,6 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           </div>
         </div>
 
-        {/* Summary Sidebar */}
         <div className="space-y-6">
           <div className="rounded-xl border bg-white p-6 shadow-sm">
             <h2 className="font-bold mb-4 text-sm text-zinc-700">Order Summary</h2>
