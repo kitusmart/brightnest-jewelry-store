@@ -2,7 +2,7 @@ import { client } from "@/sanity/lib/client";
 import { notFound, redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Package } from "lucide-react";
+import { ArrowLeft, Package } from "lucide-react";
 
 async function getOrderDetails(id: string) {
   return client.fetch(
@@ -31,23 +31,23 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
   const order = await getOrderDetails(id);
 
-  // Security check: Ensure this order belongs to the logged-in user
-  if (!order || order.email.toLowerCase() !== userEmail?.toLowerCase()) {
+  // Security check: Use the 'email' field we found in your Sanity Inspector
+  if (!order || order.email?.toLowerCase() !== userEmail?.toLowerCase()) {
     notFound();
   }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-24">
-      <Link href="/orders" className="flex items-center text-sm text-zinc-500 hover:text-black mb-8">
+      <Link href="/orders" className="flex items-center text-sm text-zinc-500 hover:text-black mb-8 transition-colors">
         <ArrowLeft className="mr-2 h-4 w-4" /> Back to My Orders
       </Link>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b pb-8">
         <div>
           <h1 className="text-3xl font-bold text-zinc-900">Order Details</h1>
-          <p className="text-zinc-500">#{order.orderNumber}</p>
+          <p className="text-zinc-500 font-mono text-sm mt-1">{order.orderNumber}</p>
         </div>
-        <div className="px-4 py-2 rounded-full bg-blue-50 text-blue-700 font-bold text-sm uppercase tracking-widest">
+        <div className="px-4 py-2 rounded-full bg-blue-50 text-blue-700 font-bold text-xs uppercase tracking-widest border border-blue-100">
           {order.status}
         </div>
       </div>
@@ -57,27 +57,36 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         <div className="lg:col-span-2 space-y-4">
           <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b bg-zinc-50/50">
-              <h2 className="font-bold flex items-center gap-2">
+              <h2 className="font-bold flex items-center gap-2 text-sm text-zinc-700">
                 <Package className="h-4 w-4" /> Items Ordered
               </h2>
             </div>
             <div className="divide-y">
-              {order.items?.map((item: any, idx: number) => (
-                <div key={idx} className="p-6 flex gap-4">
-                  <div className="h-20 w-20 rounded-lg bg-zinc-100 overflow-hidden shrink-0 border">
-                    {item.product?.image && (
-                      <img src={item.product.image} alt="" className="h-full w-full object-cover" />
-                    )}
+              {order.items?.map((item: any, idx: number) => {
+                // Safety logic: Use purchase price if available, otherwise fallback to product price
+                const unitPrice = item.priceAtPurchase ?? item.product?.price ?? 0;
+                const quantity = item.quantity ?? 1;
+
+                return (
+                  <div key={idx} className="p-6 flex gap-4 items-center">
+                    <div className="h-20 w-20 rounded-lg bg-zinc-50 overflow-hidden shrink-0 border border-zinc-100">
+                      {item.product?.image ? (
+                        <img src={item.product.image} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center text-[10px] text-zinc-400">No Image</div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-zinc-900 truncate">{item.product?.name || "Jewelry Piece"}</h3>
+                      <p className="text-sm text-zinc-500">Quantity: {quantity}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-zinc-900">${unitPrice * quantity}</p>
+                      {quantity > 1 && <p className="text-[10px] text-zinc-400">${unitPrice} each</p>}
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-zinc-900">{item.product?.name || "Jewelry Piece"}</h3>
-                    <p className="text-sm text-zinc-500">Quantity: {item.quantity}</p>
-                  </div>
-                  <p className="font-bold text-zinc-900">
-                    ${(item.priceAtPurchase || item.product?.price) * item.quantity}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -85,14 +94,14 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         {/* Summary Sidebar */}
         <div className="space-y-6">
           <div className="rounded-xl border bg-white p-6 shadow-sm">
-            <h2 className="font-bold mb-4">Order Summary</h2>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between text-zinc-500">
-                <span>Subtotal</span>
-                <span>${order.totalPrice}</span>
+            <h2 className="font-bold mb-4 text-sm text-zinc-700">Order Summary</h2>
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-zinc-500">Subtotal</span>
+                <span className="font-medium">${order.totalPrice}</span>
               </div>
-              <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2" style={{ color: '#D4AF37' }}>
-                <span>Total</span>
+              <div className="flex justify-between font-bold text-lg border-t pt-3 mt-3" style={{ color: '#D4AF37' }}>
+                <span>Total Paid</span>
                 <span>${order.totalPrice}</span>
               </div>
             </div>
@@ -100,14 +109,14 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
           {order.trackingNumber && (
             <div className="rounded-xl border bg-zinc-900 p-6 text-white shadow-lg">
-              <h2 className="font-bold mb-2 flex items-center gap-2">
+              <div className="flex items-center gap-2 mb-2">
                 <span className="animate-pulse w-2 h-2 bg-green-400 rounded-full"></span>
-                Shipping Update
-              </h2>
-              <p className="text-zinc-400 text-xs mb-3">Your jewelry is on the way!</p>
-              <div className="bg-white/10 rounded-lg p-3 text-sm">
-                <p className="text-zinc-400 text-[10px] uppercase font-bold tracking-widest">Tracking Number</p>
-                <p className="font-mono font-bold">{order.trackingNumber}</p>
+                <h2 className="font-bold text-sm">Shipping Update</h2>
+              </div>
+              <p className="text-zinc-400 text-xs mb-4">Your jewelry is on its way!</p>
+              <div className="bg-white/10 rounded-lg p-3 border border-white/5">
+                <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">Tracking Number</p>
+                <p className="font-mono font-bold text-sm select-all">{order.trackingNumber}</p>
               </div>
             </div>
           )}
