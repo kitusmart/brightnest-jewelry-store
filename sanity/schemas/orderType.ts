@@ -136,6 +136,7 @@ export const orderType = defineType({
       amount: "totalPrice",
       orderId: "orderNumber",
       email: "email",
+      currency: "currency",
     },
     prepare({ name, amount, orderId, email }) {
       const orderIdSnippet = `${orderId?.slice(0, 10)}...` || "New Order";
