@@ -5,9 +5,10 @@ import { redirect } from "next/navigation";
 
 // This is the missing part that was causing the error!
 async function getOrders(email: string) {
+  // Changed customerEmail to email to match your Sanity Inspector!
   return client.fetch(
-    `*[_type == "order" && lower(customerEmail) == lower($email)] | order(orderDate desc)`, 
-    { email },
+    `*[_type == "order" && lower(email) == lower($email)] | order(orderDate desc)`, 
+    { email: email.trim() },
     { next: { revalidate: 0 } } 
   );
 }
