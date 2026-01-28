@@ -1,4 +1,5 @@
 import ShippingEmail from "@/components/emails/ShippingEmail";
+import * as React from "react"; // Added standard React import
 import { Resend } from "resend";
 import { NextResponse } from "next/server";
 
@@ -9,28 +10,25 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { email, customerName, orderNumber, trackingNumber } = body;
 
-    // Log the data to Vercel so we can see what Sanity is actually sending
-    console.log("Webhook Data Received:", body);
-
-    if (!email) {
-      return NextResponse.json({ error: "Missing email address" }, { status: 400 });
-    }
-
+    // Trigger the email send using createElement for stability
     const { data, error } = await resend.emails.send({
       from: "Brightnest <onboarding@resend.dev>",
       to: [email],
-      subject: `Your Brightnest Order ${orderNumber} has Shipped!`,
-      react: ShippingEmail({ customerName, orderNumber, trackingNumber }),
+      subject: `Order ${orderNumber} Shipped!`,
+      react: React.createElement(ShippingEmail, { 
+        customerName, 
+        orderNumber, 
+        trackingNumber 
+      }),
     });
 
     if (error) {
-      console.error("Resend Error:", error);
       return NextResponse.json({ error }, { status: 500 });
     }
 
-    return NextResponse.json({ message: "Email sent successfully" });
+    return NextResponse.json({ message: "Success" });
   } catch (error) {
-    console.error("Server Crash:", error);
+    console.error("Manual Log - Crash Detail:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
