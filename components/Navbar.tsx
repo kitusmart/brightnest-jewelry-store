@@ -20,7 +20,6 @@ export default function Navbar() {
         <div className="flex justify-between items-center relative">
           {/* Left: Search & Mobile Menu */}
           <div className="flex items-center gap-4 flex-1">
-            {/* 🟢 FIXED MOBILE MENU BUTTON */}
             <button
               onClick={toggleMenu}
               className="md:hidden text-[#D4AF37] hover:opacity-80 transition-opacity"
@@ -38,7 +37,7 @@ export default function Navbar() {
             <Link
               href="/"
               className="flex flex-col items-center justify-center"
-              onClick={() => setIsOpen(false)} // Close menu if logo clicked
+              onClick={() => setIsOpen(false)} 
             >
               <h1 className="text-3xl md:text-5xl font-serif tracking-widest text-[#D4AF37] font-normal">
                 BRIGHTNEST
@@ -61,6 +60,7 @@ export default function Navbar() {
 
             <SignedIn>
               <div className="scale-75 opacity-90 hover:opacity-100 transition-opacity">
+                {/* This is the Logout/Profile button */}
                 <UserButton afterSignOutUrl="/" />
               </div>
             </SignedIn>
@@ -71,7 +71,7 @@ export default function Navbar() {
             >
               <ShoppingBag size={22} strokeWidth={1.5} />
 
-              {/* 🟡 DYNAMIC GOLD BADGE */}
+              {/* DYNAMIC GOLD BADGE */}
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-[#D4AF37] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-sm border-2 border-white animate-in zoom-in duration-300">
                   {cartCount}
@@ -82,18 +82,17 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* 2. DESKTOP NAVIGATION LINKS (Hidden on Mobile) */}
+      {/* 2. DESKTOP NAVIGATION LINKS */}
       <div className="hidden md:flex justify-center border-t border-[#fbf7ed] bg-white relative">
         <div className="flex items-center gap-10 text-[12px] font-medium tracking-[0.15em] text-[#D4AF37] py-4 uppercase">
           <NavLinks />
         </div>
       </div>
 
-      {/* 3. 🟢 MOBILE MENU DROPDOWN (Visible only when open) */}
+      {/* 3. MOBILE MENU DROPDOWN */}
       {isOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-lg py-6 flex flex-col items-center gap-6 z-50 animate-in slide-in-from-top-5 duration-300">
           <div className="flex flex-col items-center gap-6 text-[14px] font-medium tracking-[0.15em] text-[#D4AF37] uppercase">
-            {/* We pass a close function so the menu closes when you click a link */}
             <NavLinks onClick={() => setIsOpen(false)} />
           </div>
         </div>
@@ -102,7 +101,7 @@ export default function Navbar() {
   );
 }
 
-// Helper Component for Links (Prevents code duplication)
+// Helper Component for Links
 function NavLinks({ onClick }: { onClick?: () => void }) {
   const links = [
     { name: "Home", href: "/" },
@@ -112,6 +111,8 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
     { name: "Bangles", href: "/?category=bangles" },
     { name: "Kada", href: "/?category=kada" },
     { name: "Combos", href: "/?category=combos" },
+    // NEW LINK ADDED HERE
+    { name: "My Orders", href: "/orders" }, 
   ];
 
   return (
