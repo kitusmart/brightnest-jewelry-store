@@ -16,7 +16,6 @@ const PRODUCT_FILTER_CONDITIONS = `
   && ($inStock == false || stock > 0)
 `;
 
-/** Projection for filtered product lists */
 const FILTERED_PRODUCT_PROJECTION = `{
   _id,
   name,
@@ -38,11 +37,16 @@ const FILTERED_PRODUCT_PROJECTION = `{
   material,
   color,
   stock,
-  badge // 💎 ADDED HERE for Filtered Lists
+  badge
 }`;
 
+const RELEVANCE_SCORE = `score(
+  boost(name match $searchQuery + "*", 3),
+  boost(description match $searchQuery + "*", 1)
+)`;
+
 // ============================================
-// All Products Query
+// Main Queries
 // ============================================
 
 export const ALL_PRODUCTS_QUERY = defineQuery(`*[
@@ -56,26 +60,18 @@ export const ALL_PRODUCTS_QUERY = defineQuery(`*[
   "image": images[0].asset->url,
   "images": images[]{
     _key,
-    asset->{
-      _id,
-      url
-    },
+    asset->{ _id, url },
     hotspot
   },
-  category->{
-    _id,
-    title,
-    "slug": slug.current
-  },
+  category->{ _id, title, "slug": slug.current },
   material,
   color,
   dimensions,
   stock,
   featured,
-  badge // 💎 ADDED HERE for Landing Page
+  badge
 }`);
 
-/** featured products */
 export const FEATURED_PRODUCTS_QUERY = defineQuery(`*[
   _type == "product"
   && featured == true
@@ -87,24 +83,10 @@ export const FEATURED_PRODUCTS_QUERY = defineQuery(`*[
   description,
   price,
   "image": images[0].asset->url,
-  "images": images[]{
-    _key,
-    asset->{
-      _id,
-      url
-    },
-    hotspot
-  },
-  category->{
-    _id,
-    title,
-    "slug": slug.current
-  },
   stock,
-  badge // 💎 ADDED HERE for Carousel
+  badge
 }`);
 
-/** single product by slug */
 export const PRODUCT_BY_SLUG_QUERY = defineQuery(`
   *[_type == "product" && slug.current == $slug][0] {
     _id,
@@ -116,7 +98,7 @@ export const PRODUCT_BY_SLUG_QUERY = defineQuery(`
     material,
     color,
     weight,
-    badge, // 💎 ADDED HERE for Detail Page
+    badge,
     "category": category->title,
     images[]{
       asset->{
@@ -127,5 +109,46 @@ export const PRODUCT_BY_SLUG_QUERY = defineQuery(`
   }
 `);
 
-// ... Keep your other search/AI assistant queries as they were, 
-// or add 'badge' to them as well if you want it visible in search results!
+// ============================================
+// RESTORING MISSING EXPORTS (Fixes Build Errors)
+// ============================================
+
+export const AI_SEARCH_PRODUCTS_QUERY = defineQuery(`*[
+  _type == "product"
+  && (name match $searchQuery + "*" || description match $searchQuery + "*")
+] {
+  _id,
+  name,
+  "slug": slug.current,
+  price,
+  "image": images[0].asset->url,
+  badge
+}`);
+
+export const FILTER_PRODUCTS_BY_NAME_QUERY = defineQuery(
+  `*[${PRODUCT_FILTER_CONDITIONS}] | order(name asc) ${FILTERED_PRODUCT_PROJECTION}`
+);
+
+export const FILTER_PRODUCTS_BY_PRICE_ASC_QUERY = defineQuery(
+  `*[${PRODUCT_FILTER_CONDITIONS}] | order(price asc) ${FILTERED_PRODUCT_PROJECTION}`
+);
+
+export const FILTER_PRODUCTS_BY_PRICE_DESC_QUERY = defineQuery(
+  `*[${PRODUCT_FILTER_CONDITIONS}] | order(price desc) ${FILTERED_PRODUCT_PROJECTION}`
+);
+
+export const FILTER_PRODUCTS_BY_RELEVANCE_QUERY = defineQuery(
+  `*[${PRODUCT_FILTER_CONDITIONS}] | ${RELEVANCE_SCORE} | order(_score desc, name asc) ${FILTERED_PRODUCT_PROJECTION}`
+);
+
+export const PRODUCTS_BY_IDS_QUERY = defineQuery(`*[
+  _type == "product"
+  && _id in $ids
+] {
+  _id,
+  name,
+  "slug": slug.current,
+  price,
+  "image": images[0].asset->url,
+  stock
+}`);
