@@ -10,11 +10,12 @@ async function getOrderDetails(id: string) {
       ...,
       items[]{
         ...,
-        product->{
+        "product": product->{
           name,
           price,
-          // Robust image fetching using coalesce
-          "image": coalesce(image.asset->url, productImage.asset->url, mainImage.asset->url)
+          // This digs into your 'images' array, grabs the first one [0], 
+          // and follows the asset reference to get the URL
+          "image": images[0].asset->url
         }
       }
     }`, 
