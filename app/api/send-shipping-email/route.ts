@@ -1,7 +1,7 @@
 import ShippingEmail from "@/components/emails/ShippingEmail";
-import * as React from "react"; // Added standard React import
 import { Resend } from "resend";
 import { NextResponse } from "next/server";
+import { render } from "@react-email/render";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -10,25 +10,29 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { email, customerName, orderNumber, trackingNumber } = body;
 
-    // Trigger the email send using createElement for stability
+    if (!email) {
+      return NextResponse.json({ error: "Missing email" }, { status: 400 });
+    }
+
+    // This converts the React component into a plain HTML string
+    const emailHtml = await render(
+      ShippingEmail({ customerName, orderNumber, trackingNumber })
+    );
+
     const { data, error } = await resend.emails.send({
       from: "Brightnest <onboarding@resend.dev>",
       to: [email],
-      subject: `Order ${orderNumber} Shipped!`,
-      react: React.createElement(ShippingEmail, { 
-        customerName, 
-        orderNumber, 
-        trackingNumber 
-      }),
+      subject: `Your Order ${orderNumber} has Shipped!`,
+      html: emailHtml, // We use 'html' instead of 'react' for maximum stability
     });
 
     if (error) {
       return NextResponse.json({ error }, { status: 500 });
     }
 
-    return NextResponse.json({ message: "Success" });
+    return NextResponse.json({ message: "Email Sent!" });
   } catch (error) {
-    console.error("Manual Log - Crash Detail:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("Final Crash Check:", error);
+    return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }
