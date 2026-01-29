@@ -10,6 +10,7 @@ import { ALL_CATEGORIES_QUERY } from "@/lib/sanity/queries/categories";
 import { ProductSection } from "@/components/app/ProductSection";
 import FeaturedCarousel from "../../components/FeaturedCarousel";
 import { GridLoader } from "../../components/loaders/GridLoader";
+import JewelryAnatomy from "../../components/JewelryAnatomy"; // New Import
 
 interface PageProps {
   searchParams: Promise<{
@@ -102,6 +103,11 @@ export default async function HomePage({ searchParams }: PageProps) {
             searchQuery={searchQuery}
           />
         </Suspense>
+      </div>
+
+      {/* 4. LUXURY CRAFTSMANSHIP SECTION */}
+      <div className="border-t border-gray-50 mt-12">
+        <JewelryAnatomy />
       </div>
     </div>
   );
