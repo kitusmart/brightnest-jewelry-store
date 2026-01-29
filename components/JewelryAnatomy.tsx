@@ -40,12 +40,16 @@ export default function JewelryAnatomy() {
 
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left Side: Interactive Image */}
-          <div className="relative aspect-square bg-[#fbf7ed] rounded-2xl overflow-hidden group">
+          <div className="relative aspect-square md:aspect-[4/5] bg-[#fbf7ed] rounded-3xl overflow-hidden group shadow-sm border border-gray-100">
             <img 
-              src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce33e?q=80&w=2070&auto=format&fit=crop" 
-              alt="Jewelry Detail" 
-              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-            />
+  src="https://images.unsplash.com/photo-1617038220319-276d3cfab638?q=80&w=2000&auto=format&fit=crop" 
+  alt="Detailed craftsmanship of Brightnest jewelry" 
+  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 bg-[#fbf7ed]"
+  onError={(e) => {
+    // If the image fails, it stays the brand cream color instead of showing a broken icon
+    e.currentTarget.style.display = 'none';
+  }}
+/>
             
             {ANATOMY_DATA.map((point) => (
               <button
