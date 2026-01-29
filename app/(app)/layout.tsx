@@ -5,9 +5,8 @@ import { ChatStoreProvider } from "@/lib/store/chat-store-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import { SanityLive } from "@/sanity/lib/live";
 import { Toaster } from "@/components/ui/sonner";
-import Navbar from "@/components/Navbar";
-// FIXED: Added curly braces to match named export
-import { Footer } from "@/components/Footer"; 
+import Navbar from "@/components/Navbar"; // Keep as default import
+import { Footer } from "@/components/Footer"; // FIXED: Changed to named import
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { CartSheet } from "@/components/app/CartSheet";
 import { ChatSheet } from "@/components/app/ChatSheet";
