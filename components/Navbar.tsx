@@ -4,13 +4,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { ShoppingBag, Search, Menu, User, X } from "lucide-react";
 import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
-// Switch from 'useCartStore' to the specialized provider actions
 import { useCartActions, useTotalItems } from "@/lib/store/cart-store-provider";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-
-  // Use these specialized hooks to control the luxury drawer
   const { openCart } = useCartActions();
   const totalItems = useTotalItems();
 
@@ -66,7 +63,6 @@ export default function Navbar() {
               </div>
             </SignedIn>
 
-            {/* BUTTON FIXED: Now triggers the luxury side-drawer */}
             <button
               onClick={() => openCart()}
               className="relative text-[#D4AF37] hover:opacity-80 transition-opacity group p-2"
@@ -104,6 +100,7 @@ export default function Navbar() {
 function NavLinks({ onClick }: { onClick?: () => void }) {
   const links = [
     { name: "Home", href: "/" },
+    { name: "Our Story", href: "/about" }, // ADDED: Direct link to the About page
     { name: "Necklaces", href: "/?category=necklaces" },
     { name: "Earrings", href: "/?category=earrings" },
     { name: "Rings", href: "/?category=rings" },

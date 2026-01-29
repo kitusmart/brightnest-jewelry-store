@@ -1,5 +1,9 @@
-import React from 'react';
-import Link from 'next/link';
+"use client";
+
+import React from "react";
+import Link from "next/link";
+import { Package, ChevronRight, Calendar, Star } from "lucide-react";
+import { formatPrice } from "@/lib/utils";
 
 interface Order {
   _id: string;
@@ -12,46 +16,89 @@ interface Order {
 
 export default function OrderHistory({ orders }: { orders: Order[] }) {
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-3xl font-bold mb-8" style={{ color: '#D4AF37' }}>My Jewelry Orders</h2>
-      
+    <div className="max-w-4xl mx-auto py-12 px-6">
+      {/* 1. Header with Brand Colors */}
+      <div className="flex flex-col mb-12">
+        <span className="text-[#D4AF37] text-[10px] font-black uppercase tracking-[0.5em] mb-2">
+          Your Collection
+        </span>
+        <h2 className="text-4xl font-serif text-[#1B2A4E] uppercase tracking-tight">
+          Purchase History
+        </h2>
+      </div>
+
       {orders.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
-          <p className="text-gray-500 mb-4">You haven't placed any orders yet.</p>
-          <Link href="/" className="font-semibold" style={{ color: '#D4AF37' }}>
-            Start Shopping
+        <div className="text-center py-20 bg-[#fbf7ed]/20 border border-dashed border-[#D4AF37]/20">
+          <p className="text-[#1B2A4E] font-serif text-lg mb-6">
+            Your history is as clear as a diamond.
+          </p>
+          <Link
+            href="/"
+            className="inline-block bg-[#1B2A4E] text-white px-10 py-4 text-[10px] font-black uppercase tracking-[0.4em] hover:bg-[#D4AF37] transition-all duration-700"
+          >
+            Start Your Journey
           </Link>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {orders.map((order) => (
-            <div key={order._id} className="bg-white border rounded-xl p-6 shadow-sm hover:shadow-md transition">
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <p className="text-xs text-gray-400 uppercase font-bold">Order ID</p>
-                  <p className="font-mono font-bold">#{order.orderNumber}</p>
+            <div
+              key={order._id}
+              className="group bg-white border border-gray-100 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#fbf7ed]"
+            >
+              {/* 2. Top Banner: Midnight Blue */}
+              <div className="bg-[#1B2A4E] px-8 py-4 flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  <div className="flex flex-col">
+                    <span className="text-[8px] text-white/50 uppercase tracking-[0.2em] font-black">
+                      Reference
+                    </span>
+                    <span className="text-[10px] text-[#D4AF37] font-bold tracking-widest uppercase">
+                      #{order.orderNumber || order._id.slice(-6).toUpperCase()}
+                    </span>
+                  </div>
                 </div>
-                <div className="text-right">
-                   <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    order.status === 'Shipped' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {order.status}
+                <div className="flex items-center gap-2">
+                  <Star size={10} className="text-[#D4AF37] fill-[#D4AF37]" />
+                  <span className="text-[9px] font-black text-white uppercase tracking-[0.2em]">
+                    {order.status || "Processing"}
                   </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <p className="text-sm text-gray-600">Date: {new Date(order.orderDate).toLocaleDateString()}</p>
-                <p className="text-sm font-bold text-right">Total: ${order.totalPrice}</p>
-              </div>
+              {/* 3. Details Area */}
+              <div className="p-8">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8 pb-8 border-b border-gray-50">
+                  <div className="flex items-center gap-3">
+                    <Calendar size={14} className="text-[#D4AF37]" />
+                    <p className="text-[12px] text-[#1B2A4E] font-medium tracking-wide">
+                      {new Date(order.orderDate).toLocaleDateString("en-AU", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <div className="text-center md:text-right">
+                    <p className="text-[9px] text-gray-400 uppercase tracking-widest mb-1">
+                      Total Investment
+                    </p>
+                    <p className="text-2xl font-bold text-[#1B2A4E]">
+                      {typeof order.totalPrice === "number"
+                        ? formatPrice(order.totalPrice)
+                        : order.totalPrice}
+                    </p>
+                  </div>
+                </div>
 
-              {/* Dynamic Link to your [id] folder */}
-              <Link 
-                href={`/orders/${order._id}`} 
-                className="w-full block text-center bg-black text-white py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 transition"
-              >
-                View Order Details
-              </Link>
+                {/* 4. Luxury Action Link */}
+                <Link
+                  href={`/orders/${order._id}`}
+                  className="w-full flex items-center justify-center gap-3 border border-[#1B2A4E] py-4 text-[10px] font-black text-[#1B2A4E] uppercase tracking-[0.4em] hover:bg-[#1B2A4E] hover:text-white transition-all duration-500"
+                >
+                  View Order Details <ChevronRight size={14} />
+                </Link>
+              </div>
             </div>
           ))}
         </div>

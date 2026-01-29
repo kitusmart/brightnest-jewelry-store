@@ -1,6 +1,12 @@
 import { getOrderById } from "../../../sanity/lib/orders/getOrderById";
 import Link from "next/link";
-import { CheckCircle, Package, ArrowRight, MessageCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  Package,
+  ArrowRight,
+  MessageCircle,
+  ShoppingBag,
+} from "lucide-react";
 import ClearCart from "@/components/ClearCart";
 
 interface SuccessPageProps {
@@ -11,81 +17,101 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   const params = await searchParams;
   const session_id = params.session_id;
 
-  // Fetch the order from Sanity
+  // Fetch the order from Sanity to display the real Order Number
   const order = session_id ? await getOrderById(session_id) : null;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4 py-20">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 py-32">
+      {/* Client component to clear the Zustand/Local cart state after successful purchase */}
       <ClearCart />
 
-      <div className="flex flex-col items-center text-center max-w-xl w-full">
-        {/* 1. LUXURY ANIMATED ICON */}
-        <div className="mb-10 p-8 bg-[#fbf7ed] rounded-full animate-in zoom-in duration-500">
-          <CheckCircle size={80} strokeWidth={1} className="text-[#D4AF37]" />
+      <div className="flex flex-col items-center text-center max-w-2xl w-full">
+        {/* 1. LUXURY CONFIRMATION ICON */}
+        <div className="mb-10 p-10 bg-[#fbf7ed] rounded-full animate-in zoom-in duration-1000">
+          <CheckCircle2
+            size={60}
+            strokeWidth={1.5}
+            className="text-[#D4AF37]"
+          />
         </div>
 
-        {/* 2. ELEGANT HEADLINE */}
-        <h1 className="text-4xl md:text-5xl font-serif text-[#D4AF37] tracking-[0.15em] uppercase mb-6">
+        {/* 2. BRANDED HEADLINES */}
+        <span className="text-[#D4AF37] text-[10px] font-black uppercase tracking-[0.5em] mb-4">
+          Investment Confirmed
+        </span>
+        <h1 className="text-4xl md:text-6xl font-serif text-[#1B2A4E] uppercase tracking-tight mb-8">
           Your Shine is on its Way
         </h1>
 
-        <p className="text-zinc-500 text-xs uppercase tracking-[0.2em] mb-12">
-          Thank you for trusting <span className="text-black font-bold">BRIGHTNEST</span> with your style.
+        <p className="text-gray-400 text-[11px] uppercase tracking-[0.3em] mb-12 max-w-md leading-loose">
+          Thank you for choosing{" "}
+          <span className="text-[#1B2A4E] font-black">BRIGHTNEST</span>. Your
+          pieces are being carefully placed in our nest for their journey to
+          you.
         </p>
 
-        {/* 3. ORDER INFO CARD (LUXURY STYLE) */}
-        <div className="w-full bg-zinc-50 border border-[#fbf7ed] rounded-3xl p-8 mb-10 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 divide-y md:divide-y-0 md:divide-x divide-zinc-200">
-            
+        {/* 3. ORDER INFO CARD: MIDNIGHT & CREAM THEME */}
+        <div className="w-full bg-[#fbf7ed]/30 border border-[#fbf7ed] p-10 mb-12 shadow-sm group">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
             {/* Order Ref */}
-            <div className="pb-6 md:pb-0">
-              <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-black mb-2">Order Reference</p>
-              <p className="text-sm font-mono font-bold text-zinc-800 tracking-tighter uppercase">
-                {order?.orderNumber || "Processing..."}
+            <div className="text-center md:text-left border-b md:border-b-0 md:border-r border-[#1B2A4E]/5 pb-8 md:pb-0 md:pr-10">
+              <p className="text-[9px] text-gray-400 uppercase tracking-widest font-black mb-3">
+                Order Reference
+              </p>
+              <p className="text-sm font-mono font-bold text-[#1B2A4E] tracking-widest uppercase">
+                {order?.orderNumber || "Securing Ref..."}
               </p>
             </div>
 
-            {/* Account Link */}
-            <div className="pt-6 md:pt-0 md:pl-8">
-              <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-black mb-2">Manage Order</p>
-              <Link 
-                href="/orders" 
-                className="group flex items-center justify-center gap-2 text-sm font-bold text-[#D4AF37] hover:text-black transition"
+            {/* Dashboard Link */}
+            <div className="flex flex-col items-center md:items-start">
+              <p className="text-[9px] text-gray-400 uppercase tracking-widest font-black mb-3">
+                Manage Collection
+              </p>
+              <Link
+                href="/orders"
+                className="group flex items-center gap-2 text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.3em] hover:text-[#1B2A4E] transition-all"
               >
-                View Dashboard <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                Purchase History{" "}
+                <ArrowRight
+                  size={14}
+                  className="group-hover:translate-x-2 transition-transform duration-500"
+                />
               </Link>
             </div>
           </div>
         </div>
 
-        {/* 4. TRACKING BOX (ONLY IF DISPATCHED) */}
+        {/* 4. TRACKING BOX (Conditional) */}
         {order?.trackingNumber && (
-          <div className="mb-10 p-6 border-2 border-[#D4AF37] rounded-2xl w-full bg-[#fbf7ed]/50 animate-pulse">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Package size={16} className="text-[#D4AF37]" />
-              <p className="text-[10px] text-[#D4AF37] uppercase tracking-widest font-black">Tracking Dispatched</p>
+          <div className="mb-12 p-8 border border-[#D4AF37]/30 w-full bg-white shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Package size={18} className="text-[#D4AF37]" />
+              <p className="text-[10px] text-[#D4AF37] uppercase tracking-[0.4em] font-black">
+                Tracking Dispatched
+              </p>
             </div>
-            <p className="text-2xl font-serif tracking-[0.2em] text-black">
+            <p className="text-3xl font-serif tracking-[0.3em] text-[#1B2A4E]">
               {order.trackingNumber}
             </p>
           </div>
         )}
 
-        {/* 5. ACTION BUTTONS */}
-        <div className="flex flex-col gap-4 w-full">
+        {/* 5. PRIMARY ACTION: MIDNIGHT BLUE BUTTON */}
+        <div className="flex flex-col gap-6 w-full max-w-sm">
           <Link
             href="/"
-            className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] hover:bg-[#D4AF37] transition-all shadow-lg"
+            className="w-full bg-[#1B2A4E] text-white py-6 text-[11px] font-black uppercase tracking-[0.5em] hover:bg-[#D4AF37] transition-all duration-700 shadow-2xl flex items-center justify-center gap-3"
           >
-            Explore New Arrivals
+            <ShoppingBag size={14} /> Continue Journey
           </Link>
-          
+
           <Link
             href="https://wa.me/919985394369?text=Hello%20Brightnest!%20I%20just%20placed%20an%20order."
             target="_blank"
-            className="flex items-center justify-center gap-2 text-zinc-400 text-[10px] uppercase tracking-widest hover:text-green-600 transition"
+            className="flex items-center justify-center gap-2 text-gray-400 text-[9px] uppercase tracking-[0.3em] hover:text-[#D4AF37] transition-all"
           >
-            <MessageCircle size={14} /> Need immediate help? Chat with us
+            <MessageCircle size={14} /> Concierge Assistance
           </Link>
         </div>
       </div>

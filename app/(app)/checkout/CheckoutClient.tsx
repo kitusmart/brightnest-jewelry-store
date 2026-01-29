@@ -2,8 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, ShoppingBag, AlertTriangle, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {
+  ChevronLeft,
+  ShoppingBag,
+  AlertTriangle,
+  Loader2,
+  Lock,
+  Truck,
+  ShieldCheck,
+} from "lucide-react";
 import { CheckoutButton } from "@/components/app/CheckoutButton";
 import { formatPrice } from "@/lib/utils";
 import {
@@ -19,181 +26,185 @@ export function CheckoutClient() {
   const totalItems = useTotalItems();
   const { stockMap, isLoading, hasStockIssues } = useCartStock(items);
 
+  // 1. EMPTY NEST STATE
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-white mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <ShoppingBag className="mx-auto h-16 w-16 text-gray-300" />
-          <h1 className="mt-6 text-2xl font-bold text-black">
-            Your cart is empty
-          </h1>
-          <p className="mt-2 text-gray-500">
-            Add some items to your cart before checking out.
-          </p>
-          <Button
-            asChild
-            className="mt-8 bg-black text-white hover:bg-gray-800"
-          >
-            <Link href="/">Continue Shopping</Link>
-          </Button>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-20 h-20 bg-[#fbf7ed] rounded-full flex items-center justify-center mb-8">
+          <ShoppingBag className="h-10 w-10 text-[#D4AF37] opacity-60" />
         </div>
+        <h1 className="font-serif text-3xl text-[#1B2A4E] mb-6 uppercase tracking-[0.3em]">
+          Your Nest is Empty
+        </h1>
+        <p className="text-gray-400 font-light italic mb-10 max-w-xs">
+          Discover our collection of handcrafted brilliance to fill your nest.
+        </p>
+        <Link
+          href="/"
+          className="bg-[#1B2A4E] text-white px-10 py-4 text-[10px] font-black uppercase tracking-[0.4em] hover:bg-[#D4AF37] transition-all duration-700 shadow-xl"
+        >
+          Explore Collection
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 min-h-screen">
+        {/* 2. LEFT COLUMN: ITEMS & STOCK VERIFICATION */}
+        <div className="p-8 lg:p-16 border-r border-gray-50 bg-white">
           <Link
             href="/"
-            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
+            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#D4AF37] transition-colors mb-12"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Continue Shopping
+            <ChevronLeft size={14} /> Back to Collection
           </Link>
-          <h1 className="mt-4 text-3xl font-bold text-black">Checkout</h1>
+
+          <header className="mb-12">
+            <h1 className="text-3xl font-serif text-[#1B2A4E] tracking-tight uppercase mb-2">
+              Review Your Nest
+            </h1>
+            <p className="text-[11px] text-gray-400 uppercase tracking-widest flex items-center gap-2">
+              <Lock size={12} className="text-[#D4AF37]" /> {totalItems}{" "}
+              Handpicked Items
+            </p>
+          </header>
+
+          {/* Stock Issues Warning */}
+          {hasStockIssues && !isLoading && (
+            <div className="mb-8 flex items-center gap-3 rounded-none border border-red-100 bg-red-50/50 px-5 py-4 text-[11px] font-bold uppercase tracking-wider text-red-800">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              <span>Some pieces in your nest have stock limitations.</span>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex items-center gap-3 py-8 text-[#D4AF37]">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+                Verifying Radiance...
+              </span>
+            </div>
+          )}
+
+          {/* Items List */}
+          <div className="divide-y divide-gray-50">
+            {items.map((item) => {
+              const stockInfo = stockMap.get(item.productId);
+              const hasIssue =
+                stockInfo?.isOutOfStock || stockInfo?.exceedsStock;
+
+              return (
+                <div
+                  key={item.productId}
+                  className={`flex gap-6 py-8 transition-all duration-500 ${hasIssue ? "opacity-70" : ""}`}
+                >
+                  <div className="relative h-24 w-20 bg-[#F9F9F9] border border-gray-100 shrink-0 shadow-sm">
+                    {item.image ? (
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                        sizes="80px"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-[8px] text-gray-300 uppercase tracking-widest">
+                        No Image
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-1 flex-col justify-between">
+                    <div>
+                      <h3 className="font-serif text-[13px] text-[#1B2A4E] uppercase tracking-wider leading-snug">
+                        {item.name}
+                      </h3>
+                      <div className="mt-2 flex items-center gap-4">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37]">
+                          {formatPrice(item.price)}
+                        </span>
+                        <span className="text-[10px] text-gray-400 uppercase tracking-[0.2em]">
+                          Qty: {item.quantity}
+                        </span>
+                      </div>
+
+                      {stockInfo?.isOutOfStock && (
+                        <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-red-600">
+                          Archive Only (Out of Stock)
+                        </p>
+                      )}
+                      {stockInfo?.exceedsStock && !stockInfo.isOutOfStock && (
+                        <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-amber-600">
+                          Only {stockInfo.currentStock} Available
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="text-[12px] font-bold text-[#1B2A4E] tracking-widest">
+                      {formatPrice(item.price * item.quantity)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-5">
-          {/* Cart Items */}
-          <div className="lg:col-span-3">
-            <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-              <div className="border-b border-gray-200 px-6 py-4">
-                <h2 className="font-semibold text-black">
-                  Order Summary ({totalItems} items)
-                </h2>
-              </div>
+        {/* 3. RIGHT COLUMN: PAYMENT SUMMARY */}
+        <div className="bg-[#fbf7ed]/30 p-8 lg:p-16 flex flex-col h-full lg:sticky lg:top-0">
+          <h2 className="text-[11px] font-black text-[#1B2A4E] uppercase tracking-[0.4em] mb-10 pb-4 border-b border-[#1B2A4E]/5">
+            Payment Summary
+          </h2>
 
-              {/* Stock Issues Warning */}
-              {hasStockIssues && !isLoading && (
-                <div className="mx-6 mt-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                  <AlertTriangle className="h-5 w-5 shrink-0" />
-                  <span>
-                    Some items have stock issues. Please update your cart before
-                    proceeding.
-                  </span>
-                </div>
-              )}
-
-              {/* Loading State */}
-              {isLoading && (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-                  <span className="ml-2 text-sm text-gray-500">
-                    Verifying stock...
-                  </span>
-                </div>
-              )}
-
-              {/* Items List */}
-              <div className="divide-y divide-gray-200">
-                {items.map((item) => {
-                  const stockInfo = stockMap.get(item.productId);
-                  const hasIssue =
-                    stockInfo?.isOutOfStock || stockInfo?.exceedsStock;
-
-                  return (
-                    <div
-                      key={item.productId}
-                      className={`flex gap-4 px-6 py-4 ${
-                        hasIssue ? "bg-red-50" : "bg-white"
-                      }`}
-                    >
-                      {/* Image */}
-                      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-gray-100 border border-gray-200">
-                        {item.image ? (
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            className="object-cover"
-                            sizes="80px"
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center text-xs text-gray-400">
-                            No image
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Details */}
-                      <div className="flex flex-1 flex-col justify-between">
-                        <div>
-                          <h3 className="font-medium text-black">
-                            {item.name}
-                          </h3>
-                          <p className="mt-1 text-sm text-gray-500">
-                            Qty: {item.quantity}
-                          </p>
-                          {stockInfo?.isOutOfStock && (
-                            <p className="mt-1 text-sm font-medium text-red-600">
-                              Out of stock
-                            </p>
-                          )}
-                          {stockInfo?.exceedsStock &&
-                            !stockInfo.isOutOfStock && (
-                              <p className="mt-1 text-sm font-medium text-amber-600">
-                                Only {stockInfo.currentStock} available
-                              </p>
-                            )}
-                        </div>
-                      </div>
-
-                      {/* Price */}
-                      <div className="text-right">
-                        <p className="font-medium text-black">
-                          {formatPrice(item.price * item.quantity)}
-                        </p>
-                        {item.quantity > 1 && (
-                          <p className="text-sm text-gray-500">
-                            {formatPrice(item.price)} each
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+          <div className="space-y-6 bg-white p-8 border border-[#1B2A4E]/5 shadow-sm">
+            <div className="flex justify-between text-[10px] text-gray-500 uppercase tracking-[0.2em]">
+              <span>Subtotal</span>
+              <span className="text-[#1B2A4E] font-bold">
+                {formatPrice(totalPrice)}
+              </span>
+            </div>
+            <div className="flex justify-between text-[10px] text-gray-500 uppercase tracking-[0.2em]">
+              <span>Insured Shipping</span>
+              <span className="text-[#D4AF37] font-bold tracking-widest">
+                Complimentary
+              </span>
+            </div>
+            <div className="h-px bg-[#1B2A4E]/5 my-2" />
+            <div className="flex justify-between items-center">
+              <span className="text-[11px] font-black text-[#1B2A4E] uppercase tracking-[0.4em]">
+                Total Balance
+              </span>
+              <span className="text-2xl font-bold text-[#1B2A4E]">
+                {formatPrice(totalPrice)}
+              </span>
             </div>
           </div>
 
-          {/* Order Total & Checkout */}
-          <div className="lg:col-span-2">
-            <div className="sticky top-24 rounded-lg border border-gray-200 bg-gray-50 p-6 shadow-sm">
-              <h2 className="font-semibold text-black">Payment Summary</h2>
+          <div className="mt-10">
+            <CheckoutButton disabled={hasStockIssues || isLoading} />
+            <p className="mt-6 text-center text-[9px] text-gray-400 uppercase tracking-[0.3em] flex items-center justify-center gap-2">
+              <Lock size={10} className="text-[#D4AF37]" /> Encrypted via Stripe
+              Secure
+            </p>
+          </div>
 
-              <div className="mt-6 space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="text-black font-medium">
-                    {formatPrice(totalPrice)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Shipping</span>
-                  <span className="text-black font-medium">
-                    Calculated at checkout
-                  </span>
-                </div>
-                <div className="border-t border-gray-200 pt-4">
-                  <div className="flex justify-between text-base font-bold">
-                    <span className="text-black">Total</span>
-                    <span className="text-black">
-                      {formatPrice(totalPrice)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <CheckoutButton disabled={hasStockIssues || isLoading} />
-              </div>
-
-              <p className="mt-4 text-center text-xs text-gray-500">
-                You&apos;ll be redirected to Stripe&apos;s secure checkout
-              </p>
+          <div className="mt-auto pt-12 grid grid-cols-2 gap-4">
+            <div className="flex flex-col items-center gap-3 bg-white/50 p-6 text-center border border-gray-100 hover:border-[#D4AF37] transition-all duration-500">
+              <Truck size={18} className="text-[#D4AF37] stroke-[1.2]" />
+              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#1B2A4E]">
+                Insured Delivery
+              </span>
+            </div>
+            <div className="flex flex-col items-center gap-3 bg-white/50 p-6 text-center border border-gray-100 hover:border-[#D4AF37] transition-all duration-500">
+              <ShieldCheck size={18} className="text-[#D4AF37] stroke-[1.2]" />
+              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#1B2A4E]">
+                Luster Warranty
+              </span>
             </div>
           </div>
         </div>

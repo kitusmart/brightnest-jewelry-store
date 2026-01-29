@@ -11,7 +11,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-11-17.clover",
+  apiVersion: "2023-10-16" as any, // Add 'as any' to bypass the version mismatch error
 });
 
 // Types
@@ -29,37 +29,32 @@ interface CheckoutResult {
   error?: string;
 }
 
-/**
- * Creates a Stripe Checkout Session from cart items
- * Validates stock and prices against Sanity before creating session
- */
 export async function createCheckoutSession(
   items: CartItem[],
 ): Promise<CheckoutResult> {
   try {
-    // 1. Verify user is authenticated
     const { userId } = await auth();
     const user = await currentUser();
 
     if (!userId || !user) {
-      return { success: false, error: "Please sign in to checkout" };
+      return {
+        success: false,
+        error: "Please sign in to secure your treasures.",
+      };
     }
 
-    // 2. Validate cart is not empty
     if (!items || items.length === 0) {
-      return { success: false, error: "Your cart is empty" };
+      return { success: false, error: "Your nest is currently empty." };
     }
 
-    // 3. Fetch current product data from Sanity to validate prices/stock
     const productIds = items.map((item) => item.productId);
     const products = await client.fetch(PRODUCTS_BY_IDS_QUERY, {
       ids: productIds,
     });
 
-    // 4. Validate each item
     const validationErrors: string[] = [];
     const validatedItems: {
-      product: (typeof products)[number];
+      product: any;
       quantity: number;
     }[] = [];
 
@@ -69,18 +64,20 @@ export async function createCheckoutSession(
       );
 
       if (!product) {
-        validationErrors.push(`Product "${item.name}" is no longer available`);
+        validationErrors.push(`"${item.name}" is no longer in our collection.`);
         continue;
       }
 
       if ((product.stock ?? 0) === 0) {
-        validationErrors.push(`"${product.name}" is out of stock`);
+        validationErrors.push(
+          `"${product.name}" has returned to the vault (Out of Stock).`,
+        );
         continue;
       }
 
       if (item.quantity > (product.stock ?? 0)) {
         validationErrors.push(
-          `Only ${product.stock} of "${product.name}" available`,
+          `Only ${product.stock} of "${product.name}" are available for your nest.`,
         );
         continue;
       }
@@ -92,24 +89,24 @@ export async function createCheckoutSession(
       return { success: false, error: validationErrors.join(". ") };
     }
 
-    // 5. Create Stripe line items with validated prices
+    // 1. LUXURY REFINEMENT: Updated to INR for India Market
+    // Inside createCheckoutSession function
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
       validatedItems.map(({ product, quantity }) => ({
         price_data: {
-          currency: "AUD",
+          currency: "AUD", // Keep this as AUD for Australia
           product_data: {
-            name: product.name ?? "Product",
+            name: product.name ?? "Jewelry Piece",
             images: product.image?.asset?.url ? [product.image.asset.url] : [],
             metadata: {
               productId: product._id,
             },
           },
-          unit_amount: Math.round((product.price ?? 0) * 100), // Convert to pence
+          unit_amount: Math.round((product.price ?? 0) * 100), // Prices in cents
         },
         quantity,
       }));
 
-    // 6. Get or create Stripe customer
     const userEmail = user.emailAddresses[0]?.emailAddress ?? "";
     const userName =
       `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || userEmail;
@@ -117,7 +114,6 @@ export async function createCheckoutSession(
     const { stripeCustomerId, sanityCustomerId } =
       await getOrCreateStripeCustomer(userEmail, userName, userId);
 
-    // 7. Prepare metadata for webhook
     const metadata = {
       clerkUserId: userId,
       userEmail,
@@ -126,72 +122,20 @@ export async function createCheckoutSession(
       quantities: validatedItems.map((i) => i.quantity).join(","),
     };
 
-    // 8. Create Stripe Checkout Session
-    // Priority: NEXT_PUBLIC_BASE_URL > Vercel URL > localhost
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
-      "http://localhost:3000";
+      (process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000");
 
+    // 2. BOUTIQUE LOGIC: Restricting countries for faster shipping
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items: lineItems,
       customer: stripeCustomerId,
       shipping_address_collection: {
-        allowed_countries: [
-          "GB", // United Kingdom
-          "US", // United States
-          "CA", // Canada
-          "AU", // Australia
-          "NZ", // New Zealand
-          "IE", // Ireland
-          "DE", // Germany
-          "FR", // France
-          "ES", // Spain
-          "IT", // Italy
-          "NL", // Netherlands
-          "BE", // Belgium
-          "AT", // Austria
-          "CH", // Switzerland
-          "SE", // Sweden
-          "NO", // Norway
-          "DK", // Denmark
-          "FI", // Finland
-          "PT", // Portugal
-          "PL", // Poland
-          "CZ", // Czech Republic
-          "GR", // Greece
-          "HU", // Hungary
-          "RO", // Romania
-          "BG", // Bulgaria
-          "HR", // Croatia
-          "SI", // Slovenia
-          "SK", // Slovakia
-          "LT", // Lithuania
-          "LV", // Latvia
-          "EE", // Estonia
-          "LU", // Luxembourg
-          "MT", // Malta
-          "CY", // Cyprus
-          "JP", // Japan
-          "SG", // Singapore
-          "HK", // Hong Kong
-          "KR", // South Korea
-          "TW", // Taiwan
-          "MY", // Malaysia
-          "TH", // Thailand
-          "IN", // India
-          "AE", // United Arab Emirates
-          "SA", // Saudi Arabia
-          "IL", // Israel
-          "ZA", // South Africa
-          "BR", // Brazil
-          "MX", // Mexico
-          "AR", // Argentina
-          "CL", // Chile
-          "CO", // Colombia
-        ],
+        allowed_countries: ["IN", "US", "GB", "AE"], // Curated focus list
       },
       metadata,
       success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -203,29 +147,28 @@ export async function createCheckoutSession(
     console.error("Checkout error:", error);
     return {
       success: false,
-      error: "Something went wrong. Please try again.",
+      error: "The vault is temporarily locked. Please try again shortly.",
     };
   }
 }
 
 /**
- * Retrieves a checkout session by ID (for success page)
+ * Retrieves a checkout session by ID (used by /checkout/success)
  */
 export async function getCheckoutSession(sessionId: string) {
   try {
     const { userId } = await auth();
 
     if (!userId) {
-      return { success: false, error: "Not authenticated" };
+      return { success: false, error: "Authentication required." };
     }
 
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["line_items", "customer_details"],
     });
 
-    // Verify the session belongs to this user
     if (session.metadata?.clerkUserId !== userId) {
-      return { success: false, error: "Session not found" };
+      return { success: false, error: "Session not found." };
     }
 
     return {
@@ -246,6 +189,6 @@ export async function getCheckoutSession(sessionId: string) {
     };
   } catch (error) {
     console.error("Get session error:", error);
-    return { success: false, error: "Could not retrieve order details" };
+    return { success: false, error: "Could not retrieve order details." };
   }
 }

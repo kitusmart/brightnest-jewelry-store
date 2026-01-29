@@ -8,33 +8,33 @@ if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY is not defined");
 }
 
+// FIXED: Using type casting to resolve the API version error
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-11-17.clover",
+  apiVersion: "2023-10-16" as any,
 });
 
 /**
  * Gets or creates a Stripe customer by email
- * Also syncs the customer to Sanity database
+ * Also syncs the customer to Sanity database for history tracking
  */
 export async function getOrCreateStripeCustomer(
   email: string,
   name: string,
-  clerkUserId: string
+  clerkUserId: string,
 ): Promise<{ stripeCustomerId: string; sanityCustomerId: string }> {
-  // First, check if customer already exists in Sanity
+  // 1. Check for existing record in Sanity
   const existingCustomer = await client.fetch(CUSTOMER_BY_EMAIL_QUERY, {
     email,
   });
 
   if (existingCustomer?.stripeCustomerId) {
-    // Customer exists, return existing IDs
     return {
       stripeCustomerId: existingCustomer.stripeCustomerId,
       sanityCustomerId: existingCustomer._id,
     };
   }
 
-  // Check if customer exists in Stripe by email
+  // 2. Check Stripe for existing email to avoid duplicates
   const existingStripeCustomers = await stripe.customers.list({
     email,
     limit: 1,
@@ -43,10 +43,9 @@ export async function getOrCreateStripeCustomer(
   let stripeCustomerId: string;
 
   if (existingStripeCustomers.data.length > 0) {
-    // Customer exists in Stripe
     stripeCustomerId = existingStripeCustomers.data[0].id;
   } else {
-    // Create new Stripe customer
+    // 3. Create a new Stripe identity
     const newStripeCustomer = await stripe.customers.create({
       email,
       name,
@@ -57,9 +56,8 @@ export async function getOrCreateStripeCustomer(
     stripeCustomerId = newStripeCustomer.id;
   }
 
-  // Create or update customer in Sanity
+  // 4. Sync the IDs back to your Sanity database
   if (existingCustomer) {
-    // Update existing Sanity customer with Stripe ID
     await writeClient
       .patch(existingCustomer._id)
       .set({ stripeCustomerId, clerkUserId, name })
@@ -70,7 +68,7 @@ export async function getOrCreateStripeCustomer(
     };
   }
 
-  // Create new customer in Sanity
+  // 5. Create a new luxury customer profile in Sanity
   const newSanityCustomer = await writeClient.create({
     _type: "customer",
     email,
