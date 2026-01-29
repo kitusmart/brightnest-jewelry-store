@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useCartStore } from "@/store/useCartStore";
+import { Truck, ShieldCheck, Lock } from "lucide-react";
 
 export function ProductInfo({ product }: { product: any }) {
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
 
-  // 🟢 Stock & Discount Logic
   const isOutOfStock = product.stock <= 0;
   const hasDiscount = product.compareAtPrice > product.price;
   const discountPercentage = hasDiscount
@@ -20,7 +20,6 @@ export function ProductInfo({ product }: { product: any }) {
 
   const handleAddToCart = () => {
     if (quantity > product.stock) return;
-
     addItem(product, quantity);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
@@ -28,7 +27,7 @@ export function ProductInfo({ product }: { product: any }) {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* 1. HEADER SECTION (Name, Price, Stock) */}
+      {/* 1. HEADER SECTION */}
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-serif text-gray-900 tracking-tight uppercase leading-snug">
           {product.name}
@@ -37,12 +36,10 @@ export function ProductInfo({ product }: { product: any }) {
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
             <div className="flex items-center gap-3">
-              {/* Main Selling Price */}
               <p className="text-2xl font-bold text-[#D4AF37]">
                 ${product.price?.toLocaleString("en-AU")}
               </p>
 
-              {/* 🔴 NEW: Slashed Price and Discount Badge */}
               {hasDiscount && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-400 line-through">
@@ -54,8 +51,6 @@ export function ProductInfo({ product }: { product: any }) {
                 </div>
               )}
             </div>
-
-            {/* Savings Subtitle */}
             {hasDiscount && (
               <p className="text-[10px] text-green-600 font-bold uppercase tracking-wider mt-1">
                 Save $
@@ -67,7 +62,6 @@ export function ProductInfo({ product }: { product: any }) {
             )}
           </div>
 
-          {/* Stock Status Badge */}
           <div
             className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
               isOutOfStock
@@ -80,9 +74,8 @@ export function ProductInfo({ product }: { product: any }) {
         </div>
       </div>
 
-      {/* 🟢 2. JEWELRY DETAILS GRID (Material, Color, Weight) */}
+      {/* 2. JEWELRY DETAILS GRID */}
       <div className="grid grid-cols-3 gap-4 border-y border-gray-100 py-6">
-        {/* Material */}
         <div className="flex flex-col gap-1 border-r border-gray-100 last:border-0">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
             Material
@@ -91,8 +84,6 @@ export function ProductInfo({ product }: { product: any }) {
             {product.material || "N/A"}
           </span>
         </div>
-
-        {/* Color */}
         <div className="flex flex-col gap-1 border-r border-gray-100 last:border-0 pl-4">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
             Color
@@ -101,8 +92,6 @@ export function ProductInfo({ product }: { product: any }) {
             {product.color || "N/A"}
           </span>
         </div>
-
-        {/* Weight */}
         <div className="flex flex-col gap-1 pl-4">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
             Weight
@@ -115,7 +104,6 @@ export function ProductInfo({ product }: { product: any }) {
 
       {/* 3. ACTIONS SECTION */}
       <div className="flex flex-col gap-4">
-        {/* Quantity Selector */}
         <div
           className={`flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 bg-white ${isOutOfStock ? "opacity-50 pointer-events-none" : ""}`}
         >
@@ -141,7 +129,6 @@ export function ProductInfo({ product }: { product: any }) {
           </div>
         </div>
 
-        {/* Add to Cart Button */}
         <button
           onClick={handleAddToCart}
           disabled={isAdded || isOutOfStock}
@@ -160,10 +147,37 @@ export function ProductInfo({ product }: { product: any }) {
               : "Add to Basket"}
         </button>
 
-        {/* AI Button */}
         <button className="w-full bg-[#FF6B00]/10 text-[#FF6B00] py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-[#FF6B00] hover:text-white transition-all duration-300">
           ✨ Ask AI for Similar Products
         </button>
+
+        {/* ⭐ NEW: PREMIUM TRUST BADGES SECTION */}
+        <div className="grid grid-cols-3 gap-2 mt-2">
+          <div className="flex flex-col items-center gap-2 p-3 border border-gray-50 rounded-lg">
+            <Truck size={16} className="text-[#D4AF37]" />
+            <span className="text-[8px] font-bold uppercase tracking-widest text-gray-500 text-center leading-tight">
+              Free Insured
+              <br />
+              Shipping
+            </span>
+          </div>
+          <div className="flex flex-col items-center gap-2 p-3 border border-gray-50 rounded-lg">
+            <ShieldCheck size={16} className="text-[#D4AF37]" />
+            <span className="text-[8px] font-bold uppercase tracking-widest text-gray-500 text-center leading-tight">
+              Anti-Tarnish
+              <br />
+              Guarantee
+            </span>
+          </div>
+          <div className="flex flex-col items-center gap-2 p-3 border border-gray-50 rounded-lg">
+            <Lock size={16} className="text-[#D4AF37]" />
+            <span className="text-[8px] font-bold uppercase tracking-widest text-gray-500 text-center leading-tight">
+              Secure
+              <br />
+              Checkout
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* 4. DESCRIPTION TEXT */}
