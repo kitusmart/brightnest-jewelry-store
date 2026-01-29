@@ -28,7 +28,7 @@ export function ProductInfo({ product }: { product: any }) {
     setTimeout(() => setIsAdded(false), 2000);
   };
 
-  // Safe category link formatting
+  // Safe category link formatting matching your homepage filter logic
   const categoryName = product.category || "Collection";
   const categorySlug = categoryName.toLowerCase();
 
@@ -40,9 +40,9 @@ export function ProductInfo({ product }: { product: any }) {
           Home
         </Link>
         <ChevronRight size={10} />
-        {/* Changed from /category/[slug] to /products?category=[slug] to match your shop structure */}
+        {/* FIXED: Pointing to root homepage with category parameter */}
         <Link
-          href={`/products?category=${categorySlug}`}
+          href={`/?category=${categorySlug}`}
           className="hover:text-[#D4AF37] transition-colors"
         >
           {categoryName}
@@ -53,7 +53,7 @@ export function ProductInfo({ product }: { product: any }) {
         </span>
       </nav>
 
-      {/* 1. HEADER SECTION */}
+      {/* 1. HEADER SECTION (Name, Price, Stock) */}
       <div className="flex flex-col gap-2 -mt-4">
         <h1 className="text-3xl font-serif text-gray-900 tracking-tight uppercase leading-snug">
           {product.name}
