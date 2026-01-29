@@ -5,13 +5,28 @@ import { useState } from "react";
 import { ShoppingBag, Search, Menu, User, X } from "lucide-react";
 import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { useCartStore } from "@/store/useCartStore";
+import { useRouter } from "next/navigation"; // Added for search navigation
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false); // Search Overlay State
+  const [searchQuery, setSearchQuery] = useState(""); // Search Input State
+  const router = useRouter();
+
   const items = useCartStore((state) => state.items);
   const cartCount = items.reduce((total, item) => total + item.quantity, 0);
 
   const toggleMenu = () => setIsOpen(!isOpen);
+
+  // Handle Search Submission
+  const handleSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/?q=${encodeURIComponent(searchQuery.trim())}`);
+      setIsSearchOpen(false);
+      setSearchQuery("");
+    }
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white shadow-sm">
@@ -27,8 +42,12 @@ export default function Navbar() {
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
 
-            <button className="hidden md:block text-[#D4AF37] hover:opacity-80 transition-opacity">
-              <Search size={22} strokeWidth={1.5} />
+            {/* Desktop Search Toggle */}
+            <button 
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              className="hidden md:block text-[#D4AF37] hover:opacity-80 transition-opacity"
+            >
+              {isSearchOpen ? <X size={22} strokeWidth={1.5} /> : <Search size={22} strokeWidth={1.5} />}
             </button>
           </div>
 
@@ -37,7 +56,10 @@ export default function Navbar() {
             <Link
               href="/"
               className="flex flex-col items-center justify-center"
-              onClick={() => setIsOpen(false)} 
+              onClick={() => {
+                setIsOpen(false);
+                setIsSearchOpen(false);
+              }} 
             >
               <h1 className="text-3xl md:text-5xl font-serif tracking-widest text-[#D4AF37] font-normal">
                 BRIGHTNEST
@@ -60,7 +82,6 @@ export default function Navbar() {
 
             <SignedIn>
               <div className="scale-75 opacity-90 hover:opacity-100 transition-opacity">
-                {/* This is the Logout/Profile button */}
                 <UserButton afterSignOutUrl="/" />
               </div>
             </SignedIn>
@@ -70,8 +91,6 @@ export default function Navbar() {
               className="relative text-[#D4AF37] hover:opacity-80 transition-opacity group"
             >
               <ShoppingBag size={22} strokeWidth={1.5} />
-
-              {/* DYNAMIC GOLD BADGE */}
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-[#D4AF37] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-sm border-2 border-white animate-in zoom-in duration-300">
                   {cartCount}
@@ -81,6 +100,28 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
+      {/* LUXURY SEARCH OVERLAY */}
+      {isSearchOpen && (
+        <div className="absolute top-full left-0 w-full bg-white border-t border-[#fbf7ed] p-8 z-50 animate-in slide-in-from-top duration-300">
+          <form onSubmit={handleSearch} className="max-w-3xl mx-auto relative">
+            <input
+              type="text"
+              placeholder="Search for jewelry (e.g., Gold Rings, Pearl Necklaces)..."
+              className="w-full bg-transparent border-b-2 border-[#D4AF37] py-4 text-xl font-light focus:outline-none placeholder:text-gray-200 text-[#1B2A4E]"
+              autoFocus
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button 
+              type="submit"
+              className="absolute right-0 bottom-4 text-[#D4AF37] uppercase text-[10px] font-bold tracking-widest hover:text-black transition-colors"
+            >
+              Search
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* 2. DESKTOP NAVIGATION LINKS */}
       <div className="hidden md:flex justify-center border-t border-[#fbf7ed] bg-white relative">
@@ -92,6 +133,19 @@ export default function Navbar() {
       {/* 3. MOBILE MENU DROPDOWN */}
       {isOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-lg py-6 flex flex-col items-center gap-6 z-50 animate-in slide-in-from-top-5 duration-300">
+          {/* Mobile Search Input */}
+          <div className="w-full px-8 mb-4">
+            <form onSubmit={handleSearch} className="relative">
+              <input 
+                type="text"
+                placeholder="Search..."
+                className="w-full border-b border-[#D4AF37] py-2 text-sm focus:outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Search size={16} className="absolute right-0 top-2 text-[#D4AF37]" />
+            </form>
+          </div>
           <div className="flex flex-col items-center gap-6 text-[14px] font-medium tracking-[0.15em] text-[#D4AF37] uppercase">
             <NavLinks onClick={() => setIsOpen(false)} />
           </div>
@@ -101,7 +155,6 @@ export default function Navbar() {
   );
 }
 
-// Helper Component for Links
 function NavLinks({ onClick }: { onClick?: () => void }) {
   const links = [
     { name: "Home", href: "/" },
@@ -111,7 +164,6 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
     { name: "Bangles", href: "/?category=bangles" },
     { name: "Kada", href: "/?category=kada" },
     { name: "Combos", href: "/?category=combos" },
-    // NEW LINK ADDED HERE
     { name: "My Orders", href: "/orders" }, 
     { name: "Policies", href: "/policies" },
   ];
