@@ -1,11 +1,14 @@
+"use client";
+
 import { CartStoreProvider } from "@/lib/store/cart-store-provider";
 import { ChatStoreProvider } from "@/lib/store/chat-store-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import { SanityLive } from "@/sanity/lib/live";
 import { Toaster } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import WhatsAppFloat from "@/components/WhatsAppFloat"; // 1. Added Import
+// FIXED: Added curly braces to match named export
+import { Footer } from "@/components/Footer"; 
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { CartSheet } from "@/components/app/CartSheet";
 import { ChatSheet } from "@/components/app/ChatSheet";
 import { AppShell } from "@/components/app/AppShell";
@@ -19,7 +22,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             <Navbar />
             <main>{children}</main>
             <Footer />
-            <WhatsAppFloat /> {/* 2. Added WhatsApp Float Here */}
+            <WhatsAppFloat />
           </AppShell>
           <CartSheet />
           <ChatSheet />
