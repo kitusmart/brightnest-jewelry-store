@@ -28,19 +28,24 @@ export function ProductInfo({ product }: { product: any }) {
     setTimeout(() => setIsAdded(false), 2000);
   };
 
+  // Safe category link formatting
+  const categoryName = product.category || "Collection";
+  const categorySlug = categoryName.toLowerCase();
+
   return (
     <div className="flex flex-col gap-8">
-      {/* ⭐ NEW: BREADCRUMBS SECTION */}
+      {/* BREADCRUMBS SECTION */}
       <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
         <Link href="/" className="hover:text-[#D4AF37] transition-colors">
           Home
         </Link>
         <ChevronRight size={10} />
+        {/* Changed from /category/[slug] to /products?category=[slug] to match your shop structure */}
         <Link
-          href={`/products?category=${product.category?.toLowerCase()}`}
+          href={`/products?category=${categorySlug}`}
           className="hover:text-[#D4AF37] transition-colors"
         >
-          {product.category || "Collection"}
+          {categoryName}
         </Link>
         <ChevronRight size={10} />
         <span className="text-gray-900 truncate max-w-[150px]">
@@ -48,7 +53,7 @@ export function ProductInfo({ product }: { product: any }) {
         </span>
       </nav>
 
-      {/* 1. HEADER SECTION (Name, Price, Stock) */}
+      {/* 1. HEADER SECTION */}
       <div className="flex flex-col gap-2 -mt-4">
         <h1 className="text-3xl font-serif text-gray-900 tracking-tight uppercase leading-snug">
           {product.name}
