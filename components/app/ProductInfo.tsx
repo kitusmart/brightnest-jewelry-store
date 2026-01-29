@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useCartStore } from "@/store/useCartStore";
-import { Truck, ShieldCheck, Lock } from "lucide-react";
+import { Truck, ShieldCheck, Lock, Sparkles, ChevronRight } from "lucide-react";
 
 export function ProductInfo({ product }: { product: any }) {
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
 
+  // Stock & Discount Logic
   const isOutOfStock = product.stock <= 0;
   const hasDiscount = product.compareAtPrice > product.price;
   const discountPercentage = hasDiscount
@@ -20,6 +22,7 @@ export function ProductInfo({ product }: { product: any }) {
 
   const handleAddToCart = () => {
     if (quantity > product.stock) return;
+
     addItem(product, quantity);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
@@ -27,8 +30,26 @@ export function ProductInfo({ product }: { product: any }) {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* 1. HEADER SECTION */}
-      <div className="flex flex-col gap-2">
+      {/* ⭐ NEW: BREADCRUMBS SECTION */}
+      <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+        <Link href="/" className="hover:text-[#D4AF37] transition-colors">
+          Home
+        </Link>
+        <ChevronRight size={10} />
+        <Link
+          href={`/products?category=${product.category?.toLowerCase()}`}
+          className="hover:text-[#D4AF37] transition-colors"
+        >
+          {product.category || "Collection"}
+        </Link>
+        <ChevronRight size={10} />
+        <span className="text-gray-900 truncate max-w-[150px]">
+          {product.name}
+        </span>
+      </nav>
+
+      {/* 1. HEADER SECTION (Name, Price, Stock) */}
+      <div className="flex flex-col gap-2 -mt-4">
         <h1 className="text-3xl font-serif text-gray-900 tracking-tight uppercase leading-snug">
           {product.name}
         </h1>
@@ -51,6 +72,7 @@ export function ProductInfo({ product }: { product: any }) {
                 </div>
               )}
             </div>
+
             {hasDiscount && (
               <p className="text-[10px] text-green-600 font-bold uppercase tracking-wider mt-1">
                 Save $
@@ -84,6 +106,7 @@ export function ProductInfo({ product }: { product: any }) {
             {product.material || "N/A"}
           </span>
         </div>
+
         <div className="flex flex-col gap-1 border-r border-gray-100 last:border-0 pl-4">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
             Color
@@ -92,6 +115,7 @@ export function ProductInfo({ product }: { product: any }) {
             {product.color || "N/A"}
           </span>
         </div>
+
         <div className="flex flex-col gap-1 pl-4">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
             Weight
@@ -147,31 +171,39 @@ export function ProductInfo({ product }: { product: any }) {
               : "Add to Basket"}
         </button>
 
-        <button className="w-full bg-[#FF6B00]/10 text-[#FF6B00] py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-[#FF6B00] hover:text-white transition-all duration-300">
-          ✨ Ask AI for Similar Products
+        <button className="w-full bg-[#FF6B00]/10 text-[#FF6B00] py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-[#FF6B00] hover:text-white transition-all duration-300 flex items-center justify-center gap-2">
+          <Sparkles size={14} /> Ask AI for Similar Products
         </button>
 
-        {/* ⭐ NEW: PREMIUM TRUST BADGES SECTION */}
-        <div className="grid grid-cols-3 gap-2 mt-2">
-          <div className="flex flex-col items-center gap-2 p-3 border border-gray-50 rounded-lg">
-            <Truck size={16} className="text-[#D4AF37]" />
-            <span className="text-[8px] font-bold uppercase tracking-widest text-gray-500 text-center leading-tight">
+        {/* TRUST BADGES SECTION */}
+        <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-gray-50">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
+              <Truck size={18} className="text-[#D4AF37]" />
+            </div>
+            <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-500 text-center leading-tight">
               Free Insured
               <br />
               Shipping
             </span>
           </div>
-          <div className="flex flex-col items-center gap-2 p-3 border border-gray-50 rounded-lg">
-            <ShieldCheck size={16} className="text-[#D4AF37]" />
-            <span className="text-[8px] font-bold uppercase tracking-widest text-gray-500 text-center leading-tight">
+
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
+              <ShieldCheck size={18} className="text-[#D4AF37]" />
+            </div>
+            <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-500 text-center leading-tight">
               Anti-Tarnish
               <br />
               Guarantee
             </span>
           </div>
-          <div className="flex flex-col items-center gap-2 p-3 border border-gray-50 rounded-lg">
-            <Lock size={16} className="text-[#D4AF37]" />
-            <span className="text-[8px] font-bold uppercase tracking-widest text-gray-500 text-center leading-tight">
+
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
+              <Lock size={18} className="text-[#D4AF37]" />
+            </div>
+            <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-500 text-center leading-tight">
               Secure
               <br />
               Checkout
