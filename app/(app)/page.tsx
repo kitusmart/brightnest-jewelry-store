@@ -8,7 +8,8 @@ import {
 } from "@/lib/sanity/queries/products";
 import { ALL_CATEGORIES_QUERY } from "@/lib/sanity/queries/categories";
 import { ProductSection } from "@/components/app/ProductSection";
-// Removed CategoryCircles import
+import FeaturedCarousel from "../../components/FeaturedCarousel";
+import { GridLoader } from "../../components/loaders/GridLoader";
 
 interface PageProps {
   searchParams: Promise<{
@@ -53,51 +54,54 @@ export default async function HomePage({ searchParams }: PageProps) {
     }
   };
 
-  // Fetch products with filters
-  const { data: products } = await sanityFetch({
-    query: getQuery(),
-    params: {
-      searchQuery,
-      categorySlug,
-      color,
-      material,
-      minPrice,
-      maxPrice,
-      inStock,
-    },
-  });
-
-  // Fetch categories
-  const { data: categories } = await sanityFetch({
-    query: ALL_CATEGORIES_QUERY,
-  });
+  // Fetch products and categories
+  const [{ data: products }, { data: categories }] = await Promise.all([
+    sanityFetch({
+      query: getQuery(),
+      params: {
+        searchQuery,
+        categorySlug,
+        color,
+        material,
+        minPrice,
+        maxPrice,
+        inStock,
+      },
+    }),
+    sanityFetch({
+      query: ALL_CATEGORIES_QUERY,
+    }),
+  ]);
 
   return (
     <div className="min-h-screen bg-white">
-      {/* 1. CATEGORY CIRCLES REMOVED 
-          (The space below is now clean and goes straight to the Page Title)
-      */}
+      {/* 1. LUXURY HERO SECTION */}
+      <FeaturedCarousel />
 
       {/* 2. Page Title Area */}
       <div className="border-b border-gray-100 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold tracking-tight text-black capitalize">
-            {/* If a category is selected, show it (e.g., "Necklaces"). Otherwise "Shop All Products" */}
-            {categorySlug ? categorySlug : "Shop All Products"}
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <span className="text-[#D4AF37] text-[10px] font-bold tracking-[0.3em] uppercase mb-2 block">
+            Our Collection
+          </span>
+          <h1 className="text-4xl font-serif tracking-tight text-[#1B2A4E] capitalize">
+            {categorySlug ? categorySlug : "Shop All Pieces"}
           </h1>
-          <p className="mt-2 text-sm text-gray-500">
-            Premium Jewelry Collection
+          <p className="mt-3 text-sm text-gray-400 font-light max-w-md italic">
+            Carefully curated jewelry designed to elevate your everyday radiance.
           </p>
         </div>
       </div>
 
-      {/* 3. Product Grid Section */}
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <ProductSection
-          categories={categories}
-          products={products}
-          searchQuery={searchQuery}
-        />
+      {/* 3. Product Grid Section with Suspense Loader */}
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <Suspense key={categorySlug + searchQuery} fallback={<GridLoader />}>
+          <ProductSection
+            categories={categories}
+            products={products}
+            searchQuery={searchQuery}
+          />
+        </Suspense>
       </div>
     </div>
   );
