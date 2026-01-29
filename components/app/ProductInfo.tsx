@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useCartStore } from "@/store/useCartStore";
+// FIXED: Switched to the luxury store provider hooks
+import { useCartActions } from "@/lib/store/cart-store-provider";
 import { Truck, ShieldCheck, Lock, Sparkles, ChevronRight } from "lucide-react";
 
 export function ProductInfo({ product }: { product: any }) {
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
-  const addItem = useCartStore((state) => state.addItem);
+
+  // FIXED: Accessing actions from the correct luxury store
+  const { addItem, openCart } = useCartActions();
 
   // Stock & Discount Logic
   const isOutOfStock = product.stock <= 0;
@@ -23,24 +26,37 @@ export function ProductInfo({ product }: { product: any }) {
   const handleAddToCart = () => {
     if (quantity > product.stock) return;
 
-    addItem(product, quantity);
+    // FIXED: Mapping data explicitly to the new CartItem type including slug
+    addItem(
+      {
+        productId: product._id, // Use the unique Sanity ID
+        name: product.name,
+        price: product.price,
+        image: product.image || product.images?.[0]?.asset?.url,
+        slug: product.slug.current || product.slug, // FIXED: Ensure slug is passed to prevent 404s
+      },
+      quantity,
+    );
+
     setIsAdded(true);
+
+    // LUXURY FLOW: Open the Midnight Blue drawer immediately
+    openCart();
+
     setTimeout(() => setIsAdded(false), 2000);
   };
 
-  // Safe category link formatting matching your homepage filter logic
   const categoryName = product.category || "Collection";
   const categorySlug = categoryName.toLowerCase();
 
   return (
     <div className="flex flex-col gap-8">
-      {/* BREADCRUMBS SECTION */}
-      <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+      {/* BREADCRUMBS */}
+      <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">
         <Link href="/" className="hover:text-[#D4AF37] transition-colors">
           Home
         </Link>
         <ChevronRight size={10} />
-        {/* FIXED: Pointing to root homepage with category parameter */}
         <Link
           href={`/?category=${categorySlug}`}
           className="hover:text-[#D4AF37] transition-colors"
@@ -48,185 +64,156 @@ export function ProductInfo({ product }: { product: any }) {
           {categoryName}
         </Link>
         <ChevronRight size={10} />
-        <span className="text-gray-900 truncate max-w-[150px]">
+        <span className="text-[#1B2A4E] truncate max-w-[150px]">
           {product.name}
         </span>
       </nav>
 
-      {/* 1. HEADER SECTION (Name, Price, Stock) */}
-      <div className="flex flex-col gap-2 -mt-4">
-        <h1 className="text-3xl font-serif text-gray-900 tracking-tight uppercase leading-snug">
+      {/* 1. HEADER SECTION */}
+      <div className="flex flex-col gap-4 -mt-4">
+        <h1 className="text-4xl font-serif text-[#1B2A4E] tracking-tight uppercase leading-tight">
           {product.name}
         </h1>
 
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
-            <div className="flex items-center gap-3">
-              <p className="text-2xl font-bold text-[#D4AF37]">
-                ${product.price?.toLocaleString("en-AU")}
+            <div className="flex items-center gap-4">
+              <p className="text-3xl font-bold text-[#1B2A4E]">
+                ${product.price?.toLocaleString()}
               </p>
-
               {hasDiscount && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-400 line-through">
-                    ${product.compareAtPrice?.toLocaleString("en-AU")}
+                <div className="flex items-center gap-3">
+                  <span className="text-lg text-gray-300 line-through font-light italic">
+                    ${product.compareAtPrice?.toLocaleString()}
                   </span>
-                  <span className="bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                  <span className="bg-[#1B2A4E] text-[#D4AF37] text-[9px] font-black px-3 py-1 uppercase tracking-widest border border-[#D4AF37]/30">
                     {discountPercentage}% OFF
                   </span>
                 </div>
               )}
             </div>
-
-            {hasDiscount && (
-              <p className="text-[10px] text-green-600 font-bold uppercase tracking-wider mt-1">
-                Save $
-                {(product.compareAtPrice - product.price).toLocaleString(
-                  "en-AU",
-                )}{" "}
-                today
-              </p>
-            )}
           </div>
 
           <div
-            className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
+            className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm ${
               isOutOfStock
                 ? "bg-red-50 text-red-600 border-red-100"
-                : "bg-green-50 text-green-700 border-green-100"
+                : "bg-white text-[#D4AF37] border-[#D4AF37]/20"
             }`}
           >
-            {isOutOfStock ? "Sold Out" : `${product.stock} In Stock`}
+            {isOutOfStock ? "Archive Piece" : `${product.stock} Available`}
           </div>
         </div>
       </div>
 
       {/* 2. JEWELRY DETAILS GRID */}
-      <div className="grid grid-cols-3 gap-4 border-y border-gray-100 py-6">
-        <div className="flex flex-col gap-1 border-r border-gray-100 last:border-0">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-            Material
-          </span>
-          <span className="text-sm font-semibold text-gray-900 capitalize">
-            {product.material || "N/A"}
-          </span>
-        </div>
-
-        <div className="flex flex-col gap-1 border-r border-gray-100 last:border-0 pl-4">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-            Color
-          </span>
-          <span className="text-sm font-semibold text-gray-900 capitalize">
-            {product.color || "N/A"}
-          </span>
-        </div>
-
-        <div className="flex flex-col gap-1 pl-4">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-            Weight
-          </span>
-          <span className="text-sm font-semibold text-gray-900">
-            {product.weight || "-"}
-          </span>
-        </div>
+      <div className="grid grid-cols-3 gap-8 border-y border-gray-100 py-8">
+        <DetailItem label="Material" value={product.material} />
+        <DetailItem label="Color" value={product.color} />
+        <DetailItem label="Weight" value={product.weight} />
       </div>
 
       {/* 3. ACTIONS SECTION */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-5">
         <div
-          className={`flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 bg-white ${isOutOfStock ? "opacity-50 pointer-events-none" : ""}`}
+          className={`flex items-center justify-between border border-gray-100 px-6 py-4 bg-[#fbf7ed]/20 ${isOutOfStock ? "opacity-30 pointer-events-none" : ""}`}
         >
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+          <span className="text-[10px] font-black text-[#1B2A4E] uppercase tracking-[0.3em]">
             Quantity
           </span>
-          <div className="flex items-center gap-6">
-            <button
+          <div className="flex items-center gap-8">
+            <QtyBtn
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-lg transition-colors"
-            >
-              −
-            </button>
-            <span className="font-bold text-gray-900 w-4 text-center">
+              label="−"
+            />
+            <span className="font-bold text-[#1B2A4E] w-4 text-center">
               {quantity}
             </span>
-            <button
+            <QtyBtn
               onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-lg transition-colors"
-            >
-              +
-            </button>
+              label="+"
+            />
           </div>
         </div>
 
+        {/* PRIMARY BUTTON: Midnight Blue & Gold */}
         <button
           onClick={handleAddToCart}
           disabled={isAdded || isOutOfStock}
-          className={`w-full py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[11px] transition-all duration-300 shadow-lg active:scale-95 flex items-center justify-center gap-2 ${
+          className={`w-full py-5 rounded-none font-bold uppercase tracking-[0.4em] text-[11px] transition-all duration-700 shadow-xl active:scale-95 flex items-center justify-center gap-3 ${
             isOutOfStock
-              ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
               : isAdded
-                ? "bg-green-700 text-white cursor-default"
-                : "bg-black text-white hover:bg-[#D4AF37] hover:text-black"
+                ? "bg-[#D4AF37] text-white"
+                : "bg-[#1B2A4E] text-white hover:bg-[#D4AF37] hover:tracking-[0.5em]"
           }`}
         >
           {isOutOfStock
-            ? "Sold Out"
+            ? "Request Restoration"
             : isAdded
-              ? "Added to Bag ✓"
+              ? "Safe in Nest ✓"
               : "Add to Basket"}
         </button>
 
-        <button className="w-full bg-[#FF6B00]/10 text-[#FF6B00] py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-[#FF6B00] hover:text-white transition-all duration-300 flex items-center justify-center gap-2">
-          <Sparkles size={14} /> Ask AI for Similar Products
+        <button className="w-full bg-white border border-[#1B2A4E]/10 text-[#1B2A4E] py-4 rounded-none font-bold text-[10px] uppercase tracking-[0.3em] hover:bg-[#1B2A4E] hover:text-white transition-all duration-500 flex items-center justify-center gap-3">
+          <Sparkles size={14} className="text-[#D4AF37]" /> Ask AI for Style
+          Guidance
         </button>
 
-        {/* TRUST BADGES SECTION */}
-        <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-gray-50">
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
-              <Truck size={18} className="text-[#D4AF37]" />
-            </div>
-            <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-500 text-center leading-tight">
-              Free Insured
-              <br />
-              Shipping
-            </span>
-          </div>
-
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
-              <ShieldCheck size={18} className="text-[#D4AF37]" />
-            </div>
-            <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-500 text-center leading-tight">
-              Anti-Tarnish
-              <br />
-              Guarantee
-            </span>
-          </div>
-
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
-              <Lock size={18} className="text-[#D4AF37]" />
-            </div>
-            <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-500 text-center leading-tight">
-              Secure
-              <br />
-              Checkout
-            </span>
-          </div>
+        {/* TRUST BADGES */}
+        <div className="grid grid-cols-3 gap-6 mt-6 pt-8 border-t border-gray-50">
+          <TrustIcon Icon={Truck} label="Insured Delivery" />
+          <TrustIcon Icon={ShieldCheck} label="Luster Guarantee" />
+          <TrustIcon Icon={Lock} label="Encrypted Pay" />
         </div>
       </div>
 
-      {/* 4. DESCRIPTION TEXT */}
-      <div className="pt-4 border-t border-gray-100">
-        <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
-          Description
+      {/* 4. DESCRIPTION */}
+      <div className="pt-6 border-t border-gray-50">
+        <h3 className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.4em] mb-4">
+          The Story
         </h3>
-        <p className="text-sm text-gray-600 leading-relaxed font-light">
+        <p className="text-[13px] text-[#1B2A4E] leading-loose font-light italic">
           {product.description ||
-            "Indulge in the unmatched elegance of our handcrafted collections."}
+            "A masterfully crafted piece designed to capture the essence of light and luxury."}
         </p>
       </div>
+    </div>
+  );
+}
+
+// Sub-components for cleaner Luxury Code
+function DetailItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">
+        {label}
+      </span>
+      <span className="text-[13px] font-medium text-[#1B2A4E] capitalize">
+        {value || "Pure Gold"}
+      </span>
+    </div>
+  );
+}
+
+function QtyBtn({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-8 h-8 flex items-center justify-center text-[#1B2A4E] hover:text-[#D4AF37] text-xl transition-all"
+    >
+      {label}
+    </button>
+  );
+}
+
+function TrustIcon({ Icon, label }: { Icon: any; label: string }) {
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <Icon size={18} className="text-[#D4AF37] stroke-[1.5]" />
+      <span className="text-[8px] font-bold uppercase tracking-widest text-gray-400 text-center leading-tight">
+        {label}
+      </span>
     </div>
   );
 }

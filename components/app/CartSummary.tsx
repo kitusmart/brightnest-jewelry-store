@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import {
   useTotalPrice,
@@ -21,34 +20,49 @@ export function CartSummary({ hasStockIssues = false }: CartSummaryProps) {
   if (totalItems === 0) return null;
 
   return (
-    <div className="border-t border-zinc-200 p-4 dark:border-zinc-800">
-      <div className="flex justify-between text-base font-medium text-zinc-900 dark:text-zinc-100">
-        <span>Subtotal</span>
-        <span>{formatPrice(totalPrice)}</span>
+    <div className="pt-6">
+      {/* 1. SUBTOTAL: High Contrast Midnight Blue */}
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#1B2A4E]">
+          Subtotal
+        </span>
+        <span className="text-xl font-bold text-[#1B2A4E]">
+          {formatPrice(totalPrice)}
+        </span>
       </div>
-      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-        Shipping calculated at checkout
+
+      <p className="text-[10px] text-gray-400 italic font-light tracking-widest mb-8">
+        Shipping and taxes calculated at checkout.
       </p>
-      <div className="mt-4">
+
+      {/* 2. CHECKOUT ACTION */}
+      <div className="space-y-4">
         {hasStockIssues ? (
-          <Button disabled className="w-full">
+          <button
+            disabled
+            className="w-full bg-gray-100 text-gray-400 py-5 text-[10px] font-black uppercase tracking-[0.2em] cursor-not-allowed border border-gray-200"
+          >
             Resolve stock issues to checkout
-          </Button>
+          </button>
         ) : (
-          <Button asChild className="w-full">
-            <Link href="/checkout" onClick={() => closeCart()}>
-              Checkout
-            </Link>
-          </Button>
+          <Link
+            href="/checkout"
+            onClick={() => closeCart()}
+            className="block w-full bg-[#1B2A4E] text-white py-5 text-center text-[11px] font-black uppercase tracking-[0.4em] hover:bg-[#D4AF37] transition-all duration-700 shadow-xl active:scale-[0.98]"
+          >
+            Proceed to Checkout
+          </Link>
         )}
       </div>
-      <div className="mt-3 text-center">
-        <Link
-          href="/"
-          className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+
+      {/* 3. CONTINUE SHOPPING: Gold underline style */}
+      <div className="mt-8 text-center">
+        <button
+          onClick={() => closeCart()}
+          className="text-[10px] font-bold text-[#1B2A4E] uppercase tracking-[0.3em] border-b border-[#D4AF37] pb-1 hover:text-[#D4AF37] transition-all"
         >
-          Continue Shopping →
-        </Link>
+          — Continue Shopping —
+        </button>
       </div>
     </div>
   );

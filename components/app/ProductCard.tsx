@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useCartStore } from "@/store/useCartStore";
+// FIXED: Switched to the luxury store provider hooks
+import { useCartActions } from "@/lib/store/cart-store-provider";
 import { Check, Heart } from "lucide-react";
 import { toast } from "sonner";
 
@@ -10,7 +11,9 @@ export function ProductCard({ product }: { product: any }) {
   const [isMounted, setIsMounted] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const addItem = useCartStore((state) => state.addItem);
+
+  // FIXED: Accessing actions from the correct luxury store
+  const { addItem, openCart } = useCartActions();
 
   // Ensure component is mounted to prevent hydration mismatch
   useEffect(() => {
@@ -30,9 +33,21 @@ export function ProductCard({ product }: { product: any }) {
     e.stopPropagation();
     if (isOutOfStock) return;
 
-    addItem(product, 1);
+    // FIXED: Explicitly mapping product data to the CartItem type
+    addItem({
+      productId: product._id, // Ensure this matches your Sanity ID
+      name: product.name,
+      price: product.price,
+      image: mainImage,
+      slug: product.slug.current || product.slug, // FIXED: Sending the slug to prevent 404s
+    });
+
     setIsAdded(true);
-    toast.success("Added to cart");
+
+    // LUXURY FLOW: Open the Midnight Blue drawer so user sees the addition
+    openCart();
+
+    toast.success("Added to your Nest");
     setTimeout(() => setIsAdded(false), 2000);
   };
 
@@ -61,20 +76,17 @@ export function ProductCard({ product }: { product: any }) {
         href={`/products/${product.slug}`}
         className="relative block overflow-hidden bg-[#F9F9F9]"
       >
-        {/* Main Image */}
         <img
           src={mainImage}
           alt={product.name}
           className="w-full h-auto aspect-[4/5] object-cover transition-opacity duration-1000 group-hover:opacity-0"
         />
-        {/* Hover Image */}
         <img
           src={hoverImage}
           alt={product.name}
           className="absolute inset-0 w-full h-auto aspect-[4/5] object-cover opacity-0 transition-all duration-1000 group-hover:opacity-100 scale-110 group-hover:scale-100"
         />
 
-        {/* 🤍 WISHLIST ICON */}
         <button
           onClick={toggleWishlist}
           className="absolute top-4 right-4 z-20 p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-500 hover:bg-[#1B2A4E] hover:text-white"
@@ -85,7 +97,6 @@ export function ProductCard({ product }: { product: any }) {
           />
         </button>
 
-        {/* 🏷️ LUXURY BADGE */}
         {product.badge && !isOutOfStock && (
           <div className="absolute top-4 left-4 z-10">
             <div className="bg-white/95 backdrop-blur-sm px-3 py-1 text-[8px] font-black text-[#1B2A4E] border border-gray-100 uppercase tracking-[0.2em]">
@@ -94,7 +105,6 @@ export function ProductCard({ product }: { product: any }) {
           </div>
         )}
 
-        {/* 🔴 REFINED SALE TAG */}
         {hasDiscount && !isOutOfStock && (
           <div className="absolute bottom-4 left-4 z-10">
             <div className="bg-[#1B2A4E] px-3 py-1.5 text-[8px] font-black text-[#D4AF37] rounded-none shadow-xl uppercase tracking-[0.25em] border border-[#D4AF37]/40">
@@ -103,7 +113,6 @@ export function ProductCard({ product }: { product: any }) {
           </div>
         )}
 
-        {/* 🔍 QUICK VIEW BAR */}
         <div className="absolute inset-x-0 bottom-0 bg-[#1B2A4E]/90 backdrop-blur-md py-4 text-center translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-10">
           <span className="text-white text-[9px] font-bold uppercase tracking-[0.3em]">
             Discover Piece
@@ -119,7 +128,6 @@ export function ProductCard({ product }: { product: any }) {
           </h3>
         </Link>
 
-        {/* 💰 PRICE SECTION */}
         <div className="mb-6 flex items-center gap-3">
           <span className="text-[14px] font-bold text-[#1B2A4E]">
             ${product.price?.toLocaleString()}
@@ -131,7 +139,6 @@ export function ProductCard({ product }: { product: any }) {
           )}
         </div>
 
-        {/* 🛒 ADD TO CART BUTTON */}
         <button
           onClick={handleQuickAdd}
           disabled={isOutOfStock}

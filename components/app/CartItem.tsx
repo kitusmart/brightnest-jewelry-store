@@ -2,8 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 import { useCartActions } from "@/lib/store/cart-store-provider";
 import { AddToCartButton } from "@/components/app/AddToCartButton";
 import { StockBadge } from "@/components/app/StockBadge";
@@ -17,7 +16,7 @@ interface CartItemProps {
 }
 
 export function CartItem({ item, stockInfo }: CartItemProps) {
-  const { removeItem } = useCartActions();
+  const { removeItem, closeCart } = useCartActions();
 
   const isOutOfStock = stockInfo?.isOutOfStock ?? false;
   const exceedsStock = stockInfo?.exceedsStock ?? false;
@@ -27,15 +26,15 @@ export function CartItem({ item, stockInfo }: CartItemProps) {
   return (
     <div
       className={cn(
-        "flex gap-4 py-4",
-        hasIssue && "rounded-lg bg-red-50 p-3 dark:bg-red-950/30",
+        "flex gap-6 py-6 transition-all duration-500",
+        hasIssue && "bg-red-50/30 p-4 border-y border-red-100/50",
       )}
     >
-      {/* Image */}
+      {/* 1. Image Area */}
       <div
         className={cn(
-          "relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-800",
-          isOutOfStock && "opacity-50",
+          "relative h-24 w-20 shrink-0 overflow-hidden bg-[#F9F9F9] border border-gray-100",
+          isOutOfStock && "opacity-40 grayscale",
         )}
       >
         {item.image ? (
@@ -47,44 +46,51 @@ export function CartItem({ item, stockInfo }: CartItemProps) {
             sizes="80px"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-xs text-zinc-400">
-            No image
+          <div className="flex h-full items-center justify-center text-[10px] uppercase tracking-widest text-gray-300">
+            No Image
           </div>
         )}
       </div>
 
-      {/* Details */}
+      {/* 2. Details Area */}
       <div className="flex flex-1 flex-col">
-        <div className="flex justify-between">
+        <div className="flex justify-between items-start gap-4">
+          {/* FIXED: Using item.slug to prevent 404 errors */}
           <Link
-            href={`/products/${item.productId}`}
+            href={`/products/${item.slug}`}
+            onClick={() => closeCart()}
             className={cn(
-              "font-medium text-zinc-900 hover:text-zinc-600 dark:text-zinc-100 dark:hover:text-zinc-300",
-              isOutOfStock && "text-zinc-400 dark:text-zinc-500",
+              "font-serif text-[13px] leading-tight text-[#1B2A4E] uppercase tracking-wider hover:text-[#D4AF37] transition-colors",
+              isOutOfStock && "text-gray-400",
             )}
           >
             {item.name}
           </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-zinc-400 hover:text-red-500"
+
+          <button
+            className="text-gray-300 hover:text-[#1B2A4E] transition-colors p-1"
             onClick={() => removeItem(item.productId)}
           >
-            <Trash2 className="h-4 w-4" />
-            <span className="sr-only">Remove {item.name}</span>
-          </Button>
+            <X size={14} strokeWidth={1.5} />
+            <span className="sr-only">Remove</span>
+          </button>
         </div>
 
-        <p className="mt-1 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <p className="mt-2 text-[12px] font-bold text-[#D4AF37] tracking-[0.15em]">
           {formatPrice(item.price)}
         </p>
 
-        {/* Stock Badge & Quantity Controls */}
-        <div className="mt-2 flex flex-row justify-between items-center gap-2">
-          <StockBadge productId={item.productId} stock={currentStock} />
+        {/* 3. Controls Area */}
+        <div className="mt-auto pt-4 flex flex-row justify-between items-center border-t border-gray-50/50">
+          <div className="scale-75 origin-left opacity-80">
+            <StockBadge productId={item.productId} stock={currentStock} />
+          </div>
+
           {!isOutOfStock && (
-            <div className="w-32 flex self-end ml-auto">
+            <div className="flex items-center gap-2 scale-90 origin-right">
+              <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 mr-1">
+                Qty
+              </span>
               <AddToCartButton
                 productId={item.productId}
                 name={item.name}

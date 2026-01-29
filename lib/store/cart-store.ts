@@ -8,6 +8,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   image?: string;
+  slug: string; // UPDATED: Added slug to the interface
 }
 
 export interface CartState {
@@ -36,7 +37,6 @@ export const defaultInitState: CartState = {
 /**
  * Cart store factory - creates new store instance per provider
  * Uses persist middleware with skipHydration for Next.js SSR compatibility
- * @see https://zustand.docs.pmnd.rs/guides/nextjs#hydration-and-asynchronous-storages
  */
 export const createCartStore = (initState: CartState = defaultInitState) => {
   return createStore<CartStore>()(
@@ -47,17 +47,18 @@ export const createCartStore = (initState: CartState = defaultInitState) => {
         addItem: (item, quantity = 1) =>
           set((state) => {
             const existing = state.items.find(
-              (i) => i.productId === item.productId
+              (i) => i.productId === item.productId,
             );
             if (existing) {
               return {
                 items: state.items.map((i) =>
                   i.productId === item.productId
                     ? { ...i, quantity: i.quantity + quantity }
-                    : i
+                    : i,
                 ),
               };
             }
+            // Logic correctly spreads the new item including the slug
             return { items: [...state.items, { ...item, quantity }] };
           }),
 
@@ -75,7 +76,7 @@ export const createCartStore = (initState: CartState = defaultInitState) => {
             }
             return {
               items: state.items.map((i) =>
-                i.productId === productId ? { ...i, quantity } : i
+                i.productId === productId ? { ...i, quantity } : i,
               ),
             };
           }),
@@ -87,11 +88,9 @@ export const createCartStore = (initState: CartState = defaultInitState) => {
       }),
       {
         name: "cart-storage",
-        // Skip automatic hydration - we'll trigger it manually on the client
         skipHydration: true,
-        // Only persist items, not UI state like isOpen
         partialize: (state) => ({ items: state.items }),
-      }
-    )
+      },
+    ),
   );
 };
