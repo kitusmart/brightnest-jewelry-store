@@ -8,8 +8,15 @@ export function ProductInfo({ product }: { product: any }) {
   const [isAdded, setIsAdded] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
 
-  // 🟢 Stock Logic
+  // 🟢 Stock & Discount Logic
   const isOutOfStock = product.stock <= 0;
+  const hasDiscount = product.compareAtPrice > product.price;
+  const discountPercentage = hasDiscount
+    ? Math.round(
+        ((product.compareAtPrice - product.price) / product.compareAtPrice) *
+          100,
+      )
+    : 0;
 
   const handleAddToCart = () => {
     if (quantity > product.stock) return;
@@ -28,9 +35,37 @@ export function ProductInfo({ product }: { product: any }) {
         </h1>
 
         <div className="flex items-center justify-between">
-          <p className="text-2xl font-bold text-[#D4AF37]">
-            ${product.price?.toLocaleString("en-AU")}
-          </p>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-3">
+              {/* Main Selling Price */}
+              <p className="text-2xl font-bold text-[#D4AF37]">
+                ${product.price?.toLocaleString("en-AU")}
+              </p>
+
+              {/* 🔴 NEW: Slashed Price and Discount Badge */}
+              {hasDiscount && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-400 line-through">
+                    ${product.compareAtPrice?.toLocaleString("en-AU")}
+                  </span>
+                  <span className="bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                    {discountPercentage}% OFF
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Savings Subtitle */}
+            {hasDiscount && (
+              <p className="text-[10px] text-green-600 font-bold uppercase tracking-wider mt-1">
+                Save $
+                {(product.compareAtPrice - product.price).toLocaleString(
+                  "en-AU",
+                )}{" "}
+                today
+              </p>
+            )}
+          </div>
 
           {/* Stock Status Badge */}
           <div

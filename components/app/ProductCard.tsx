@@ -11,6 +11,10 @@ export function ProductCard({ product }: { product: any }) {
   const addItem = useCartStore((state) => state.addItem);
 
   const isOutOfStock = product.stock <= 0;
+
+  // 🟢 Discount Logic
+  const hasDiscount = product.compareAtPrice > product.price;
+
   // Get main image and second image for hover effect
   const mainImage =
     product.image || "https://placehold.co/500x500/f3f4f6/9ca3af?text=No+Image";
@@ -47,11 +51,20 @@ export function ProductCard({ product }: { product: any }) {
           className="absolute inset-0 w-full h-auto aspect-square object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         />
 
-        {/* 🏷️ BADGE (e.g., 18K GOLD) */}
+        {/* 🏷️ EXISTING BADGE (e.g., 18K GOLD) */}
         {product.badge && !isOutOfStock && (
           <div className="absolute top-2 left-2 z-10">
             <div className="bg-white/90 px-2 py-1 text-[10px] font-bold text-gray-800 border border-gray-100 uppercase tracking-tight">
               {product.badge}
+            </div>
+          </div>
+        )}
+
+        {/* 🔴 NEW: SALE TAG (Appears top-right if there's a discount) */}
+        {hasDiscount && !isOutOfStock && (
+          <div className="absolute top-2 right-2 z-10">
+            <div className="bg-red-600 px-2 py-1 text-[10px] font-black text-white rounded shadow-sm uppercase tracking-tighter">
+              SALE
             </div>
           </div>
         )}
@@ -70,13 +83,21 @@ export function ProductCard({ product }: { product: any }) {
           </h3>
         </Link>
 
-        <div className="mb-4">
+        {/* 💰 PRICE SECTION WITH DISCOUNT */}
+        <div className="mb-4 flex items-center gap-2">
           <span className="text-xl font-medium text-gray-900">
             ${product.price?.toLocaleString()}
           </span>
+
+          {/* Slashed Original Price */}
+          {hasDiscount && (
+            <span className="text-sm text-gray-400 line-through">
+              ${product.compareAtPrice?.toLocaleString()}
+            </span>
+          )}
         </div>
 
-        {/* 🛒 ADD TO CART BUTTON - Midnight Blue & Rounded */}
+        {/* 🛒 ADD TO CART BUTTON */}
         <button
           onClick={handleQuickAdd}
           disabled={isOutOfStock}

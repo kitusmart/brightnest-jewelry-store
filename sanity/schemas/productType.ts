@@ -24,13 +24,13 @@ export const productType = defineType({
       validation: (rule) => rule.required().error("Product name is required"),
     }),
 
-    // 💎 LUXURY PRODUCT BADGE (MOVED TO TOP FOR VISIBILITY)
     defineField({
       name: "badge",
       title: "Product Badge",
       type: "string",
       group: "details",
-      description: "Text for the luxury badge (e.g., '18K GOLD', 'TARNISH FREE', 'BEST SELLER')",
+      description:
+        "Text for the luxury badge (e.g., '18K GOLD', 'TARNISH FREE', 'BEST SELLER')",
     }),
 
     defineField({
@@ -57,11 +57,21 @@ export const productType = defineType({
       title: "Price",
       type: "number",
       group: "details",
-      description: "Price in INR or USD",
+      description: "Current selling price",
       validation: (rule) => [
         rule.required().error("Price is required"),
         rule.positive().error("Price must be positive"),
       ],
+    }),
+    // ⭐ NEW FIELD ADDED HERE
+    defineField({
+      name: "compareAtPrice",
+      title: "Compare at Price (Original Price)",
+      type: "number",
+      group: "details",
+      description:
+        "The original price before discount. Leave empty if not on sale.",
+      validation: (rule) => rule.min(0).precision(2),
     }),
     defineField({
       name: "category",
