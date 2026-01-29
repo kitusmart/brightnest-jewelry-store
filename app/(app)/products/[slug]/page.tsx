@@ -3,7 +3,7 @@ import { sanityFetch } from "@/sanity/lib/live";
 import { PRODUCT_BY_SLUG_QUERY } from "@/lib/sanity/queries/products";
 import { ProductGallery } from "@/components/app/ProductGallery";
 import { ProductInfo } from "@/components/app/ProductInfo";
-import { useCartStore } from "@/store/useCartStore";
+import { ProductAccordion } from "@/components/app/ProductAccordion"; // New Import
 
 interface ProductPageProps {
   params: Promise<{
@@ -25,13 +25,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-2">
-          {/* Image Gallery */}
-          <ProductGallery images={product.images} productName={product.name} />
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="grid gap-16 lg:grid-cols-2 items-start">
+          {/* 1. Image Gallery - 4:5 Aspect Ratio focus */}
+          <div className="sticky top-24">
+            <ProductGallery images={product.images} productName={product.name} />
+          </div>
 
-          {/* Product Info */}
-          <ProductInfo product={product} />
+          {/* 2. Product Details Section */}
+          <div className="flex flex-col">
+            {/* Main Product Info (Title, Price, Add to Cart) */}
+            <ProductInfo product={product} />
+
+            {/* Luxury Technical Details & Care */}
+            <ProductAccordion />
+          </div>
         </div>
       </div>
     </div>

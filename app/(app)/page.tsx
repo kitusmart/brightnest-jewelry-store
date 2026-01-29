@@ -11,7 +11,8 @@ import { ProductSection } from "@/components/app/ProductSection";
 import FeaturedCarousel from "../../components/FeaturedCarousel";
 import { GridLoader } from "../../components/loaders/GridLoader";
 import JewelryAnatomy from "../../components/JewelryAnatomy";
-import TrustBadges from "../../components/TrustBadges"; // New Import
+import TrustBadges from "../../components/TrustBadges";
+import ShopTheLook from "../../components/ShopTheLook"; // New Import
 
 interface PageProps {
   searchParams: Promise<{
@@ -38,7 +39,6 @@ export default async function HomePage({ searchParams }: PageProps) {
   const sort = params.sort ?? "name";
   const inStock = params.inStock === "true";
 
-  // Select query based on sort parameter
   const getQuery = () => {
     if (searchQuery && sort === "relevance") {
       return FILTER_PRODUCTS_BY_RELEVANCE_QUERY;
@@ -56,7 +56,6 @@ export default async function HomePage({ searchParams }: PageProps) {
     }
   };
 
-  // Fetch products and categories simultaneously for performance
   const [{ data: products }, { data: categories }] = await Promise.all([
     sanityFetch({
       query: getQuery(),
@@ -95,7 +94,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      {/* 3. Product Grid Section with Suspense Loader */}
+      {/* 3. Product Grid Section */}
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <Suspense key={categorySlug + searchQuery} fallback={<GridLoader />}>
           <ProductSection
@@ -106,13 +105,16 @@ export default async function HomePage({ searchParams }: PageProps) {
         </Suspense>
       </div>
 
-      {/* 4. LUXURY CRAFTSMANSHIP SECTION */}
-      <div className="border-t border-gray-50 mt-12">
+      {/* 4. EDITORIAL "SHOP THE LOOK" SECTION */}
+      <ShopTheLook />
+
+      {/* 5. LUXURY CRAFTSMANSHIP SECTION */}
+      <div className="border-t border-gray-50">
         <JewelryAnatomy />
       </div>
 
-      {/* 5. BRAND TRUST BADGES */}
-      <div className="bg-[#fbf7ed]/30">
+      {/* 6. BRAND TRUST BADGES */}
+      <div className="bg-[#fbf7ed]/30 border-t border-gray-50">
         <TrustBadges />
       </div>
     </div>
