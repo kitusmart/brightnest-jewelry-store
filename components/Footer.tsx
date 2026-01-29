@@ -62,7 +62,7 @@ export function Footer() {
           <nav className="flex flex-col gap-3 text-sm text-gray-500 font-light">
             <Link href="/orders" className="hover:text-[#D4AF37] transition-colors">My Orders</Link>
             <Link href="/policies" className="hover:text-[#D4AF37] transition-colors">Shipping & Returns</Link>
-            <Link href="/policies" className="hover:text-[#D4AF37] transition-colors">Jewelry Care</Link>
+            <Link href="/care-guide" className="hover:text-[#D4AF37] transition-colors">Jewelry Care</Link>
             <a 
               href="https://wa.me/yournumber" 
               target="_blank" 
