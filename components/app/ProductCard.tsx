@@ -1,15 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCartStore } from "@/store/useCartStore";
 import { Check, Heart } from "lucide-react";
 import { toast } from "sonner";
 
 export function ProductCard({ product }: { product: any }) {
+  const [isMounted, setIsMounted] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
+
+  // Ensure component is mounted to prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const isOutOfStock = product.stock <= 0;
   const hasDiscount = product.compareAtPrice > product.price;
@@ -36,6 +42,17 @@ export function ProductCard({ product }: { product: any }) {
     setIsWishlisted(!isWishlisted);
     toast(isWishlisted ? "Removed from wishlist" : "Added to wishlist");
   };
+
+  // Luxury Skeleton loader while mounting
+  if (!isMounted) {
+    return (
+      <div className="flex flex-col animate-pulse">
+        <div className="aspect-[4/5] bg-gray-50 rounded-sm" />
+        <div className="mt-4 h-4 w-3/4 bg-gray-50 mx-auto" />
+        <div className="mt-2 h-4 w-1/4 bg-gray-50 mx-auto" />
+      </div>
+    );
+  }
 
   return (
     <div className="group relative flex flex-col bg-white transition-all duration-500 border border-transparent hover:shadow-2xl hover:shadow-gray-100">
@@ -68,7 +85,7 @@ export function ProductCard({ product }: { product: any }) {
           />
         </button>
 
-        {/* 🏷️ LUXURY BADGE (e.g., 18K GOLD) */}
+        {/* 🏷️ LUXURY BADGE */}
         {product.badge && !isOutOfStock && (
           <div className="absolute top-4 left-4 z-10">
             <div className="bg-white/95 backdrop-blur-sm px-3 py-1 text-[8px] font-black text-[#1B2A4E] border border-gray-100 uppercase tracking-[0.2em]">
@@ -77,7 +94,7 @@ export function ProductCard({ product }: { product: any }) {
           </div>
         )}
 
-        {/* 🔴 REFINED SALE TAG - Limited Offer */}
+        {/* 🔴 REFINED SALE TAG */}
         {hasDiscount && !isOutOfStock && (
           <div className="absolute bottom-4 left-4 z-10">
             <div className="bg-[#1B2A4E] px-3 py-1.5 text-[8px] font-black text-[#D4AF37] rounded-none shadow-xl uppercase tracking-[0.25em] border border-[#D4AF37]/40">
@@ -86,7 +103,7 @@ export function ProductCard({ product }: { product: any }) {
           </div>
         )}
 
-        {/* 🔍 QUICK VIEW BAR - Now more minimal */}
+        {/* 🔍 QUICK VIEW BAR */}
         <div className="absolute inset-x-0 bottom-0 bg-[#1B2A4E]/90 backdrop-blur-md py-4 text-center translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-10">
           <span className="text-white text-[9px] font-bold uppercase tracking-[0.3em]">
             Discover Piece
@@ -132,8 +149,7 @@ export function ProductCard({ product }: { product: any }) {
             "Archive Only"
           ) : (
             "Purchase Now"
-          )
-        }
+          )}
         </button>
       </div>
     </div>
