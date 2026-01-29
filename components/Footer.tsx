@@ -1,81 +1,112 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { Instagram, Facebook, Twitter, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
 
-export default function Footer() {
+export function Footer() {
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setIsSubmitting(true);
+    setTimeout(() => {
+      toast.success("Welcome to the Nest! Your luxury journey begins.");
+      setEmail("");
+      setIsSubmitting(false);
+    }, 1200);
+  };
+
   return (
-    <footer className="bg-white border-t border-[#fbf7ed] pt-16 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-          
-          {/* 1. BRAND STORY */}
-          <div className="space-y-6">
-            <h2 className="text-2xl font-serif tracking-widest text-[#D4AF37]">BRIGHTNEST</h2>
-            <p className="text-zinc-500 text-sm leading-relaxed">
-              Crafting timeless elegance for the modern woman. Our jewelry is designed to elevate your shine, every single day.
-            </p>
-            <div className="flex gap-4">
-              <Link href="#" className="text-[#D4AF37] hover:text-black transition"><Instagram size={20} /></Link>
-              <Link href="#" className="text-[#D4AF37] hover:text-black transition"><Facebook size={20} /></Link>
-              <Link href="#" className="text-[#D4AF37] hover:text-black transition"><Twitter size={20} /></Link>
-            </div>
-          </div>
-
-          {/* 2. SHOP LINKS */}
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-900 mb-6">Collections</h3>
-            <ul className="space-y-4 text-sm text-zinc-500">
-              <li><Link href="/?category=necklaces" className="hover:text-[#D4AF37] transition">Necklaces</Link></li>
-              <li><Link href="/?category=earrings" className="hover:text-[#D4AF37] transition">Earrings</Link></li>
-              <li><Link href="/?category=rings" className="hover:text-[#D4AF37] transition">Rings</Link></li>
-              <li><Link href="/?category=bangles" className="hover:text-[#D4AF37] transition">Bangles</Link></li>
-            </ul>
-          </div>
-
-          {/* 3. CUSTOMER CARE */}
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-900 mb-6">Client Services</h3>
-            <ul className="space-y-4 text-sm text-zinc-500">
-              <li><Link href="/orders" className="hover:text-[#D4AF37] transition">My Orders</Link></li>
-              <li><Link href="/policies" className="hover:text-[#D4AF37] transition">Shipping & Returns</Link></li>
-              <li><Link href="/care-guide" className="hover:text-[#D4AF37] transition">Jewelry Care</Link></li>
-              
-              {/* UPDATED: WHATSAPP SUPPORT LINK */}
-              <li>
-                <Link 
-                  href="https://wa.me/919985394369?text=Hello%20Brightnest!%20I%20have%20a%20question%20about%20your%20jewelry." 
-                  target="_blank"
-                  className="hover:text-[#D4AF37] transition flex items-center gap-2"
-                >
-                  <MessageCircle size={14} /> WhatsApp Support
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* 4. NEWSLETTER */}
-          <div className="space-y-6">
-            <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-900 mb-6">Join the Nest</h3>
-            <p className="text-sm text-zinc-500">Subscribe for early access to new collections and styling tips.</p>
-            <form className="flex gap-2 border-b border-zinc-200 pb-2">
-              <input 
-                type="email" 
-                placeholder="Your email address" 
-                className="bg-transparent text-sm w-full outline-none focus:placeholder-transparent"
-              />
-              <button type="submit" className="text-[#D4AF37] hover:text-black transition uppercase text-[10px] font-bold tracking-widest">Join</button>
-            </form>
+    <footer className="bg-white border-t border-gray-100 pt-16 pb-8 px-6 lg:px-12">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        
+        {/* 1. BRAND STORY */}
+        <div className="flex flex-col gap-6">
+          <h2 className="text-2xl font-serif text-[#D4AF37] tracking-widest uppercase">
+            Brightnest
+          </h2>
+          <p className="text-sm text-gray-500 leading-relaxed font-light">
+            Crafting timeless elegance for the modern woman. Our jewelry is designed to elevate your shine, every single day.
+          </p>
+          <div className="flex items-center gap-5">
+            <Instagram size={18} className="text-gray-400 hover:text-[#D4AF37] cursor-pointer transition-colors" />
+            <Facebook size={18} className="text-gray-400 hover:text-[#D4AF37] cursor-pointer transition-colors" />
+            <Twitter size={18} className="text-gray-400 hover:text-[#D4AF37] cursor-pointer transition-colors" />
           </div>
         </div>
 
-        {/* BOTTOM BAR */}
-        <div className="pt-8 border-t border-[#fbf7ed] flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-[10px] text-zinc-400 uppercase tracking-widest">
-            © {new Date().getFullYear()} Brightnest Jewelry. All rights reserved.
+        {/* 2. COLLECTIONS */}
+        <div className="flex flex-col gap-6">
+          <h3 className="text-[10px] font-bold text-gray-900 uppercase tracking-[0.2em]">Collections</h3>
+          <nav className="flex flex-col gap-3">
+            {["Necklaces", "Earrings", "Rings", "Bangles"].map((item) => (
+              <Link 
+                key={item} 
+                href={`/?category=${item.toLowerCase()}`}
+                className="text-sm text-gray-500 hover:text-[#D4AF37] transition-colors font-light"
+              >
+                {item}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        {/* 3. CLIENT SERVICES */}
+        <div className="flex flex-col gap-6">
+          <h3 className="text-[10px] font-bold text-gray-900 uppercase tracking-[0.2em]">Client Services</h3>
+          <nav className="flex flex-col gap-3 text-sm text-gray-500 font-light">
+            <Link href="/orders" className="hover:text-[#D4AF37] transition-colors">My Orders</Link>
+            <Link href="/policies" className="hover:text-[#D4AF37] transition-colors">Shipping & Returns</Link>
+            <Link href="/policies" className="hover:text-[#D4AF37] transition-colors">Jewelry Care</Link>
+            <a 
+              href="https://wa.me/yournumber" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-[#D4AF37] transition-colors flex items-center gap-2"
+            >
+               <MessageCircle size={14} /> WhatsApp Support
+            </a>
+          </nav>
+        </div>
+
+        {/* 4. NEWSLETTER */}
+        <div className="flex flex-col gap-6">
+          <h3 className="text-[10px] font-bold text-gray-900 uppercase tracking-[0.2em]">Join the Nest</h3>
+          <p className="text-sm text-gray-500 font-light">
+            Subscribe for early access to new collections and styling tips.
           </p>
-          <div className="flex gap-6 text-[10px] text-zinc-400 uppercase tracking-widest">
-            <Link href="/policies" className="hover:text-black">Privacy Policy</Link>
-            <Link href="/policies" className="hover:text-black">Terms of Service</Link>
-          </div>
+          <form onSubmit={handleSubscribe} className="relative mt-2">
+            <input
+              type="email"
+              placeholder="Your email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-transparent border-b border-gray-200 py-3 text-sm font-light focus:outline-none focus:border-[#D4AF37] transition-all placeholder:text-gray-300"
+              required
+            />
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="absolute right-0 bottom-3 text-[10px] font-bold uppercase tracking-widest text-gray-900 hover:text-[#D4AF37] transition-all disabled:opacity-50"
+            >
+              {isSubmitting ? "..." : "Join"}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto pt-8 border-t border-gray-50 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p className="text-[10px] text-gray-400 uppercase tracking-widest">
+          © 2026 Brightnest Jewelry. All Rights Reserved.
+        </p>
+        <div className="flex items-center gap-6 text-[10px] text-gray-400 uppercase tracking-widest">
+          <Link href="/policies" className="hover:text-[#D4AF37] transition-colors">Privacy Policy</Link>
+          <Link href="/policies" className="hover:text-[#D4AF37] transition-colors">Terms of Service</Link>
         </div>
       </div>
     </footer>
