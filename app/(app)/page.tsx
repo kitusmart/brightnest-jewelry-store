@@ -10,7 +10,8 @@ import { ALL_CATEGORIES_QUERY } from "@/lib/sanity/queries/categories";
 import { ProductSection } from "@/components/app/ProductSection";
 import FeaturedCarousel from "../../components/FeaturedCarousel";
 import { GridLoader } from "../../components/loaders/GridLoader";
-import JewelryAnatomy from "../../components/JewelryAnatomy"; // New Import
+import JewelryAnatomy from "../../components/JewelryAnatomy";
+import TrustBadges from "../../components/TrustBadges"; // New Import
 
 interface PageProps {
   searchParams: Promise<{
@@ -55,7 +56,7 @@ export default async function HomePage({ searchParams }: PageProps) {
     }
   };
 
-  // Fetch products and categories
+  // Fetch products and categories simultaneously for performance
   const [{ data: products }, { data: categories }] = await Promise.all([
     sanityFetch({
       query: getQuery(),
@@ -108,6 +109,11 @@ export default async function HomePage({ searchParams }: PageProps) {
       {/* 4. LUXURY CRAFTSMANSHIP SECTION */}
       <div className="border-t border-gray-50 mt-12">
         <JewelryAnatomy />
+      </div>
+
+      {/* 5. BRAND TRUST BADGES */}
+      <div className="bg-[#fbf7ed]/30">
+        <TrustBadges />
       </div>
     </div>
   );
