@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Instagram, Facebook, Twitter, Send } from "lucide-react";
+import { Instagram, Facebook, Twitter } from "lucide-react";
 import { toast } from "sonner";
 
 export function Footer() {
@@ -14,7 +14,7 @@ export function Footer() {
     if (!email) return;
 
     setIsSubmitting(true);
-    // Simulate API call
+    // Simulate premium subscription feedback
     setTimeout(() => {
       toast.success("Welcome to the Nest! Check your inbox soon.");
       setEmail("");
@@ -86,10 +86,14 @@ export function Footer() {
             >
               Shipping & Returns
             </Link>
-            <span className="hover:text-[#D4AF37] transition-colors cursor-pointer">
+            {/* FIXED: Pointing to existing /policies until care-guide is ready */}
+            <Link
+              href="/policies"
+              className="hover:text-[#D4AF37] transition-colors"
+            >
               Jewelry Care
-            </span>
-            <span className="hover:text-[#D4AF37] transition-colors cursor-pointer flex items-center gap-2">
+            </Link>
+            <span className="hover:text-[#D4AF37] transition-colors cursor-pointer">
               WhatsApp Support
             </span>
           </nav>
@@ -103,7 +107,7 @@ export function Footer() {
           <p className="text-sm text-gray-500 font-light">
             Subscribe for early access to new collections and styling tips.
           </p>
-          <form onSubmit={handleSubscribe} className="relative mt-2 group">
+          <form onSubmit={handleSubscribe} className="relative mt-2">
             <input
               type="email"
               placeholder="Your email address"
