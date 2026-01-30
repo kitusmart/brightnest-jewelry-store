@@ -3,6 +3,11 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { backendClient } from "@/sanity/lib/backendClient";
 import Stripe from "stripe";
+import { Resend } from "resend";
+// Fixed the import path to match your folder structure:
+import ShippingEmail from "@/components/app/emails/ShippingEmail";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -41,10 +46,28 @@ export async function POST(req: Request) {
     try {
       const order = await createOrderInSanity(session);
       console.log("Order created in Sanity:", order._id);
+
+      // AUTOMATED EMAIL: Fire receipt immediately after Sanity order creation
+      if (session.customer_details?.email) {
+        await resend.emails.send({
+          from: "Brightnest <onboarding@resend.dev>",
+          to: [session.customer_details.email],
+          subject: "Your Shine is Secured | Order Confirmation",
+          react: ShippingEmail({
+            customerName: session.customer_details.name || "Valued Customer",
+            orderNumber: order.orderNumber,
+            trackingNumber: "Preparing for dispatch...", // Initial status
+          }),
+        });
+        console.log(
+          "Confirmation email sent to:",
+          session.customer_details.email,
+        );
+      }
     } catch (err: any) {
-      console.error("Error creating order in Sanity:", err);
+      console.error("Error in webhook processing:", err);
       return NextResponse.json(
-        { error: "Error creating order" },
+        { error: "Error processing webhook" },
         { status: 500 },
       );
     }
@@ -73,14 +96,12 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
       _key: crypto.randomUUID(),
       product: {
         _type: "reference",
-        // Ensure you have "sanityProductId" set in your Stripe Product metadata
         _ref: product?.metadata?.sanityProductId,
       },
       quantity: item.quantity,
     };
   });
 
-  // 1. Create the Order Document
   const order = await backendClient.create({
     _type: "order",
     orderNumber: id,
@@ -94,7 +115,7 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
       ? total_details.amount_discount / 100
       : 0,
     totalPrice: amount_total ? amount_total / 100 : 0,
-    status: "paid", // Changed from pending to paid since this is a successful webhook
+    status: "paid",
     orderDate: new Date().toISOString(),
     items: orderItems,
     shippingAddress: {
@@ -107,13 +128,12 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
     },
   });
 
-  // 2. STOCK AUTOMATION: Decrement the inventory in Sanity
   if (orderItems) {
     for (const item of orderItems) {
       if (item.product._ref) {
         await backendClient
           .patch(item.product._ref)
-          .dec({ stock: item.quantity ?? 1 }) // Subtract the purchased quantity
+          .dec({ stock: item.quantity ?? 1 })
           .commit();
 
         console.log(`Stock updated for product: ${item.product._ref}`);
