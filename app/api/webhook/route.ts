@@ -73,12 +73,14 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
       _key: crypto.randomUUID(),
       product: {
         _type: "reference",
+        // Ensure you have "sanityProductId" set in your Stripe Product metadata
         _ref: product?.metadata?.sanityProductId,
       },
       quantity: item.quantity,
     };
   });
 
+  // 1. Create the Order Document
   const order = await backendClient.create({
     _type: "order",
     orderNumber: id,
@@ -92,10 +94,9 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
       ? total_details.amount_discount / 100
       : 0,
     totalPrice: amount_total ? amount_total / 100 : 0,
-    status: "pending",
+    status: "paid", // Changed from pending to paid since this is a successful webhook
     orderDate: new Date().toISOString(),
     items: orderItems,
-    // This section maps the Stripe address to your Sanity shippingAddress object
     shippingAddress: {
       city: customer_details?.address?.city,
       country: customer_details?.address?.country,
@@ -105,6 +106,20 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
       state: customer_details?.address?.state,
     },
   });
+
+  // 2. STOCK AUTOMATION: Decrement the inventory in Sanity
+  if (orderItems) {
+    for (const item of orderItems) {
+      if (item.product._ref) {
+        await backendClient
+          .patch(item.product._ref)
+          .dec({ stock: item.quantity ?? 1 }) // Subtract the purchased quantity
+          .commit();
+
+        console.log(`Stock updated for product: ${item.product._ref}`);
+      }
+    }
+  }
 
   return order;
 }

@@ -91,21 +91,27 @@ export async function createCheckoutSession(
 
     // 1. LUXURY REFINEMENT: Updated to INR for India Market
     // Inside createCheckoutSession function
+    // ... existing code ...
+
+    // Inside createCheckoutSession function, find lineItems:
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
       validatedItems.map(({ product, quantity }) => ({
         price_data: {
-          currency: "AUD", // Keep this as AUD for Australia
+          currency: "AUD",
           product_data: {
             name: product.name ?? "Jewelry Piece",
             images: product.image?.asset?.url ? [product.image.asset.url] : [],
+            // ADD THIS METADATA SECTION HERE:
             metadata: {
-              productId: product._id,
+              sanityProductId: product._id,
             },
           },
-          unit_amount: Math.round((product.price ?? 0) * 100), // Prices in cents
+          unit_amount: Math.round((product.price ?? 0) * 100),
         },
         quantity,
       }));
+
+    // ... rest of the code remains the same ...
 
     const userEmail = user.emailAddresses[0]?.emailAddress ?? "";
     const userName =
