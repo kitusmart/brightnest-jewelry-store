@@ -94,6 +94,7 @@ export const FEATURED_PRODUCTS_QUERY = defineQuery(`*[
 }`);
 
 // UPDATED: Added compareAtPrice (Crucial for the Product Detail Page)
+// UPDATED: Now includes reviews sub-query
 export const PRODUCT_BY_SLUG_QUERY = defineQuery(`
   *[_type == "product" && slug.current == $slug][0] {
     _id,
@@ -109,13 +110,20 @@ export const PRODUCT_BY_SLUG_QUERY = defineQuery(`
     badge,
     "category": category->title,
     images[] {
-  _key,
-  asset-> {
-    url,
-    metadata { dimensions }
-  },
-  alt
-}
+      _key,
+      asset-> {
+        url,
+        metadata { dimensions }
+      },
+      alt
+    },
+    // NEW: Fetch approved reviews for this specific product
+    "reviews": *[_type == "review" && product._ref == ^._id && isApproved == true] | order(_createdAt desc) {
+      author,
+      rating,
+      comment,
+      _createdAt
+    }
   }
 `);
 
