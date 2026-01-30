@@ -63,7 +63,6 @@ export const productType = defineType({
         rule.positive().error("Price must be positive"),
       ],
     }),
-    // ⭐ NEW FIELD ADDED HERE
     defineField({
       name: "compareAtPrice",
       title: "Compare at Price (Original Price)",
@@ -108,14 +107,32 @@ export const productType = defineType({
       group: "details",
       description: 'e.g., "15g" or "0.5 carats"',
     }),
+
+    // ⭐ ENHANCED IMAGES ARRAY FOR GALLERY
     defineField({
       name: "images",
-      title: "Images",
+      title: "Product Images",
       type: "array",
       group: "media",
-      of: [{ type: "image", options: { hotspot: true } }],
+      of: [
+        {
+          type: "image",
+          options: { hotspot: true },
+          fields: [
+            {
+              name: "alt",
+              type: "string",
+              title: "Alternative Text",
+              description:
+                "Important for SEO and accessibility (e.g., 'Close up of gold clasp')",
+              validation: (rule) => rule.required(),
+            },
+          ],
+        },
+      ],
       validation: (rule) => rule.min(1).error("At least one image is required"),
     }),
+
     defineField({
       name: "stock",
       title: "Stock Quantity",

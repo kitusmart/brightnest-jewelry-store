@@ -32,7 +32,7 @@ export function ProductInfo({ product }: { product: any }) {
         productId: product._id, // Use the unique Sanity ID
         name: product.name,
         price: product.price,
-        image: product.image || product.images?.[0]?.asset?.url,
+        image: product.images?.[0]?.asset?.url || product.image,
         slug: product.slug.current || product.slug, // FIXED: Ensure slug is passed to prevent 404s
       },
       quantity,

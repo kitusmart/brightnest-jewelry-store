@@ -3,24 +3,22 @@
 import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import type { PRODUCT_BY_SLUG_QUERYResult } from "@/sanity.types";
-
-type ProductImages = NonNullable<
-  NonNullable<PRODUCT_BY_SLUG_QUERYResult>["images"]
->;
 
 interface ProductGalleryProps {
-  images: ProductImages | null;
+  images: any[] | null;
   productName: string | null;
 }
 
 export function ProductGallery({ images, productName }: ProductGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
+  // Safety check if no images exist
   if (!images || images.length === 0) {
     return (
-      <div className="flex aspect-square items-center justify-center rounded-2xl bg-gray-50 border border-gray-100">
-        <span className="text-gray-400">No images available</span>
+      <div className="flex aspect-square items-center justify-center rounded-sm bg-[#fbf7ed] border border-[#D4AF37]/20">
+        <span className="text-[#1B2A4E] font-serif uppercase tracking-widest text-xs">
+          Image arriving soon
+        </span>
       </div>
     );
   }
@@ -28,54 +26,48 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
   const selectedImage = images[selectedIndex];
 
   return (
-    <div className="space-y-4">
-      {/* Main Image - Now Clean White with Soft Border */}
-      <div className="relative aspect-square overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm">
+    <div className="space-y-6">
+      {/* Main Image Display */}
+      <div className="relative aspect-square overflow-hidden bg-white border border-[#fbf7ed] shadow-sm group">
         {selectedImage?.asset?.url ? (
           <Image
             src={selectedImage.asset.url}
-            alt={productName ?? "Product image"}
+            alt={productName ?? "Luxury Jewelry Image"}
             fill
-            className="object-contain p-2"
+            className="object-contain p-6 transition-transform duration-1000 group-hover:scale-105"
             sizes="(max-width: 1024px) 100vw, 50vw"
             priority
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-gray-400">
-            No image
+          <div className="flex h-full items-center justify-center text-[#1B2A4E]/40">
+            Preview Unavailable
           </div>
         )}
       </div>
 
       {/* Thumbnail Grid */}
       {images.length > 1 && (
-        <div className="grid grid-cols-4 gap-4 sm:grid-cols-5 md:grid-cols-6">
+        <div className="grid grid-cols-4 gap-4 sm:grid-cols-5">
           {images.map((image, index) => (
             <button
-              key={image._key}
+              key={image._key || index}
               type="button"
               onClick={() => setSelectedIndex(index)}
-              aria-label={`View image ${index + 1}`}
-              aria-pressed={selectedIndex === index}
               className={cn(
-                "relative aspect-square overflow-hidden rounded-lg bg-white border transition-all",
+                "relative aspect-square overflow-hidden bg-white border transition-all duration-300",
                 selectedIndex === index
-                  ? "border-black ring-1 ring-black"
-                  : "border-gray-200 hover:border-gray-400",
+                  ? "border-[#D4AF37] ring-1 ring-[#D4AF37]"
+                  : "border-gray-100 opacity-60 hover:opacity-100",
               )}
             >
-              {image.asset?.url ? (
+              {image.asset?.url && (
                 <Image
                   src={image.asset.url}
-                  alt={`${productName} thumbnail ${index + 1}`}
+                  alt={`${productName} thumb ${index}`}
                   fill
-                  className="object-cover"
+                  className="object-cover p-1"
                   sizes="100px"
                 />
-              ) : (
-                <div className="flex h-full items-center justify-center text-xs text-gray-400">
-                  N/A
-                </div>
               )}
             </button>
           ))}

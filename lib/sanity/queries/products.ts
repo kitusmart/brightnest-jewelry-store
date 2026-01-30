@@ -108,12 +108,14 @@ export const PRODUCT_BY_SLUG_QUERY = defineQuery(`
     weight,
     badge,
     "category": category->title,
-    images[]{
-      asset->{
-        url,
-        metadata { dimensions }
-      }
-    }
+    images[] {
+  _key,
+  asset-> {
+    url,
+    metadata { dimensions }
+  },
+  alt
+}
   }
 `);
 
