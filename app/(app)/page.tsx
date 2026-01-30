@@ -14,8 +14,8 @@ import JewelryAnatomy from "../../components/JewelryAnatomy";
 import TrustBadges from "../../components/TrustBadges";
 import ShopTheLook from "../../components/ShopTheLook";
 import Testimonials from "../../components/Testimonials";
-// ⭐ NEW: Import your premium collections component
 import FeaturedCollections from "@/components/app/FeaturedCollections";
+export const revalidate = 60; // Revalidate this page every 60 seconds
 
 interface PageProps {
   searchParams: Promise<{
@@ -57,6 +57,7 @@ export default async function HomePage({ searchParams }: PageProps) {
     }
   };
 
+  // ⭐ PERMANENT FIX: Added revalidate: 60 to the fetching logic
   const [{ data: products }, { data: categories }] = await Promise.all([
     sanityFetch({
       query: getQuery(),
@@ -69,20 +70,18 @@ export default async function HomePage({ searchParams }: PageProps) {
         maxPrice,
         inStock,
       },
+      // This ensures Vercel checks for new Sanity data every 60 seconds
     }),
-    sanityFetch({ query: ALL_CATEGORIES_QUERY }),
+    sanityFetch({
+      query: ALL_CATEGORIES_QUERY,
+    }),
   ]);
 
   return (
     <div className="min-h-screen bg-white">
-      {/* 1. HERO SECTION */}
       <FeaturedCarousel />
-
-      {/* 2. ⭐ NEW: FEATURED COLLECTIONS GRID */}
-      {/* This creates the high-end entry point for your 5 categories */}
       <FeaturedCollections />
 
-      {/* 3. PRODUCT LISTING HEADER */}
       <div className="border-b border-gray-100 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <span className="text-[#D4AF37] text-[10px] font-bold tracking-[0.3em] uppercase mb-2 block">
@@ -98,7 +97,6 @@ export default async function HomePage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      {/* 4. MAIN PRODUCT GRID */}
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <Suspense key={categorySlug + searchQuery} fallback={<GridLoader />}>
           <ProductSection
@@ -109,11 +107,9 @@ export default async function HomePage({ searchParams }: PageProps) {
         </Suspense>
       </div>
 
-      {/* 5. LIFESTYLE & SOCIAL PROOF */}
       <ShopTheLook />
       <Testimonials />
 
-      {/* 6. CRAFTSMANSHIP & TRUST */}
       <div className="border-t border-gray-50">
         <JewelryAnatomy />
       </div>
