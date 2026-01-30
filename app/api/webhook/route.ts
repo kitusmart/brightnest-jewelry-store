@@ -5,7 +5,7 @@ import { backendClient } from "@/sanity/lib/backendClient";
 import Stripe from "stripe";
 import { Resend } from "resend";
 // Fixed the import path to match your folder structure:
-import ShippingEmail from "@/components/app/emails/ShippingEmail";
+import ShippingEmail from "@/components/emails/ShippingEmail";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
