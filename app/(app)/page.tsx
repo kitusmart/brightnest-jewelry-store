@@ -14,6 +14,8 @@ import JewelryAnatomy from "../../components/JewelryAnatomy";
 import TrustBadges from "../../components/TrustBadges";
 import ShopTheLook from "../../components/ShopTheLook";
 import Testimonials from "../../components/Testimonials";
+// ⭐ NEW: Import your premium collections component
+import FeaturedCollections from "@/components/app/FeaturedCollections";
 
 interface PageProps {
   searchParams: Promise<{
@@ -41,12 +43,17 @@ export default async function HomePage({ searchParams }: PageProps) {
   const inStock = params.inStock === "true";
 
   const getQuery = () => {
-    if (searchQuery && sort === "relevance") return FILTER_PRODUCTS_BY_RELEVANCE_QUERY;
+    if (searchQuery && sort === "relevance")
+      return FILTER_PRODUCTS_BY_RELEVANCE_QUERY;
     switch (sort) {
-      case "price_asc": return FILTER_PRODUCTS_BY_PRICE_ASC_QUERY;
-      case "price_desc": return FILTER_PRODUCTS_BY_PRICE_DESC_QUERY;
-      case "relevance": return FILTER_PRODUCTS_BY_RELEVANCE_QUERY;
-      default: return FILTER_PRODUCTS_BY_NAME_QUERY;
+      case "price_asc":
+        return FILTER_PRODUCTS_BY_PRICE_ASC_QUERY;
+      case "price_desc":
+        return FILTER_PRODUCTS_BY_PRICE_DESC_QUERY;
+      case "relevance":
+        return FILTER_PRODUCTS_BY_RELEVANCE_QUERY;
+      default:
+        return FILTER_PRODUCTS_BY_NAME_QUERY;
     }
   };
 
@@ -56,8 +63,8 @@ export default async function HomePage({ searchParams }: PageProps) {
       params: {
         searchQuery,
         categorySlug,
-        color, // FIXED: Now explicitly passed to prevent GROQ error
-        material, // FIXED: Now explicitly passed to prevent GROQ error
+        color,
+        material,
         minPrice,
         maxPrice,
         inStock,
@@ -68,23 +75,51 @@ export default async function HomePage({ searchParams }: PageProps) {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* 1. HERO SECTION */}
       <FeaturedCarousel />
+
+      {/* 2. ⭐ NEW: FEATURED COLLECTIONS GRID */}
+      {/* This creates the high-end entry point for your 5 categories */}
+      <FeaturedCollections />
+
+      {/* 3. PRODUCT LISTING HEADER */}
       <div className="border-b border-gray-100 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <span className="text-[#D4AF37] text-[10px] font-bold tracking-[0.3em] uppercase mb-2 block">Our Collection</span>
-          <h1 className="text-4xl font-serif tracking-tight text-[#1B2A4E] capitalize">{categorySlug || "Shop All Pieces"}</h1>
-          <p className="mt-3 text-sm text-gray-400 font-light max-w-md italic">Carefully curated jewelry designed to elevate your everyday radiance.</p>
+          <span className="text-[#D4AF37] text-[10px] font-bold tracking-[0.3em] uppercase mb-2 block">
+            Our Collection
+          </span>
+          <h1 className="text-4xl font-serif tracking-tight text-[#1B2A4E] capitalize">
+            {categorySlug || "Shop All Pieces"}
+          </h1>
+          <p className="mt-3 text-sm text-gray-400 font-light max-w-md italic">
+            Carefully curated jewelry designed to elevate your everyday
+            radiance.
+          </p>
         </div>
       </div>
+
+      {/* 4. MAIN PRODUCT GRID */}
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <Suspense key={categorySlug + searchQuery} fallback={<GridLoader />}>
-          <ProductSection categories={categories} products={products} searchQuery={searchQuery} />
+          <ProductSection
+            categories={categories}
+            products={products}
+            searchQuery={searchQuery}
+          />
         </Suspense>
       </div>
+
+      {/* 5. LIFESTYLE & SOCIAL PROOF */}
       <ShopTheLook />
-      <Testimonials /> {/* NEW: Customer Radiance integrated here */}
-      <div className="border-t border-gray-50"><JewelryAnatomy /></div>
-      <div className="bg-[#fbf7ed]/30 border-t border-gray-50"><TrustBadges /></div>
+      <Testimonials />
+
+      {/* 6. CRAFTSMANSHIP & TRUST */}
+      <div className="border-t border-gray-50">
+        <JewelryAnatomy />
+      </div>
+      <div className="bg-[#fbf7ed]/30 border-t border-gray-50">
+        <TrustBadges />
+      </div>
     </div>
   );
 }
