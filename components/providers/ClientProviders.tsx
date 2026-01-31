@@ -11,10 +11,7 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
     <ClerkProvider>
       <CartStoreProvider>
         <ChatStoreProvider>
-          <AppShell>
-            {children}
-          </AppShell>
-          <Toaster position="bottom-center" />
+          <AppShell>{children}</AppShell>
         </ChatStoreProvider>
       </CartStoreProvider>
     </ClerkProvider>

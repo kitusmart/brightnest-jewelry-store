@@ -2,18 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-// FIXED: Switched to the luxury store provider hooks
+import { toast } from "sonner";
 import { useCartActions } from "@/lib/store/cart-store-provider";
 import { Truck, ShieldCheck, Lock, Sparkles, ChevronRight } from "lucide-react";
 
 export function ProductInfo({ product }: { product: any }) {
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
-
-  // FIXED: Accessing actions from the correct luxury store
   const { addItem, openCart } = useCartActions();
 
-  // Stock & Discount Logic
   const isOutOfStock = product.stock <= 0;
   const hasDiscount = product.compareAtPrice > product.price;
   const discountPercentage = hasDiscount
@@ -26,22 +23,33 @@ export function ProductInfo({ product }: { product: any }) {
   const handleAddToCart = () => {
     if (quantity > product.stock) return;
 
-    // FIXED: Mapping data explicitly to the new CartItem type including slug
+    // ⭐ CLEANUP: Dismiss old toasts to prevent clumsy stacking
+    toast.dismiss();
+
     addItem(
       {
-        productId: product._id, // Use the unique Sanity ID
+        productId: product._id,
         name: product.name,
         price: product.price,
         image: product.images?.[0]?.asset?.url || product.image,
-        slug: product.slug.current || product.slug, // FIXED: Ensure slug is passed to prevent 404s
+        slug: product.slug.current || product.slug,
       },
       quantity,
     );
 
     setIsAdded(true);
 
-    // LUXURY FLOW: Open the Midnight Blue drawer immediately
-    openCart();
+    // ⭐ UPDATED NOTIFICATION: Using "Basket" and unique ID for consistency
+    toast.success("Added to Basket", {
+      id: "cart-action",
+      description: `${product.name} is now secured.`,
+      action: {
+        label: "View Cart",
+        onClick: () => openCart(),
+      },
+    });
+
+    // Optional: openCart(); // Keep this off for a more luxury, less aggressive feel
 
     setTimeout(() => setIsAdded(false), 2000);
   };
@@ -51,7 +59,6 @@ export function ProductInfo({ product }: { product: any }) {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* BREADCRUMBS */}
       <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">
         <Link href="/" className="hover:text-[#D4AF37] transition-colors">
           Home
@@ -69,51 +76,40 @@ export function ProductInfo({ product }: { product: any }) {
         </span>
       </nav>
 
-      {/* 1. HEADER SECTION */}
       <div className="flex flex-col gap-4 -mt-4">
         <h1 className="text-4xl font-serif text-[#1B2A4E] tracking-tight uppercase leading-tight">
           {product.name}
         </h1>
-
         <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-4">
-              <p className="text-3xl font-bold text-[#1B2A4E]">
-                ${product.price?.toLocaleString()}
-              </p>
-              {hasDiscount && (
-                <div className="flex items-center gap-3">
-                  <span className="text-lg text-gray-300 line-through font-light italic">
-                    ${product.compareAtPrice?.toLocaleString()}
-                  </span>
-                  <span className="bg-[#1B2A4E] text-[#D4AF37] text-[9px] font-black px-3 py-1 uppercase tracking-widest border border-[#D4AF37]/30">
-                    {discountPercentage}% OFF
-                  </span>
-                </div>
-              )}
-            </div>
+          <div className="flex items-center gap-4">
+            <p className="text-3xl font-bold text-[#1B2A4E]">
+              ${product.price?.toLocaleString()}
+            </p>
+            {hasDiscount && (
+              <div className="flex items-center gap-3">
+                <span className="text-lg text-gray-300 line-through font-light italic">
+                  ${product.compareAtPrice?.toLocaleString()}
+                </span>
+                <span className="bg-[#1B2A4E] text-[#D4AF37] text-[9px] font-black px-3 py-1 uppercase border border-[#D4AF37]/30">
+                  {discountPercentage}% OFF
+                </span>
+              </div>
+            )}
           </div>
-
           <div
-            className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm ${
-              isOutOfStock
-                ? "bg-red-50 text-red-600 border-red-100"
-                : "bg-white text-[#D4AF37] border-[#D4AF37]/20"
-            }`}
+            className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm ${isOutOfStock ? "bg-red-50 text-red-600 border-red-100" : "bg-white text-[#D4AF37] border-[#D4AF37]/20"}`}
           >
             {isOutOfStock ? "Archive Piece" : `${product.stock} Available`}
           </div>
         </div>
       </div>
 
-      {/* 2. JEWELRY DETAILS GRID */}
       <div className="grid grid-cols-3 gap-8 border-y border-gray-100 py-8">
         <DetailItem label="Material" value={product.material} />
         <DetailItem label="Color" value={product.color} />
         <DetailItem label="Weight" value={product.weight} />
       </div>
 
-      {/* 3. ACTIONS SECTION */}
       <div className="flex flex-col gap-5">
         <div
           className={`flex items-center justify-between border border-gray-100 px-6 py-4 bg-[#fbf7ed]/20 ${isOutOfStock ? "opacity-30 pointer-events-none" : ""}`}
@@ -136,7 +132,6 @@ export function ProductInfo({ product }: { product: any }) {
           </div>
         </div>
 
-        {/* PRIMARY BUTTON: Midnight Blue & Gold */}
         <button
           onClick={handleAddToCart}
           disabled={isAdded || isOutOfStock}
@@ -151,7 +146,7 @@ export function ProductInfo({ product }: { product: any }) {
           {isOutOfStock
             ? "Request Restoration"
             : isAdded
-              ? "Safe in Nest ✓"
+              ? "Safe in Basket ✓"
               : "Add to Basket"}
         </button>
 
@@ -160,7 +155,6 @@ export function ProductInfo({ product }: { product: any }) {
           Guidance
         </button>
 
-        {/* TRUST BADGES */}
         <div className="grid grid-cols-3 gap-6 mt-6 pt-8 border-t border-gray-50">
           <TrustIcon Icon={Truck} label="Insured Delivery" />
           <TrustIcon Icon={ShieldCheck} label="Luster Guarantee" />
@@ -168,7 +162,6 @@ export function ProductInfo({ product }: { product: any }) {
         </div>
       </div>
 
-      {/* 4. DESCRIPTION */}
       <div className="pt-6 border-t border-gray-50">
         <h3 className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.4em] mb-4">
           The Story
@@ -182,7 +175,7 @@ export function ProductInfo({ product }: { product: any }) {
   );
 }
 
-// Sub-components for cleaner Luxury Code
+// Sub-components as provided in your original code
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-2">

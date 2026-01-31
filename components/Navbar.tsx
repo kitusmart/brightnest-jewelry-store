@@ -2,14 +2,21 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ShoppingBag, Search, Menu, User, X } from "lucide-react";
+import { ShoppingBag, Search, Menu, User, X, Heart } from "lucide-react";
 import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { useCartActions, useTotalItems } from "@/lib/store/cart-store-provider";
+
+// ⭐ STEP 3: Import your new wishlist store from the root folder
+import { useWishlistStore } from "@/store/wishlist-store";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { openCart } = useCartActions();
   const totalItems = useTotalItems();
+
+  // ⭐ STEP 3: Connect to the real wishlist count
+  const wishlistItems = useWishlistStore((state) => state.items);
+  const wishlistCount = wishlistItems.length;
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -47,7 +54,7 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Right: LOGIN & CART */}
+          {/* Right: LOGIN, WISHLIST & CART */}
           <div className="flex items-center justify-end gap-6 flex-1">
             <SignedOut>
               <SignInButton mode="modal">
@@ -63,6 +70,20 @@ export default function Navbar() {
               </div>
             </SignedIn>
 
+            {/* WISHLIST ICON with real count badge */}
+            <Link
+              href="/wishlist"
+              className="relative text-[#D4AF37] hover:opacity-80 transition-opacity p-2"
+            >
+              <Heart size={22} strokeWidth={1.5} />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#D4AF37] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-sm border-2 border-white animate-in zoom-in duration-300">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
+
+            {/* CART ICON */}
             <button
               onClick={() => openCart()}
               className="relative text-[#D4AF37] hover:opacity-80 transition-opacity group p-2"
@@ -100,7 +121,7 @@ export default function Navbar() {
 function NavLinks({ onClick }: { onClick?: () => void }) {
   const links = [
     { name: "Home", href: "/" },
-    { name: "Our Story", href: "/about" }, // ADDED: Direct link to the About page
+    { name: "Our Story", href: "/about" },
     { name: "Necklaces", href: "/?category=necklaces" },
     { name: "Earrings", href: "/?category=earrings" },
     { name: "Rings", href: "/?category=rings" },

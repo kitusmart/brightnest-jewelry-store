@@ -1,5 +1,4 @@
 import { defineQuery } from "next-sanity";
-import { LOW_STOCK_THRESHOLD } from "@/lib/constants/stock";
 
 // ============================================
 // Shared Query Fragments (DRY)
@@ -16,7 +15,8 @@ const PRODUCT_FILTER_CONDITIONS = `
   && ($inStock == false || stock > 0)
 `;
 
-// UPDATED: Added compareAtPrice here so it works in all Filtered Grids
+// ⭐ FIXED: Changed image projection to match the detail page structure
+// This ensures images[1] is always available for the hover zoom
 const FILTERED_PRODUCT_PROJECTION = `{
   _id,
   name,
@@ -24,11 +24,11 @@ const FILTERED_PRODUCT_PROJECTION = `{
   price,
   compareAtPrice,
   "image": images[0].asset->url,
-  "images": images[0...4]{
+  "images": images[] {
     _key,
-    asset->{
-      _id,
-      url
+    asset-> {
+      url,
+      _id
     }
   },
   category->{
@@ -51,55 +51,21 @@ const RELEVANCE_SCORE = `score(
 // Main Queries
 // ============================================
 
-// UPDATED: Added compareAtPrice
 export const ALL_PRODUCTS_QUERY = defineQuery(`*[
   _type == "product"
-] | order(name asc) {
-  _id,
-  name,
-  "slug": slug.current,
-  description,
-  price,
-  compareAtPrice,
-  "image": images[0].asset->url,
-  "images": images[]{
-    _key,
-    asset->{ _id, url },
-    hotspot
-  },
-  category->{ _id, title, "slug": slug.current },
-  material,
-  color,
-  dimensions,
-  stock,
-  featured,
-  badge
-}`);
+] | order(name asc) ${FILTERED_PRODUCT_PROJECTION}`);
 
-// UPDATED: Added compareAtPrice
 export const FEATURED_PRODUCTS_QUERY = defineQuery(`*[
   _type == "product"
   && featured == true
   && stock > 0
-] | order(name asc) [0...6] {
-  _id,
-  name,
-  "slug": slug.current,
-  description,
-  price,
-  compareAtPrice,
-  "image": images[0].asset->url,
-  stock,
-  badge
-}`);
+] | order(name asc) [0...6] ${FILTERED_PRODUCT_PROJECTION}`);
 
-// UPDATED: Added compareAtPrice (Crucial for the Product Detail Page)
-// UPDATED: Now includes reviews sub-query
 export const PRODUCT_BY_SLUG_QUERY = defineQuery(`
   *[_type == "product" && slug.current == $slug][0] {
     _id,
     name,
-    slug,
+    "slug": slug.current,
     price,
     compareAtPrice,
     stock,
@@ -134,15 +100,7 @@ export const PRODUCT_BY_SLUG_QUERY = defineQuery(`
 export const AI_SEARCH_PRODUCTS_QUERY = defineQuery(`*[
   _type == "product"
   && (name match $searchQuery + "*" || description match $searchQuery + "*")
-] {
-  _id,
-  name,
-  "slug": slug.current,
-  price,
-  compareAtPrice,
-  "image": images[0].asset->url,
-  badge
-}`);
+] ${FILTERED_PRODUCT_PROJECTION}`);
 
 export const FILTER_PRODUCTS_BY_NAME_QUERY = defineQuery(
   `*[${PRODUCT_FILTER_CONDITIONS}] | order(name asc) ${FILTERED_PRODUCT_PROJECTION}`,
@@ -163,12 +121,4 @@ export const FILTER_PRODUCTS_BY_RELEVANCE_QUERY = defineQuery(
 export const PRODUCTS_BY_IDS_QUERY = defineQuery(`*[
   _type == "product"
   && _id in $ids
-] {
-  _id,
-  name,
-  "slug": slug.current,
-  price,
-  compareAtPrice,
-  "image": images[0].asset->url,
-  stock
-}`);
+] ${FILTERED_PRODUCT_PROJECTION}`);

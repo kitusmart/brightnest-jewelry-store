@@ -6,27 +6,23 @@ import { CartSheet } from "@/components/app/CartSheet";
 import { ChatSheet } from "@/components/app/ChatSheet";
 import { ClientProviders } from "@/components/providers/ClientProviders";
 
+// ⭐ REMOVED TOASTER FROM HERE
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClientProviders>
-      {/* The min-h-screen and flex-col classes ensure the footer 
-        stays at the bottom of the page on all devices.
-      */}
       <div className="flex flex-col min-h-screen">
         <Navbar />
-        
-        <main className="flex-grow">
-          {children}
-        </main>
-
+        <main className="flex-grow">{children}</main>
         <Footer />
       </div>
 
-      {/* Floating & Utility Components */}
       <WhatsAppFloat />
       <CartSheet />
       <ChatSheet />
       <SanityLive />
+
+      {/* ⭐ DO NOT ADD TOASTER HERE. It is already in your root app/layout.tsx */}
     </ClientProviders>
   );
 }

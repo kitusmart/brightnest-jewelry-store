@@ -7,6 +7,9 @@ import { ProductAccordion } from "@/components/app/ProductAccordion";
 import { ProductCard } from "@/components/app/ProductCard";
 import { ReviewSection } from "@/components/app/ReviewSection";
 
+// ⭐ Set revalidation for premium data freshness
+export const revalidate = 60;
+
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -22,22 +25,27 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!product) notFound();
 
-  // 2. STEP 2: DYNAMIC FETCH
-  // This fetches any 4 products that are NOT the current one.
+  // 2. ⭐ FIXED: DYNAMIC FETCH WITH HOVER SUPPORT
+  // Fetches the full images array and discount prices for the related grid
   const { data: relatedProducts } = await sanityFetch({
     query: `*[_type == "product" && slug.current != $slug] | order(_createdAt desc) [0...4] {
       _id,
       name,
       price,
+      compareAtPrice,
       "slug": slug.current,
-      "image": images[0].asset->url,
-      "category": category->{ title, "slug": slug.current, _id }
+      "images": images[] {
+        _key,
+        asset-> { url }
+      },
+      "category": category->{ title, "slug": slug.current, _id },
+      badge,
+      stock
     }`,
     params: { slug },
   });
 
-  // 3. STEP 2: DYNAMIC SORTING
-  // Prioritizes items in the same category (e.g., Necklace + Necklace).
+  // 3. DYNAMIC SORTING
   const filteredRelated = relatedProducts
     ?.sort((a: any, b: any) => {
       if (a.category?._id === product.category?._id) return -1;
@@ -69,7 +77,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <ReviewSection reviews={product.reviews} />
 
-        {/* SECTION WAKES UP AUTOMATICALLY IF PRODUCTS > 1 */}
         {filteredRelated && filteredRelated.length > 0 && (
           <section className="mt-32 pt-24 border-t border-gray-50">
             <div className="flex flex-col items-center text-center mb-16">
