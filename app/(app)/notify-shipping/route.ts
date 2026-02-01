@@ -15,8 +15,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing data" }, { status: 400 });
     }
 
-    // 1. Fetch the latest data from Sanity
-    const orderDetails = await client.fetch(
+    // SENIOR FIX: usage of .withConfig({ useCdn: false })
+    // This forces the code to ignore the cache and get the LIVE data immediately.
+    const orderDetails = await client.withConfig({ useCdn: false }).fetch(
       `*[_type == "order" && _id == $id][0]{
         customerName,
         trackingId
@@ -24,15 +25,17 @@ export async function POST(req: Request) {
       { id: orderNumber },
     );
 
-    // 2. SMART LOGIC: Check if we have a Tracking ID or not
-    const hasTrackingId =
-      orderDetails?.trackingId && orderDetails.trackingId.length > 3;
+    console.log("Fetched Order Data:", orderDetails); // For debugging logs
 
-    // Scenario A: No ID yet (Order Confirmation)
+    // Check if ID exists (length > 1 to be safe)
+    const hasTrackingId =
+      orderDetails?.trackingId && orderDetails.trackingId.length > 1;
+
+    // Default: Order Confirmation
     let finalTrackingId = "Preparing for dispatch...";
     let emailSubject = "Order Received: We are packing your jewelry! 💎";
 
-    // Scenario B: We have an ID (Shipping Update)
+    // Override: Shipping Update
     if (hasTrackingId) {
       finalTrackingId = orderDetails.trackingId;
       emailSubject = `Your Order Shipped! (Track: ${finalTrackingId}) 🚚`;
@@ -40,7 +43,6 @@ export async function POST(req: Request) {
 
     const name = orderDetails?.customerName || "Valued Customer";
 
-    // 3. Render the Email
     const emailHtml = await render(
       ShippingEmail({
         customerName: name,
@@ -49,7 +51,6 @@ export async function POST(req: Request) {
       }),
     );
 
-    // 4. Send with the DYNAMIC Subject Line
     const { error } = await resend.emails.send({
       from: "Brightnest <onboarding@resend.dev>",
       to: [email],
@@ -57,10 +58,14 @@ export async function POST(req: Request) {
       html: emailHtml,
     });
 
-    if (error) return NextResponse.json({ error }, { status: 500 });
+    if (error) {
+      console.error("Resend Error:", error);
+      return NextResponse.json({ error }, { status: 500 });
+    }
 
     return NextResponse.json({ message: "Email Sent" });
   } catch (error) {
+    console.error("Server Error:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }
