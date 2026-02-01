@@ -23,10 +23,18 @@ export default function ShippingEmail({
   orderNumber,
   trackingNumber,
 }: ShippingEmailProps) {
+  // LOGIC: Check if the order is actually shipped or just confirmed
+  const isShipped =
+    trackingNumber && trackingNumber !== "Preparing for dispatch...";
+
   return (
     <Html>
       <Head />
-      <Preview>Your Brightnest Jewelry is on its way!</Preview>
+      <Preview>
+        {isShipped
+          ? "Your Brightnest Jewelry is on its way!"
+          : "Order Confirmation - Brightnest Jewelry"}
+      </Preview>
       <Body style={main}>
         <Container style={container}>
           {/* --- BRAND HEADER (Midnight Blue) --- */}
@@ -37,35 +45,49 @@ export default function ShippingEmail({
 
           {/* --- MAIN CONTENT --- */}
           <Section style={content}>
-            <Heading style={h1}>Order Dispatched</Heading>
+            {/* DYNAMIC TITLE */}
+            <Heading style={h1}>
+              {isShipped ? "Order Dispatched" : "Order Confirmed"}
+            </Heading>
+
             <Text style={text}>
               Hello <strong>{customerName}</strong>,
             </Text>
+
+            {/* DYNAMIC BODY TEXT */}
             <Text style={text}>
-              Great news! Your luxury pieces have been carefully packed and are
-              now on their way to you.
+              {isShipped
+                ? "Great news! Your luxury pieces have been carefully packed and are now on their way to you."
+                : "Thank you for choosing Brightnest. We have successfully received your payment and are getting your order ready. You will receive another email as soon as it ships."}
             </Text>
 
             {/* --- GOLD TRACKING BOX --- */}
             <Section style={trackingBox}>
-              <Text style={trackingLabel}>TRACKING NUMBER</Text>
+              <Text style={trackingLabel}>
+                {isShipped ? "TRACKING NUMBER" : "STATUS"}
+              </Text>
               <Text style={trackingId}>{trackingNumber}</Text>
             </Section>
 
-            <Text style={text}>
-              You can track your package using the ID above. Please allow 24
-              hours for the courier to update the status.
-            </Text>
+            {/* Show tracking instructions only if shipped */}
+            {isShipped && (
+              <Text style={text}>
+                You can track your package using the ID above. Please allow 24
+                hours for the courier to update the status.
+              </Text>
+            )}
 
-            {/* --- ACTION BUTTON --- */}
-            <Section style={btnContainer}>
-              <Button
-                style={button}
-                href={`https://www.google.com/search?q=${trackingNumber}`}
-              >
-                Track Your Order
-              </Button>
-            </Section>
+            {/* --- ACTION BUTTON (Only show if shipped) --- */}
+            {isShipped && (
+              <Section style={btnContainer}>
+                <Button
+                  style={button}
+                  href={`https://www.google.com/search?q=${trackingNumber}`}
+                >
+                  Track Your Order
+                </Button>
+              </Section>
+            )}
 
             <Hr style={hr} />
 
@@ -95,18 +117,18 @@ const container = {
   marginBottom: "64px",
   maxWidth: "600px",
   borderRadius: "5px",
-  overflow: "hidden", // Keeps the blue header inside the rounded corners
+  overflow: "hidden",
   boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
 };
 
 const header = {
-  backgroundColor: "#1B2A4E", // Midnight Blue Background
+  backgroundColor: "#1B2A4E",
   padding: "30px 20px",
   textAlign: "center" as const,
 };
 
 const brandText = {
-  color: "#D4AF37", // Gold Text
+  color: "#D4AF37",
   margin: "0",
   fontSize: "28px",
   letterSpacing: "2px",
@@ -146,7 +168,7 @@ const trackingBox = {
   backgroundColor: "#f9f9f9",
   padding: "20px",
   borderRadius: "8px",
-  border: "1px dashed #D4AF37", // Gold dashed border for emphasis
+  border: "1px dashed #D4AF37",
   textAlign: "center" as const,
   margin: "25px 0",
 };
@@ -173,7 +195,7 @@ const btnContainer = {
 };
 
 const button = {
-  backgroundColor: "#1B2A4E", // Midnight Blue Button
+  backgroundColor: "#1B2A4E",
   color: "#ffffff",
   padding: "12px 30px",
   borderRadius: "4px",
