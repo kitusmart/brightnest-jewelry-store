@@ -2,56 +2,52 @@ import ShippingEmail from "@/components/emails/ShippingEmail";
 import { Resend } from "resend";
 import { NextResponse } from "next/server";
 import { render } from "@react-email/render";
-import { client } from "@/sanity/lib/client";
 
+// Note: We removed the Sanity Client import. We trust the Webhook data directly.
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, orderNumber } = body;
 
+    // LOGGING: This will show up in Vercel logs so you can see exactly what Sanity sent
+    console.log("Webhook Payload Received:", JSON.stringify(body, null, 2));
+
+    // 1. Read Data DIRECTLY from the Webhook
+    // Your Webhook Projection sends: email, customerName, orderNumber, trackingNumber
+    const { email, customerName, orderNumber, trackingNumber } = body;
+
+    // 2. Safety Check
     if (!email || !orderNumber) {
-      return NextResponse.json({ message: "Missing data" }, { status: 400 });
+      console.error("Missing email or orderNumber in payload");
+      return NextResponse.json(
+        { message: "Missing essential data" },
+        { status: 400 },
+      );
     }
 
-    // 1. Fetch Data (Bypass Cache)
-    const orderDetails = await client.withConfig({ useCdn: false }).fetch(
-      `*[_type == "order" && _id == $id][0]{
-        customerName,
-        trackingId,
-        trackingNumber
-      }`,
-      { id: orderNumber },
-    );
-
-    // 2. STRICT CHECK: Only proceed if there is a Tracking ID
-    // We check both naming possibilities (trackingId or trackingNumber)
-    const realId = orderDetails?.trackingId || orderDetails?.trackingNumber;
-
-    if (!realId || realId.length < 3) {
-      console.log("No Tracking ID found. Aborting email.");
+    // 3. STRICT CHECK: Is there a Tracking ID in the payload?
+    // We check trackingNumber because that is what your Webhook Projection sends.
+    if (!trackingNumber || trackingNumber.length < 3) {
+      console.log("No Tracking ID in payload. Skipping email.");
       return NextResponse.json({
-        message: "No Tracking ID yet. Email skipped.",
+        message: "Skipped: No Tracking ID provided in payload",
       });
     }
 
-    // 3. Prepare Email
-    const name = orderDetails?.customerName || "Valued Customer";
-
-    // We add a random number to the subject to trick Gmail/Resend into thinking it's new
-    // This solves the "Spam Block" issue from your previous attempts
-    const uniqueSubject = `Your Order Shipped! (Track: ${realId})`;
+    // 4. Send the Email
+    // Unique subject to prevent Resend spam blocking
+    const uniqueSubject = `Your Order Shipped! (Track: ${trackingNumber})`;
+    const name = customerName || "Valued Customer";
 
     const emailHtml = await render(
       ShippingEmail({
         customerName: name,
         orderNumber,
-        trackingNumber: realId,
+        trackingNumber: trackingNumber,
       }),
     );
 
-    // 4. Send
     const { error } = await resend.emails.send({
       from: "Brightnest <onboarding@resend.dev>",
       to: [email],
@@ -64,7 +60,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error }, { status: 500 });
     }
 
-    return NextResponse.json({ message: "Shipping Email Sent Successfully" });
+    return NextResponse.json({ message: "Sent Successfully" });
   } catch (error) {
     console.error("Server Error:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
