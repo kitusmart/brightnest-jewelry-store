@@ -75,19 +75,22 @@ export default function Navbar() {
             <div className="flex-1 flex justify-center">
               <Link
                 href="/"
-                className="flex items-center gap-3 group"
+                className="flex items-center gap-4 group"
                 onClick={() => setIsOpen(false)}
               >
+                {/* ICON: Bigger (44) and Blue */}
                 <Gem
-                  size={36}
+                  size={44}
                   strokeWidth={1.2}
-                  className="text-[#D4AF37] group-hover:rotate-12 transition-transform duration-500"
+                  className="text-[#1B2A4E] group-hover:rotate-12 transition-transform duration-500"
                 />
                 <div className="flex flex-col items-start -mt-1">
-                  <h1 className="text-4xl md:text-5xl font-serif font-medium tracking-wide text-[#1B2A4E] leading-none">
+                  {/* TITLE: Gold */}
+                  <h1 className="text-4xl md:text-5xl font-serif font-medium tracking-wide text-[#D4AF37] leading-none">
                     BRIGHTNEST
                   </h1>
-                  <span className="text-[9px] text-[#D4AF37] tracking-[0.4em] uppercase w-full text-center mt-1 font-bold">
+                  {/* SUBTITLE: Blue */}
+                  <span className="text-[9px] text-[#1B2A4E] tracking-[0.4em] uppercase w-full text-center mt-1 font-bold">
                     Jewelry Store
                   </span>
                 </div>
