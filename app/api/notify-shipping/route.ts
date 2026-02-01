@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     );
 
     // If Sanity has a tracking ID, use it. Otherwise, fallback.
-    const finalTrackingId = orderDetails?.trackingId || "TRACKING-FIXED-NOW";
+    const finalTrackingId = orderDetails?.trackingId || "FINAL-TEST-123";
     const name = orderDetails?.customerName || "Valued Customer";
 
     const emailHtml = await render(
