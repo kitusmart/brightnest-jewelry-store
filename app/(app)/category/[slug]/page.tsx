@@ -13,14 +13,14 @@ interface CategoryPageProps {
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params;
 
-  // 1. Fetch data with a simplified param set to avoid GROQ errors
+  // 1. Fetch data
   const [{ data: products }, { data: categories }] = await Promise.all([
     sanityFetch({
       query: FILTER_PRODUCTS_BY_NAME_QUERY,
       params: {
         categorySlug: slug,
         searchQuery: "",
-        color: "", // Added empty fallbacks to prevent "Parameter not found" errors
+        color: "",
         material: "",
         minPrice: 0,
         maxPrice: 200000,
@@ -34,26 +34,30 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     (c: any) => c.slug?.current === slug,
   );
 
-  // 2. If the category doesn't exist in Sanity, show 404 instead of a crash
-
   return (
     <div className="min-h-screen bg-white">
-      <div className="border-b border-gray-100 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 text-center">
-          <span className="text-[#D4AF37] text-[10px] font-bold tracking-[0.5em] uppercase mb-4 block">
+      {/* --- MODERN LUXURY HEADER (No Borders, More Space) --- */}
+      <div className="bg-white">
+        <div className="mx-auto max-w-7xl px-4 pt-32 pb-16 sm:px-6 lg:px-8 text-center">
+          <span className="text-[#D4AF37] text-[10px] font-bold tracking-[0.6em] uppercase mb-6 block opacity-80">
             The Collection
           </span>
-          <h1 className="text-5xl font-serif text-[#1B2A4E] uppercase tracking-tight">
+
+          {/* Lighter font weight looks more expensive */}
+          <h1 className="text-6xl font-serif text-[#1B2A4E] uppercase tracking-widest font-light">
             {currentCategory?.title || slug}
           </h1>
-          <p className="mt-6 text-sm text-gray-400 font-light max-w-xl mx-auto italic leading-loose">
-            {currentCategory?.description ||
-              "Curated jewelry for refined tastes."}
+
+          <p className="mt-8 text-sm text-gray-500 font-light max-w-lg mx-auto leading-loose tracking-wide">
+            {/* FIX IS HERE: Added (currentCategory as any) */}
+            {(currentCategory as any)?.description ||
+              "Discover our curated selection of fine jewelry, designed to elevate your everyday shine."}
           </p>
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-12">
+      {/* --- PRODUCT GRID --- */}
+      <div className="mx-auto max-w-[1400px] px-4 pb-24 sm:px-6 lg:px-8">
         <Suspense key={slug} fallback={<GridLoader />}>
           <ProductSection
             categories={categories}

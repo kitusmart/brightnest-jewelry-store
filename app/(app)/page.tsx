@@ -15,7 +15,7 @@ import TrustBadges from "../../components/TrustBadges";
 import ShopTheLook from "../../components/ShopTheLook";
 import Testimonials from "../../components/Testimonials";
 import FeaturedCollections from "@/components/app/FeaturedCollections";
-export const revalidate = 60; // Revalidate this page every 60 seconds
+export const revalidate = 60;
 
 interface PageProps {
   searchParams: Promise<{
@@ -39,8 +39,8 @@ export default async function HomePage({ searchParams }: PageProps) {
   const material = params.material ?? "";
   const minPrice = Number(params.minPrice) || 0;
   const maxPrice = Number(params.maxPrice) || 0;
-  const sort = params.sort ?? "name";
   const inStock = params.inStock === "true";
+  const sort = params.sort ?? (searchQuery ? "relevance" : "name");
 
   const getQuery = () => {
     if (searchQuery && sort === "relevance")
@@ -57,7 +57,6 @@ export default async function HomePage({ searchParams }: PageProps) {
     }
   };
 
-  // ⭐ PERMANENT FIX: Added revalidate: 60 to the fetching logic
   const [{ data: products }, { data: categories }] = await Promise.all([
     sanityFetch({
       query: getQuery(),
@@ -70,7 +69,6 @@ export default async function HomePage({ searchParams }: PageProps) {
         maxPrice,
         inStock,
       },
-      // This ensures Vercel checks for new Sanity data every 60 seconds
     }),
     sanityFetch({
       query: ALL_CATEGORIES_QUERY,
@@ -82,22 +80,20 @@ export default async function HomePage({ searchParams }: PageProps) {
       <FeaturedCarousel />
       <FeaturedCollections />
 
-      <div className="border-b border-gray-100 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <span className="text-[#D4AF37] text-[10px] font-bold tracking-[0.3em] uppercase mb-2 block">
-            Our Collection
+      {/* --- LUXURY HEADER --- */}
+      <div className="bg-white -mt-12 relative z-10">
+        <div className="mx-auto max-w-7xl px-4 pt-0 pb-4 sm:px-6 lg:px-8 text-center">
+          <span className="text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase mb-4 block">
+            Our Curated Selection
           </span>
-          <h1 className="text-4xl font-serif tracking-tight text-[#1B2A4E] capitalize">
-            {categorySlug || "Shop All Pieces"}
-          </h1>
-          <p className="mt-3 text-sm text-gray-400 font-light max-w-md italic">
-            Carefully curated jewelry designed to elevate your everyday
-            radiance.
-          </p>
+          <h2 className="text-4xl md:text-5xl font-serif text-[#1B2A4E] uppercase tracking-tight">
+            {categorySlug || "Timeless Elegance"}
+          </h2>
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      {/* FIX: Changed pb-24 to pb-0 to remove the gap before Shop The Look */}
+      <div className="mx-auto max-w-7xl px-4 pb-0 sm:px-6 lg:px-8">
         <Suspense key={categorySlug + searchQuery} fallback={<GridLoader />}>
           <ProductSection
             categories={categories}

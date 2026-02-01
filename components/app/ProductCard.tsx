@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCartActions } from "@/lib/store/cart-store-provider";
-import { Check, Heart } from "lucide-react";
+import { Heart } from "lucide-react";
 import { toast } from "sonner";
 import { useWishlistStore } from "@/store/wishlist-store";
 
@@ -38,17 +38,13 @@ export function ProductCard({ product }: { product: any }) {
   const hoverImage =
     product.images?.[1]?.asset?.url || product.hoverImage || mainImage;
 
-  // ⭐ FIXED TOGGLE LOGIC: Strict dismissal and stop propagation
   const toggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    // Keep the dismissal to prevent stacking
     toast.dismiss();
 
     if (isLoved) {
       removeFromWishlist(currentId);
-      // ⭐ Changed to "Wishlist" as requested
       toast.info("Removed from Wishlist", { id: "wishlist-toggle" });
     } else {
       addToWishlist({
@@ -59,12 +55,10 @@ export function ProductCard({ product }: { product: any }) {
         hoverImage: hoverImage,
         slug: productSlug,
       });
-      // ⭐ Changed to "Added to Wishlist" as requested
       toast.success("Added to Wishlist", { id: "wishlist-toggle" });
     }
   };
 
-  // ⭐ UPDATED CART NOTIFICATIONS
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -80,23 +74,22 @@ export function ProductCard({ product }: { product: any }) {
 
     setIsAdded(true);
     openCart();
-
-    toast.dismiss(); // Clean UI
-    toast.success("Added to Basket", { id: "cart-toggle" }); // Changed to Basket
-
+    toast.dismiss();
+    toast.success("Added to Basket", { id: "cart-toggle" });
     setTimeout(() => setIsAdded(false), 2000);
   };
+
   if (!isMounted) {
     return (
       <div className="flex flex-col animate-pulse">
-        <div className="aspect-[4/5] bg-gray-50 rounded-sm" />
+        <div className="aspect-[4/5] bg-gray-50 rounded-2xl" />
         <div className="mt-4 h-4 w-3/4 bg-gray-50 mx-auto" />
       </div>
     );
   }
 
   return (
-    <div className="group relative flex flex-col bg-white transition-all duration-500 border border-transparent hover:shadow-2xl hover:shadow-gray-100">
+    <div className="group relative flex flex-col bg-white transition-all duration-500 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-gray-200/50 hover:-translate-y-1">
       <Link
         href={productUrl}
         className="relative block overflow-hidden bg-[#F9F9F9]"
@@ -109,17 +102,16 @@ export function ProductCard({ product }: { product: any }) {
         <img
           src={hoverImage}
           alt={product.name}
-          className="absolute inset-0 w-full h-auto aspect-[4/5] object-cover opacity-0 transition-all duration-1000 group-hover:opacity-100 scale-110 group-hover:scale-100"
+          className="absolute inset-0 w-full h-auto aspect-[4/5] object-cover opacity-0 transition-all duration-1000 group-hover:opacity-100 scale-105 group-hover:scale-100"
         />
 
-        {/* Wishlist Button - type="button" added to prevent form/link triggers */}
         <button
           type="button"
           onClick={toggleWishlist}
-          className="absolute top-4 right-4 z-30 p-2.5 bg-white rounded-full shadow-md transition-all duration-300 hover:scale-110 active:scale-95"
+          className="absolute top-3 right-3 z-30 p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110 active:scale-95"
         >
           <Heart
-            size={16}
+            size={14}
             strokeWidth={isLoved ? 0 : 2}
             className={`transition-colors duration-300 ${
               isLoved ? "fill-[#D4AF37] text-[#D4AF37]" : "text-gray-400"
@@ -128,53 +120,55 @@ export function ProductCard({ product }: { product: any }) {
         </button>
 
         {product.badge && !isOutOfStock && (
-          <div className="absolute top-4 left-4 z-10">
-            <div className="bg-white/95 backdrop-blur-sm px-3 py-1 text-[8px] font-black text-[#1B2A4E] border border-gray-100 uppercase tracking-[0.2em]">
+          <div className="absolute top-3 left-3 z-10">
+            <div className="bg-white px-2.5 py-1 text-[8px] font-bold text-[#D4AF37] uppercase tracking-widest rounded-full shadow-sm">
               {product.badge}
             </div>
           </div>
         )}
 
-        <div className="absolute inset-x-0 bottom-0 bg-[#1B2A4E]/90 backdrop-blur-md py-4 text-center translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-10">
+        <div className="absolute inset-x-0 bottom-0 bg-[#1B2A4E]/90 backdrop-blur-md py-2.5 text-center translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-10">
           <span className="text-white text-[9px] font-bold uppercase tracking-[0.3em]">
-            Discover Piece
+            View Details
           </span>
         </div>
       </Link>
 
-      <div className="pt-6 pb-4 flex flex-col items-center text-center px-4">
+      {/* ULTRA-COMPACT FIX 1: Tiny vertical padding (pt-3 pb-4) */}
+      <div className="pt-3 pb-4 flex flex-col items-center text-center px-3 flex-grow">
         <Link href={productUrl} className="w-full">
-          <h3 className="text-[#1B2A4E] text-[12px] font-medium leading-relaxed mb-2 line-clamp-2 min-h-[36px] uppercase tracking-[0.1em] group-hover:text-[#D4AF37] transition-colors duration-300">
+          {/* ULTRA-COMPACT FIX 2: Removed min-height, reduced bottom margin */}
+          <h3 className="text-[#1B2A4E] text-[12px] font-bold leading-tight mb-1 line-clamp-1 uppercase tracking-widest group-hover:text-[#D4AF37] transition-colors duration-300">
             {product.name}
           </h3>
         </Link>
 
-        <div className="mb-6 flex items-center gap-3">
+        {/* ULTRA-COMPACT FIX 3: Reduced gap between price and button (mb-3) */}
+        <div className="mb-3 flex items-center gap-2">
           <span className="text-[14px] font-bold text-[#1B2A4E]">
             ${product.price?.toLocaleString()}
           </span>
           {hasDiscount && (
-            <span className="text-[11px] text-gray-300 line-through font-light italic">
+            <span className="text-[11px] text-gray-400 line-through font-normal">
               ${product.compareAtPrice?.toLocaleString()}
             </span>
           )}
         </div>
 
+        {/* ULTRA-COMPACT FIX 4: Slimmer button (py-2.5) */}
         <button
           type="button"
           onClick={handleQuickAdd}
           disabled={isOutOfStock}
-          className={`w-full py-3.5 rounded-none text-[10px] font-bold uppercase tracking-[0.3em] transition-all duration-700 border ${
+          className={`w-full py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 transform active:scale-95 shadow-sm hover:shadow-md ${
             isAdded
-              ? "bg-[#D4AF37] border-[#D4AF37] text-white"
-              : "bg-transparent border-[#1B2A4E]/10 text-[#1B2A4E] hover:bg-[#1B2A4E] hover:border-[#1B2A4E] hover:text-white"
-          } ${isOutOfStock ? "bg-gray-50 border-gray-100 cursor-not-allowed text-gray-300" : ""}`}
+              ? "bg-[#D4AF37] text-white border border-[#D4AF37]"
+              : isOutOfStock
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-[#1B2A4E] text-white border border-[#1B2A4E] hover:bg-[#2a3f6e]"
+          }`}
         >
-          {isAdded
-            ? "Added to Nest"
-            : isOutOfStock
-              ? "Archive Only"
-              : "Purchase Now"}
+          {isAdded ? "In Cart" : isOutOfStock ? "Sold Out" : "Add to Basket"}
         </button>
       </div>
     </div>
