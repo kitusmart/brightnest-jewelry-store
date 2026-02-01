@@ -15,34 +15,37 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing data" }, { status: 400 });
     }
 
-    // SENIOR FIX: usage of .withConfig({ useCdn: false })
-    // This forces the code to ignore the cache and get the LIVE data immediately.
+    // 1. Fetch BOTH potential field names to be 100% safe
+    // usage of .withConfig({ useCdn: false }) prevents stale data
     const orderDetails = await client.withConfig({ useCdn: false }).fetch(
       `*[_type == "order" && _id == $id][0]{
         customerName,
-        trackingId
+        trackingId,
+        trackingNumber
       }`,
       { id: orderNumber },
     );
 
-    console.log("Fetched Order Data:", orderDetails); // For debugging logs
+    console.log("Sanity Data:", orderDetails);
 
-    // Check if ID exists (length > 1 to be safe)
-    const hasTrackingId =
-      orderDetails?.trackingId && orderDetails.trackingId.length > 1;
+    // 2. Find the Real ID (Check both fields)
+    const realTrackingId =
+      orderDetails?.trackingId || orderDetails?.trackingNumber || "";
+    const hasTrackingId = realTrackingId.length > 2;
 
-    // Default: Order Confirmation
+    // Scenario A: No ID yet
     let finalTrackingId = "Preparing for dispatch...";
-    let emailSubject = "Order Received: We are packing your jewelry! 💎";
+    let emailSubject = `Order Received! #${orderNumber.slice(-4)}`; // Unique Subject
 
-    // Override: Shipping Update
+    // Scenario B: Has ID (Shipping Update)
     if (hasTrackingId) {
-      finalTrackingId = orderDetails.trackingId;
-      emailSubject = `Your Order Shipped! (Track: ${finalTrackingId}) 🚚`;
+      finalTrackingId = realTrackingId;
+      emailSubject = `Shipped! Track #${finalTrackingId}`; // Unique Subject
     }
 
     const name = orderDetails?.customerName || "Valued Customer";
 
+    // 3. Render
     const emailHtml = await render(
       ShippingEmail({
         customerName: name,
@@ -51,6 +54,7 @@ export async function POST(req: Request) {
       }),
     );
 
+    // 4. Send (With Unique Subject to prevent blocking)
     const { error } = await resend.emails.send({
       from: "Brightnest <onboarding@resend.dev>",
       to: [email],
