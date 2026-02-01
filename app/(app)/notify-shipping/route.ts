@@ -9,38 +9,35 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    console.log("Raw Webhook Body:", JSON.stringify(body, null, 2));
+    // 1. Read Data (Now correctly mapped from Sanity)
+    const { email, customerName, orderNumber, trackingNumber } = body;
 
-    // 1. EXTRACT DATA (From Raw Sanity Document)
-    // When Projection is empty, the body IS the document.
-    const { email, customerName, _id, trackingId, trackingNumber } = body;
+    console.log("Webhook Payload:", body);
 
-    // 2. FIND THE TRACKING ID (Check ALL possible names)
-    // This solves the issue where the field might be named differently
-    const finalTrackingId = trackingId || trackingNumber;
-    const finalOrderNumber = _id;
-
-    // 3. STRICT CHECK
-    if (!finalTrackingId) {
-      console.log(
-        "Still no tracking ID found. Field names might be different.",
-      );
-      return NextResponse.json({ message: "Skipped: No Tracking ID found" });
+    // 2. Safety Check
+    if (!email || !orderNumber) {
+      console.log("Missing Email or Order ID. Check Sanity Projection.");
+      return NextResponse.json({ message: "Missing data" }, { status: 400 });
     }
 
-    // 4. PREPARE EMAIL
-    const uniqueSubject = `Your Order Shipped! (Track: ${finalTrackingId})`;
+    // 3. Check for Tracking Number
+    if (!trackingNumber || trackingNumber.length < 3) {
+      console.log("No Tracking ID. Skipping.");
+      return NextResponse.json({ message: "Skipped: No Tracking ID" });
+    }
+
+    // 4. Send Email
+    const uniqueSubject = `Your Order Shipped! (Track: ${trackingNumber})`;
     const name = customerName || "Valued Customer";
 
     const emailHtml = await render(
       ShippingEmail({
         customerName: name,
-        orderNumber: finalOrderNumber,
-        trackingNumber: finalTrackingId,
+        orderNumber,
+        trackingNumber,
       }),
     );
 
-    // 5. SEND EMAIL
     const { error } = await resend.emails.send({
       from: "Brightnest <onboarding@resend.dev>",
       to: [email],
@@ -53,7 +50,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error }, { status: 500 });
     }
 
-    return NextResponse.json({ message: "Shipping Email Sent Successfully" });
+    return NextResponse.json({ message: "Sent Successfully" });
   } catch (error) {
     console.error("Server Error:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
