@@ -9,31 +9,27 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    // We expect the Order ID, not the tracking number
+
+    // LOGIC: We accept the order ID and fetch the tracking number ourselves
     const { email, orderNumber } = body;
 
     if (!email || !orderNumber) {
-      return NextResponse.json(
-        { error: "Missing email or order ID" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Missing data" }, { status: 400 });
     }
 
-    // 1. Fetch the REAL data from Sanity
+    // 1. Fetch from Sanity
     const orderDetails = await client.fetch(
       `*[_type == "order" && _id == $id][0]{
         customerName,
-        trackingId,
-        "items": items[]{ title, price }
+        trackingId
       }`,
       { id: orderNumber },
     );
 
-    // 2. Use the ID from Sanity, or fallback to a noticeable text
-    const finalTrackingId = orderDetails?.trackingId || "CHECK-SANITY-DATA";
+    // 2. Fallback Text (This proves the code is new)
+    const finalTrackingId = orderDetails?.trackingId || "SYSTEM-CONNECTED";
     const name = orderDetails?.customerName || "Valued Customer";
 
-    // 3. Render the Email
     const emailHtml = await render(
       ShippingEmail({
         customerName: name,
@@ -42,21 +38,17 @@ export async function POST(req: Request) {
       }),
     );
 
-    // 4. Send it
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: "Brightnest <onboarding@resend.dev>",
       to: [email],
-      subject: `Your Order has Shipped! 💎`,
+      subject: "Order Dispatched (Update)",
       html: emailHtml,
     });
 
-    if (error) {
-      return NextResponse.json({ error }, { status: 500 });
-    }
+    if (error) return NextResponse.json({ error }, { status: 500 });
 
-    return NextResponse.json({ message: "Email Sent Successfully!" });
+    return NextResponse.json({ message: "Sent" });
   } catch (error) {
-    console.error("Email Error:", error);
-    return NextResponse.json({ error: "Server Error" }, { status: 500 });
+    return NextResponse.json({ error: "Error" }, { status: 500 });
   }
 }
