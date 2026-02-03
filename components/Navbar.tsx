@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation"; // Added usePathname
 import {
   ShoppingBag,
   Search,
@@ -73,23 +73,27 @@ export default function Navbar() {
 
             {/* Center: LOGO AREA */}
             <div className="flex-1 flex justify-center">
+              {/* Added manual scroll for logo home click */}
               <Link
                 href="/"
                 className="flex items-center gap-4 group"
-                onClick={() => setIsOpen(false)}
+                onClick={(e) => {
+                  if (window.location.pathname === "/") {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                  setIsOpen(false);
+                }}
               >
-                {/* ICON: Bigger (44) and Blue */}
                 <Gem
                   size={44}
                   strokeWidth={1.2}
                   className="text-[#1B2A4E] group-hover:rotate-12 transition-transform duration-500"
                 />
                 <div className="flex flex-col items-start -mt-1">
-                  {/* TITLE: Gold */}
                   <h1 className="text-4xl md:text-5xl font-serif font-medium tracking-wide text-[#D4AF37] leading-none">
                     BRIGHTNEST
                   </h1>
-                  {/* SUBTITLE: Blue */}
                   <span className="text-[9px] text-[#1B2A4E] tracking-[0.4em] uppercase w-full text-center mt-1 font-bold">
                     Jewelry Store
                   </span>
@@ -97,17 +101,13 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* Right: ICONS (BIGGER & BOLDER) */}
+            {/* Right: ICONS */}
             <div className="flex items-center justify-end gap-6 flex-1">
-              {/* 1. CUSTOM LOGIN ICON (User + Lightning) */}
               <div className="relative">
                 <SignedOut>
                   <SignInButton mode="modal">
                     <button className="relative text-[#1B2A4E] hover:text-[#D4AF37] transition-colors group">
-                      {/* Bigger User Icon (Size 28) */}
                       <User size={28} strokeWidth={1.5} />
-
-                      {/* Bigger Lightning Bolt (Size 16) - Perfectly positioned */}
                       <Zap
                         size={16}
                         className="absolute -bottom-1 -right-1 text-[#F59E0B] fill-[#F59E0B] stroke-white stroke-[2px]"
@@ -123,7 +123,6 @@ export default function Navbar() {
                 </SignedIn>
               </div>
 
-              {/* 2. WISHLIST HEART (Size 28) */}
               <Link
                 href="/wishlist"
                 className="relative text-[#1B2A4E] hover:text-[#D4AF37] transition-colors"
@@ -136,7 +135,6 @@ export default function Navbar() {
                 )}
               </Link>
 
-              {/* 3. SHOPPING BAG (Size 28) */}
               <button
                 onClick={() => openCart()}
                 className="relative text-[#1B2A4E] hover:text-[#D4AF37] transition-colors"
@@ -204,6 +202,8 @@ export default function Navbar() {
 }
 
 function NavLinks({ onClick }: { onClick?: () => void }) {
+  const pathname = usePathname(); // Get current path
+
   const links = [
     { name: "Home", href: "/" },
     { name: "Our Story", href: "/about" },
@@ -215,13 +215,25 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
     { name: "Sets", href: "/?category=combos" },
   ];
 
+  const handleNavClick = (e: React.MouseEvent, href: string) => {
+    // Check if we are already on the page we are clicking
+    if (href === "/" && pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    if (onClick) onClick();
+  };
+
   return (
     <>
       {links.map((link) => (
         <Link
           key={link.name}
           href={link.href}
-          onClick={onClick}
+          onClick={(e) => handleNavClick(e, link.href)}
+          // scroll={false} prevents Next.js from forcing its own scroll
+          // handleNavClick will now handle the scroll manually if needed
+          scroll={false}
           className="relative group"
         >
           <span className="transition-colors duration-300 group-hover:text-[#D4AF37]">

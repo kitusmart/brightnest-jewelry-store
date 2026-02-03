@@ -3,13 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { useCartActions } from "@/lib/store/cart-store-provider";
+import { useCartActions, useCartItem } from "@/lib/store/cart-store-provider"; // Added useCartItem
 import { Truck, ShieldCheck, Lock, Sparkles, ChevronRight } from "lucide-react";
 
 export function ProductInfo({ product }: { product: any }) {
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const { addItem, openCart } = useCartActions();
+
+  // 1. Get the current quantity of THIS item already in the basket
+  const existingItem = useCartItem(product._id);
+  const currentInCart = existingItem?.quantity || 0;
 
   const isOutOfStock = product.stock <= 0;
   const hasDiscount = product.compareAtPrice > product.price;
@@ -21,9 +25,17 @@ export function ProductInfo({ product }: { product: any }) {
     : 0;
 
   const handleAddToCart = () => {
-    if (quantity > product.stock) return;
+    // 2. BLOCK if the new quantity + existing basket quantity exceeds stock
+    if (currentInCart + quantity > product.stock) {
+      toast.error(
+        `Limit reached. You already have ${currentInCart} in your basket.`,
+        {
+          id: "stock-limit",
+        },
+      );
+      return;
+    }
 
-    // ⭐ CLEANUP: Dismiss old toasts to prevent clumsy stacking
     toast.dismiss();
 
     addItem(
@@ -39,17 +51,14 @@ export function ProductInfo({ product }: { product: any }) {
 
     setIsAdded(true);
 
-    // ⭐ UPDATED NOTIFICATION: Using "Basket" and unique ID for consistency
+    // 3. CLEAN NOTIFICATION: Removed description to prevent clumsy text overlap
     toast.success("Added to Basket", {
       id: "cart-action",
-      description: `${product.name} is now secured.`,
       action: {
         label: "View Cart",
         onClick: () => openCart(),
       },
     });
-
-    // Optional: openCart(); // Keep this off for a more luxury, less aggressive feel
 
     setTimeout(() => setIsAdded(false), 2000);
   };
@@ -126,7 +135,12 @@ export function ProductInfo({ product }: { product: any }) {
               {quantity}
             </span>
             <QtyBtn
-              onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+              // 4. Ensure selector cannot pick more than (Stock - Current in Cart)
+              onClick={() =>
+                setQuantity(
+                  Math.min(product.stock - currentInCart, quantity + 1),
+                )
+              }
               label="+"
             />
           </div>

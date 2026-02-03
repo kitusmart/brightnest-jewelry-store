@@ -15,6 +15,8 @@ import TrustBadges from "../../components/TrustBadges";
 import ShopTheLook from "../../components/ShopTheLook";
 import Testimonials from "../../components/Testimonials";
 import FeaturedCollections from "@/components/app/FeaturedCollections";
+import ScrollController from "@/components/app/ScrollController"; // 1. Import the controller
+
 export const revalidate = 60;
 
 interface PageProps {
@@ -77,12 +79,17 @@ export default async function HomePage({ searchParams }: PageProps) {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* 2. Add the Controller here */}
+      <Suspense fallback={null}>
+        <ScrollController />
+      </Suspense>
+
       <FeaturedCarousel />
       <FeaturedCollections />
 
       {/* --- LUXURY HEADER --- */}
       <div className="bg-white -mt-12 relative z-10">
-        <div className="mx-auto max-w-7xl px-4 pt-0 pb-4 sm:px-6 lg:px-8 text-center">
+        <div className="w-full px-4 pt-0 pb-4 md:px-10 lg:px-14 text-center">
           <span className="text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase mb-4 block">
             Our Curated Selection
           </span>
@@ -92,8 +99,8 @@ export default async function HomePage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      {/* FIX: Changed pb-24 to pb-0 to remove the gap before Shop The Look */}
-      <div className="mx-auto max-w-7xl px-4 pb-0 sm:px-6 lg:px-8">
+      {/* 3. Added ID="jewelry-results" so the controller can find it */}
+      <div id="jewelry-results" className="w-full px-4 pb-0 md:px-10 lg:px-14">
         <Suspense key={categorySlug + searchQuery} fallback={<GridLoader />}>
           <ProductSection
             categories={categories}

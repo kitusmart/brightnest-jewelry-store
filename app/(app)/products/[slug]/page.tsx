@@ -7,7 +7,6 @@ import { ProductAccordion } from "@/components/app/ProductAccordion";
 import { ProductCard } from "@/components/app/ProductCard";
 import { ReviewSection } from "@/components/app/ReviewSection";
 
-// ⭐ Set revalidation for premium data freshness
 export const revalidate = 60;
 
 interface ProductPageProps {
@@ -17,7 +16,6 @@ interface ProductPageProps {
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
 
-  // 1. Fetch the main product data
   const { data: product } = await sanityFetch({
     query: PRODUCT_BY_SLUG_QUERY,
     params: { slug },
@@ -25,10 +23,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!product) notFound();
 
-  // 2. ⭐ FIXED: DYNAMIC FETCH WITH HOVER SUPPORT
-  // Fetches the full images array and discount prices for the related grid
+  // 1. UPDATED FETCH: Increased range from [0...4] to [0...5] for 5 columns
   const { data: relatedProducts } = await sanityFetch({
-    query: `*[_type == "product" && slug.current != $slug] | order(_createdAt desc) [0...4] {
+    query: `*[_type == "product" && slug.current != $slug] | order(_createdAt desc) [0...5] {
       _id,
       name,
       price,
@@ -45,13 +42,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
     params: { slug },
   });
 
-  // 3. DYNAMIC SORTING
+  // 2. UPDATED SLICE: Increased .slice limit to 5
   const filteredRelated = relatedProducts
     ?.sort((a: any, b: any) => {
       if (a.category?._id === product.category?._id) return -1;
       return 1;
     })
-    .slice(0, 4);
+    .slice(0, 5);
 
   const sectionHeadline = filteredRelated?.some(
     (item: any) => item.category?._id === product.category?._id,
@@ -61,8 +58,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="grid gap-16 lg:grid-cols-2 items-start mb-32">
+      {/* 3. UPDATED CONTAINER: Changed max-w-7xl to w-full to match Home Page width */}
+      <div className="mx-auto w-full px-4 py-16 md:px-10 lg:px-14">
+        <div className="grid gap-16 lg:grid-cols-2 items-start mb-32 max-w-7xl mx-auto">
           <div className="sticky top-24">
             <ProductGallery
               images={product.images}
@@ -89,7 +87,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <div className="mt-4 h-px w-12 bg-[#D4AF37]"></div>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* 4. UPDATED GRID: Changed lg:grid-cols-4 to lg:grid-cols-5 */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
               {filteredRelated.map((item: any) => (
                 <ProductCard key={item._id} product={item} />
               ))}

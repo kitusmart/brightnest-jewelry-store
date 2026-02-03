@@ -1,6 +1,5 @@
 import { PackageSearch } from "lucide-react";
 import { ProductCard } from "./ProductCard";
-import { EmptyState } from "@/components/ui/empty-state";
 import type { FILTER_PRODUCTS_BY_NAME_QUERYResult } from "@/sanity.types";
 
 interface ProductGridProps {
@@ -24,12 +23,14 @@ export function ProductGrid({ products }: ProductGridProps) {
   }
 
   return (
-    <div className="@container">
-      <div className="grid grid-cols-1 gap-6 @md:grid-cols-2 @xl:grid-cols-3 @6xl:grid-cols-4 @md:gap-8">
+    // Full width container with small luxury padding on the sides
+    <div className="w-full px-4 md:px-6 lg:px-10 py-8">
+      {/* Grid set to 5 columns on large screens to remove extra side space */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 lg:gap-8">
         {products.map((product) => (
           <ProductCard key={product._id} product={product} />
         ))}
       </div>
     </div>
   );
-}
+} // <--- This was the bracket likely missing in your error screenshot

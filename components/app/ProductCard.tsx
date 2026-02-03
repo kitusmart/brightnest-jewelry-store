@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useCartActions } from "@/lib/store/cart-store-provider";
+import { useCartActions, useCartItem } from "@/lib/store/cart-store-provider"; // 1. Added useCartItem
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
 import { useWishlistStore } from "@/store/wishlist-store";
@@ -11,7 +11,12 @@ export function ProductCard({ product }: { product: any }) {
   const [isMounted, setIsMounted] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
 
-  const { addItem, openCart } = useCartActions();
+  const { addItem } = useCartActions();
+
+  // 2. Track current quantity in basket for this specific product
+  const currentId = product._id || product.productId;
+  const existingItem = useCartItem(currentId);
+  const currentInCart = existingItem?.quantity || 0;
 
   const items = useWishlistStore((state) => state.items);
   const addToWishlist = useWishlistStore((state) => state.addToWishlist);
@@ -19,7 +24,6 @@ export function ProductCard({ product }: { product: any }) {
     (state) => state.removeFromWishlist,
   );
 
-  const currentId = product._id || product.productId;
   const isLoved = items.some((item) => item.productId === currentId);
 
   useEffect(() => {
@@ -28,7 +32,11 @@ export function ProductCard({ product }: { product: any }) {
 
   const productSlug = product.slug?.current || product.slug;
   const productUrl = `/products/${productSlug}`;
+
+  // 3. Define stock logic
   const isOutOfStock = product.stock <= 0;
+  const isLimitReached = currentInCart >= product.stock;
+
   const hasDiscount = product.compareAtPrice > product.price;
 
   const mainImage =
@@ -52,7 +60,7 @@ export function ProductCard({ product }: { product: any }) {
         name: product.name,
         price: product.price,
         image: mainImage,
-        hoverImage: hoverImage,
+        hoverImage: hoverImage || mainImage,
         slug: productSlug,
       });
       toast.success("Added to Wishlist", { id: "wishlist-toggle" });
@@ -62,7 +70,14 @@ export function ProductCard({ product }: { product: any }) {
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isOutOfStock) return;
+
+    // 4. Hard block if the user tries to add more than available stock
+    if (isOutOfStock || isLimitReached) {
+      toast.error(`Stock limit reached (${product.stock} available)`, {
+        id: "cart-toggle",
+      });
+      return;
+    }
 
     addItem({
       productId: currentId,
@@ -73,7 +88,6 @@ export function ProductCard({ product }: { product: any }) {
     });
 
     setIsAdded(true);
-    openCart();
     toast.dismiss();
     toast.success("Added to Basket", { id: "cart-toggle" });
     setTimeout(() => setIsAdded(false), 2000);
@@ -134,16 +148,13 @@ export function ProductCard({ product }: { product: any }) {
         </div>
       </Link>
 
-      {/* ULTRA-COMPACT FIX 1: Tiny vertical padding (pt-3 pb-4) */}
       <div className="pt-3 pb-4 flex flex-col items-center text-center px-3 flex-grow">
         <Link href={productUrl} className="w-full">
-          {/* ULTRA-COMPACT FIX 2: Removed min-height, reduced bottom margin */}
           <h3 className="text-[#1B2A4E] text-[12px] font-bold leading-tight mb-1 line-clamp-1 uppercase tracking-widest group-hover:text-[#D4AF37] transition-colors duration-300">
             {product.name}
           </h3>
         </Link>
 
-        {/* ULTRA-COMPACT FIX 3: Reduced gap between price and button (mb-3) */}
         <div className="mb-3 flex items-center gap-2">
           <span className="text-[14px] font-bold text-[#1B2A4E]">
             ${product.price?.toLocaleString()}
@@ -155,20 +166,26 @@ export function ProductCard({ product }: { product: any }) {
           )}
         </div>
 
-        {/* ULTRA-COMPACT FIX 4: Slimmer button (py-2.5) */}
         <button
           type="button"
           onClick={handleQuickAdd}
-          disabled={isOutOfStock}
+          // 5. Disable the button visually if out of stock or limit reached
+          disabled={isOutOfStock || isLimitReached}
           className={`w-full py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 transform active:scale-95 shadow-sm hover:shadow-md ${
             isAdded
               ? "bg-[#D4AF37] text-white border border-[#D4AF37]"
-              : isOutOfStock
+              : isOutOfStock || isLimitReached
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                 : "bg-[#1B2A4E] text-white border border-[#1B2A4E] hover:bg-[#2a3f6e]"
           }`}
         >
-          {isAdded ? "In Cart" : isOutOfStock ? "Sold Out" : "Add to Basket"}
+          {isAdded
+            ? "In Cart"
+            : isOutOfStock
+              ? "Sold Out"
+              : isLimitReached
+                ? "Limit Reached"
+                : "Add to Basket"}
         </button>
       </div>
     </div>
