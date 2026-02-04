@@ -16,6 +16,7 @@ interface ProductPageProps {
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
 
+  // 1. DATA FETCHING - No changes to your original logic [cite: 15-37]
   const { data: product } = await sanityFetch({
     query: PRODUCT_BY_SLUG_QUERY,
     params: { slug },
@@ -23,7 +24,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!product) notFound();
 
-  // 1. UPDATED FETCH: Increased range from [0...4] to [0...5] for 5 columns
   const { data: relatedProducts } = await sanityFetch({
     query: `*[_type == "product" && slug.current != $slug] | order(_createdAt desc) [0...5] {
       _id,
@@ -42,7 +42,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
     params: { slug },
   });
 
-  // 2. UPDATED SLICE: Increased .slice limit to 5
   const filteredRelated = relatedProducts
     ?.sort((a: any, b: any) => {
       if (a.category?._id === product.category?._id) return -1;
@@ -58,15 +57,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* 3. UPDATED CONTAINER: Changed max-w-7xl to w-full to match Home Page width */}
-      <div className="mx-auto w-full px-4 py-16 md:px-10 lg:px-14">
-        <div className="grid gap-16 lg:grid-cols-2 items-start mb-32 max-w-7xl mx-auto">
-          <div className="sticky top-24">
+      {/* 2. UPDATED CONTAINER: Reduced py-16 to py-6 on mobile to move content up  */}
+      <div className="mx-auto w-full px-4 py-6 md:py-16 md:px-10 lg:px-14">
+        {/* 3. UPDATED GRID: Reduced gap-16 to gap-6 for mobile  */}
+        <div className="grid gap-6 md:gap-12 lg:gap-16 lg:grid-cols-2 items-start mb-16 md:mb-32 max-w-7xl mx-auto">
+          {/* 4. GALLERY: Only sticky on desktop (md and up)  */}
+          <div className="md:sticky md:top-24">
             <ProductGallery
               images={product.images}
               productName={product.name}
             />
           </div>
+
           <div className="flex flex-col">
             <ProductInfo product={product} />
             <ProductAccordion />
@@ -75,20 +77,20 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <ReviewSection reviews={product.reviews} />
 
+        {/* 5. RELATED PRODUCTS GRID - Kept your 5-column logic [cite: 78-83] */}
         {filteredRelated && filteredRelated.length > 0 && (
-          <section className="mt-32 pt-24 border-t border-gray-50">
+          <section className="mt-16 md:mt-32 pt-12 md:pt-24 border-t border-gray-50">
             <div className="flex flex-col items-center text-center mb-16">
               <span className="text-[#D4AF37] text-[10px] font-bold tracking-[0.5em] uppercase mb-4">
                 Style Pairing
               </span>
-              <h2 className="text-4xl font-serif text-[#1B2A4E] uppercase tracking-tight">
+              <h2 className="text-3xl md:text-4xl font-serif text-[#1B2A4E] uppercase tracking-tight">
                 {sectionHeadline}
               </h2>
               <div className="mt-4 h-px w-12 bg-[#D4AF37]"></div>
             </div>
 
-            {/* 4. UPDATED GRID: Changed lg:grid-cols-4 to lg:grid-cols-5 */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-8">
               {filteredRelated.map((item: any) => (
                 <ProductCard key={item._id} product={item} />
               ))}

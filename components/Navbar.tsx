@@ -1,18 +1,8 @@
 "use client";
-
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter, usePathname } from "next/navigation"; // Added usePathname
-import {
-  ShoppingBag,
-  Search,
-  Menu,
-  User,
-  X,
-  Heart,
-  Gem,
-  Zap,
-} from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { ShoppingBag, Search, Menu, User, X, Heart, Gem } from "lucide-react";
 import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { useCartActions, useTotalItems } from "@/lib/store/cart-store-provider";
 import { useWishlistStore } from "@/store/wishlist-store";
@@ -21,11 +11,9 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
   const router = useRouter();
   const { openCart } = useCartActions();
   const totalItems = useTotalItems();
-
   const wishlistItems = useWishlistStore((state) => state.items);
   const wishlistCount = wishlistItems.length;
 
@@ -49,17 +37,16 @@ export default function Navbar() {
 
       {/* 2. MAIN NAVBAR */}
       <nav className="bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6">
-          <div className="flex justify-between items-center relative">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 pb-4 md:pt-6 md:pb-6">
+          <div className="flex justify-between items-center relative gap-2 sm:gap-4">
             {/* Left: Search & Mobile Menu */}
-            <div className="flex items-center gap-6 flex-1">
+            <div className="flex items-center gap-3 sm:gap-6 flex-1 min-w-[40px]">
               <button
                 onClick={toggleMenu}
                 className="md:hidden text-[#1B2A4E] hover:text-[#D4AF37] transition-colors"
               >
-                {isOpen ? <X size={28} /> : <Menu size={28} />}
+                {isOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
-
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 className="hidden md:flex items-center gap-2 text-[#1B2A4E] hover:text-[#D4AF37] transition-colors group"
@@ -72,52 +59,47 @@ export default function Navbar() {
             </div>
 
             {/* Center: LOGO AREA */}
-            <div className="flex-1 flex justify-center">
-              {/* Added manual scroll for logo home click */}
+            <div className="flex-shrink-0 flex justify-center">
               <Link
                 href="/"
-                className="flex items-center gap-4 group"
+                className="flex items-center gap-2 sm:gap-4 group"
                 onClick={(e) => {
                   if (window.location.pathname === "/") {
                     e.preventDefault();
                     window.scrollTo({ top: 0, behavior: "smooth" });
+                    router.refresh();
                   }
                   setIsOpen(false);
                 }}
               >
                 <Gem
-                  size={44}
+                  size={32}
                   strokeWidth={1.2}
-                  className="text-[#1B2A4E] group-hover:rotate-12 transition-transform duration-500"
+                  className="text-[#1B2A4E] md:w-[44px] md:h-[44px] group-hover:rotate-12 transition-transform duration-500"
                 />
                 <div className="flex flex-col items-start -mt-1">
-                  <h1 className="text-4xl md:text-5xl font-serif font-medium tracking-wide text-[#D4AF37] leading-none">
+                  <h1 className="text-xl sm:text-3xl md:text-5xl font-serif font-medium tracking-wide text-[#D4AF37] leading-none">
                     BRIGHTNEST
                   </h1>
-                  <span className="text-[9px] text-[#1B2A4E] tracking-[0.4em] uppercase w-full text-center mt-1 font-bold">
+                  <span className="hidden xs:block text-[7px] md:text-[9px] text-[#1B2A4E] tracking-[0.3em] md:tracking-[0.4em] uppercase w-full text-center mt-1 font-bold">
                     Jewelry Store
                   </span>
                 </div>
               </Link>
             </div>
 
-            {/* Right: ICONS */}
-            <div className="flex items-center justify-end gap-6 flex-1">
-              <div className="relative">
+            {/* Right: ICONS - Fixed Visibility for Mobile Login */}
+            <div className="flex items-center justify-end gap-3 sm:gap-6 flex-1 min-w-[100px] md:min-w-0">
+              <div className="relative flex items-center">
                 <SignedOut>
                   <SignInButton mode="modal">
                     <button className="relative text-[#1B2A4E] hover:text-[#D4AF37] transition-colors group">
-                      <User size={28} strokeWidth={1.5} />
-                      <Zap
-                        size={16}
-                        className="absolute -bottom-1 -right-1 text-[#F59E0B] fill-[#F59E0B] stroke-white stroke-[2px]"
-                      />
+                      <User size={24} strokeWidth={1.5} />
                     </button>
                   </SignInButton>
                 </SignedOut>
-
                 <SignedIn>
-                  <div className="scale-110 opacity-90 hover:opacity-100 transition-opacity">
+                  <div className="scale-100 md:scale-110 opacity-90 hover:opacity-100 transition-opacity">
                     <UserButton afterSignOutUrl="/" />
                   </div>
                 </SignedIn>
@@ -127,9 +109,9 @@ export default function Navbar() {
                 href="/wishlist"
                 className="relative text-[#1B2A4E] hover:text-[#D4AF37] transition-colors"
               >
-                <Heart size={28} strokeWidth={1.5} />
-                {wishlistCount >= 0 && (
-                  <span className="absolute -top-1.5 -right-2 bg-black text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-[2px] border-white">
+                <Heart size={24} strokeWidth={1.5} />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2 bg-black text-white text-[8px] md:text-[10px] font-bold w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center border-[2px] border-white">
                     {wishlistCount}
                   </span>
                 )}
@@ -139,9 +121,9 @@ export default function Navbar() {
                 onClick={() => openCart()}
                 className="relative text-[#1B2A4E] hover:text-[#D4AF37] transition-colors"
               >
-                <ShoppingBag size={28} strokeWidth={1.5} />
-                {totalItems >= 0 && (
-                  <span className="absolute -top-1.5 -right-2 bg-black text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-[2px] border-white">
+                <ShoppingBag size={24} strokeWidth={1.5} />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1.5 -right-2 bg-black text-white text-[8px] md:text-[10px] font-bold w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center border-[2px] border-white">
                     {totalItems}
                   </span>
                 )}
@@ -172,9 +154,9 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* 3. NAVIGATION */}
+        {/* 3. NAVIGATION - Lowering gap on smaller desktop screens */}
         <div className="hidden md:flex justify-center border-t border-[#D4AF37]/30 py-4">
-          <div className="flex items-center gap-12 text-[11px] font-bold tracking-[0.2em] text-[#1B2A4E] uppercase">
+          <div className="flex items-center gap-6 lg:gap-12 text-[11px] font-bold tracking-[0.2em] text-[#1B2A4E] uppercase">
             <NavLinks />
           </div>
         </div>
@@ -202,9 +184,7 @@ export default function Navbar() {
 }
 
 function NavLinks({ onClick }: { onClick?: () => void }) {
-  const pathname = usePathname();
-  const router = useRouter(); // Added router for cleaner navigation
-
+  const router = useRouter();
   const links = [
     { name: "Home", href: "/" },
     { name: "Our Story", href: "/about" },
@@ -217,20 +197,12 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
   ];
 
   const handleNavClick = (e: React.MouseEvent, href: string) => {
-    // Check if we are clicking "Home"
     if (href === "/") {
       e.preventDefault();
-
-      // 1. Reset URL to just "/" (clears ?category=...)
       router.push("/");
-
-      // 2. Scroll to top smoothly
       window.scrollTo({ top: 0, behavior: "smooth" });
-
-      // 3. Refresh data to ensure all products show and "ghosts" disappear
       router.refresh();
     }
-
     if (onClick) onClick();
   };
 

@@ -7,6 +7,7 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ products }: ProductGridProps) {
+  // 1. Empty State: Shows if a category or search has no items [cite: 8-21]
   if (products.length === 0) {
     return (
       <div className="mx-auto mt-10 flex max-w-md flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
@@ -23,14 +24,22 @@ export function ProductGrid({ products }: ProductGridProps) {
   }
 
   return (
-    // Full width container with small luxury padding on the sides
-    <div className="w-full px-4 md:px-6 lg:px-10 py-8">
-      {/* Grid set to 5 columns on large screens to remove extra side space */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 lg:gap-8">
+    /* 2. Outer Container: 
+       - overflow-x-hidden prevents accidental side-scrolling.
+       - Reduced px-2 on mobile allows jewelry images to be 15% larger [cite: 24-25].
+    */
+    <div className="w-full px-2 md:px-6 lg:px-10 py-8 overflow-x-hidden">
+      {/* 3. The Grid:
+         - grid-cols-2 (Mobile): Maximize image size [cite: 26-27].
+         - md:grid-cols-3 (Tablet): Fixes the 768px "wide card" glitch.
+         - lg:grid-cols-5 (Desktop): Professional luxury layout.
+         - -mx-1 (Negative Margin): Pulls cards to the edge to fix the "Right Side Gap".
+      */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-6 lg:gap-8 -mx-1">
         {products.map((product) => (
           <ProductCard key={product._id} product={product} />
         ))}
       </div>
     </div>
   );
-} // <--- This was the bracket likely missing in your error screenshot
+}

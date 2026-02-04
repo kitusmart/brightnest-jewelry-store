@@ -1,9 +1,8 @@
 "use client";
-
 import { useState, useRef } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { X, ZoomIn } from "lucide-react"; // For the close and zoom icons
+import { X, ZoomIn } from "lucide-react";
 
 interface ProductGalleryProps {
   images: any[];
@@ -31,13 +30,13 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
   return (
     <div className="flex flex-col-reverse gap-4 md:flex-row lg:gap-8">
       {/* Thumbnail List */}
-      <div className="flex flex-row gap-4 md:flex-col md:w-20">
+      <div className="flex flex-row gap-4 md:flex-col md:w-20 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
         {images?.map((image, index) => (
           <button
             key={image._key || index}
             onClick={() => setSelectedImage(index)}
             className={cn(
-              "relative aspect-square w-20 overflow-hidden rounded-lg border-2 transition-all",
+              "relative aspect-square w-16 h-16 md:w-20 md:h-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all",
               selectedImage === index
                 ? "border-[#D4AF37]"
                 : "border-transparent hover:border-gray-200",
@@ -53,14 +52,14 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         ))}
       </div>
 
-      {/* Main Image Container */}
+      {/* Main Image Container - Centered for Chrome */}
       <div
         ref={containerRef}
-        className="relative aspect-square w-full overflow-hidden rounded-2xl bg-gray-50 cursor-zoom-in group"
+        className="relative aspect-square w-full overflow-hidden rounded-2xl bg-gray-50 cursor-zoom-in group flex items-center justify-center"
         onMouseEnter={() => setIsZoomed(true)}
         onMouseLeave={() => setIsZoomed(false)}
         onMouseMove={handleMouseMove}
-        onClick={() => setIsLightboxOpen(true)} // Opens Lightbox on click
+        onClick={() => setIsLightboxOpen(true)}
       >
         {mainImage ? (
           <>
@@ -69,7 +68,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
               alt={productName}
               fill
               className={cn(
-                "object-cover transition-opacity duration-300",
+                "object-contain p-2 md:p-0 md:object-cover transition-opacity duration-300 object-center",
                 isZoomed ? "opacity-0" : "opacity-100",
               )}
               priority
@@ -106,7 +105,6 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           >
             <X className="w-8 h-8" />
           </button>
-
           <div className="relative w-full h-full max-w-4xl max-h-[80vh]">
             <Image
               src={mainImage}
@@ -115,7 +113,6 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
               className="object-contain"
             />
           </div>
-
           <p className="absolute bottom-8 text-white/60 text-sm tracking-widest uppercase">
             {productName}
           </p>
