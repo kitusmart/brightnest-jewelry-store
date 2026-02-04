@@ -202,7 +202,8 @@ export default function Navbar() {
 }
 
 function NavLinks({ onClick }: { onClick?: () => void }) {
-  const pathname = usePathname(); // Get current path
+  const pathname = usePathname();
+  const router = useRouter(); // Added router for cleaner navigation
 
   const links = [
     { name: "Home", href: "/" },
@@ -216,11 +217,20 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
   ];
 
   const handleNavClick = (e: React.MouseEvent, href: string) => {
-    // Check if we are already on the page we are clicking
-    if (href === "/" && pathname === "/") {
+    // Check if we are clicking "Home"
+    if (href === "/") {
       e.preventDefault();
+
+      // 1. Reset URL to just "/" (clears ?category=...)
+      router.push("/");
+
+      // 2. Scroll to top smoothly
       window.scrollTo({ top: 0, behavior: "smooth" });
+
+      // 3. Refresh data to ensure all products show and "ghosts" disappear
+      router.refresh();
     }
+
     if (onClick) onClick();
   };
 
@@ -231,8 +241,6 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
           key={link.name}
           href={link.href}
           onClick={(e) => handleNavClick(e, link.href)}
-          // scroll={false} prevents Next.js from forcing its own scroll
-          // handleNavClick will now handle the scroll manually if needed
           scroll={false}
           className="relative group"
         >
