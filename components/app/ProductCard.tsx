@@ -71,11 +71,14 @@ export function ProductCard({ product }: { product: any }) {
     e.preventDefault();
     e.stopPropagation();
 
-    // 4. Hard block if the user tries to add more than available stock
-    if (isOutOfStock || isLimitReached) {
-      toast.error(`Stock limit reached (${product.stock} available)`, {
-        id: "cart-toggle",
-      });
+    // 1. Double check the limit before adding [cite: 263-264]
+    if (isLimitReached || isOutOfStock) {
+      toast.error(
+        `All ${product.stock} available items are already in your basket.`,
+        {
+          id: "cart-toggle",
+        },
+      );
       return;
     }
 
@@ -88,7 +91,6 @@ export function ProductCard({ product }: { product: any }) {
     });
 
     setIsAdded(true);
-    toast.dismiss();
     toast.success("Added to Basket", { id: "cart-toggle" });
     setTimeout(() => setIsAdded(false), 2000);
   };

@@ -128,6 +128,7 @@ export function ProductInfo({ product }: { product: any }) {
           </span>
           <div className="flex items-center gap-8">
             <QtyBtn
+              // Prevent quantity from going below 1
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
               label="−"
             />
@@ -135,12 +136,18 @@ export function ProductInfo({ product }: { product: any }) {
               {quantity}
             </span>
             <QtyBtn
-              // 4. Ensure selector cannot pick more than (Stock - Current in Cart)
-              onClick={() =>
-                setQuantity(
-                  Math.min(product.stock - currentInCart, quantity + 1),
-                )
-              }
+              onClick={() => {
+                // Calculate how many more can actually be added [cite: 123-124]
+                const maxAllowed = product.stock - currentInCart;
+                // If we are already at the limit, don't let the number go up
+                if (quantity < maxAllowed) {
+                  setQuantity((prev) => prev + 1);
+                } else {
+                  toast.error("Maximum available stock reached", {
+                    id: "stock-limit",
+                  });
+                }
+              }}
               label="+"
             />
           </div>
