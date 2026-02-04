@@ -17,7 +17,7 @@ import Testimonials from "../../components/Testimonials";
 import FeaturedCollections from "@/components/app/FeaturedCollections";
 import ScrollController from "@/components/app/ScrollController"; // 1. Import the controller
 
-export const revalidate = 60;
+export const revalidate = 0;
 
 interface PageProps {
   searchParams: Promise<{
@@ -101,7 +101,7 @@ export default async function HomePage({ searchParams }: PageProps) {
 
       {/* 3. Added ID="jewelry-results" so the controller can find it */}
       <div id="jewelry-results" className="w-full px-4 pb-0 md:px-10 lg:px-14">
-        <Suspense key={categorySlug + searchQuery} fallback={<GridLoader />}>
+        <Suspense key={JSON.stringify(params)} fallback={<GridLoader />}>
           <ProductSection
             categories={categories}
             products={products}
