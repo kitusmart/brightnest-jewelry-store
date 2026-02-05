@@ -1,6 +1,8 @@
 "use client";
 
-import { Minus, Plus, ShoppingBag } from "lucide-react";
+import { Minus, Plus, ShoppingBag, Check } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useCartActions, useCartItem } from "@/lib/store/cart-store-provider";
@@ -11,6 +13,7 @@ interface AddToCartButtonProps {
   name: string;
   price: number;
   image?: string;
+  slug: string; // 1. Added slug to interface to satisfy TS requirement
   stock: number;
   className?: string;
 }
@@ -20,25 +23,32 @@ export function AddToCartButton({
   name,
   price,
   image,
+  slug, // 2. Destructure slug
   stock,
   className,
 }: AddToCartButtonProps) {
   const { addItem, updateQuantity } = useCartActions();
   const cartItem = useCartItem(productId);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const quantityInCart = cartItem?.quantity ?? 0;
   const isOutOfStock = stock <= 0;
   const isAtMax = quantityInCart >= stock;
 
   const handleAdd = () => {
-    // 🟢 BLOCK: If they try to go over the 8 pieces in Sanity
     if (quantityInCart >= stock) {
-      toast.error(`Only ${stock} pieces available in stock`);
+      toast.error(`Only ${stock} pieces available in stock`, {
+        id: "stock-limit",
+      });
       return;
     }
 
-    addItem({ productId, name, price, image }, 1);
-    toast.success(`Added ${name} to basket`);
+    setIsAnimating(true);
+    // 3. Added slug here to fix the "Property 'slug' is missing" error
+    addItem({ productId, name, price, image, slug }, 1);
+    toast.success(`Added ${name} to basket`, { id: "cart-success" });
+
+    setTimeout(() => setIsAnimating(false), 1500);
   };
 
   const handleDecrement = () => {
@@ -47,14 +57,13 @@ export function AddToCartButton({
     }
   };
 
-  // 1. OUT OF STOCK STATE
   if (isOutOfStock) {
     return (
       <Button
         disabled
         variant="secondary"
         className={cn(
-          "h-11 w-full bg-gray-100 text-gray-400 cursor-not-allowed uppercase text-[10px] tracking-widest",
+          "h-11 w-full bg-gray-100 text-gray-400 cursor-not-allowed uppercase text-[10px] tracking-widest border-none",
           className,
         )}
       >
@@ -63,57 +72,88 @@ export function AddToCartButton({
     );
   }
 
-  // 2. INITIAL ADD STATE (Black Button)
   if (quantityInCart === 0) {
     return (
-      <Button
-        onClick={handleAdd}
-        className={cn(
-          "h-11 w-full bg-black text-white hover:bg-gray-800 uppercase text-[10px] tracking-widest font-bold",
-          className,
-        )}
-      >
-        <ShoppingBag className="mr-2 h-4 w-4" />
-        Add to Basket
-      </Button>
+      <motion.div whileTap={{ scale: 0.97 }} className="w-full">
+        <Button
+          onClick={handleAdd}
+          className={cn(
+            "h-11 w-full bg-[#1B2A4E] text-white hover:bg-[#2a3f6e] uppercase text-[10px] tracking-[0.2em] font-bold transition-all duration-300 rounded-lg shadow-sm hover:shadow-md",
+            className,
+          )}
+        >
+          <AnimatePresence mode="wait">
+            {isAnimating ? (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex items-center gap-2 text-[#D4AF37]"
+              >
+                <Check className="h-4 w-4" />
+                <span>Secured</span>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="default"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center"
+              >
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                Add to Basket
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Button>
+      </motion.div>
     );
   }
 
-  // 3. QUANTITY CONTROL STATE (When already in cart)
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
       className={cn(
-        "flex h-11 w-full items-center rounded-md border border-gray-200 bg-white text-black overflow-hidden",
+        "flex h-11 w-full items-center rounded-lg border border-[#1B2A4E]/10 bg-white text-[#1B2A4E] overflow-hidden shadow-sm",
         className,
       )}
     >
       <Button
         variant="ghost"
         size="icon"
-        className="h-full flex-1 rounded-none hover:bg-gray-50 text-black border-r border-gray-100"
+        className="h-full flex-1 rounded-none hover:bg-gray-50 text-[#1B2A4E] border-r border-gray-50 active:bg-gray-100 transition-colors"
         onClick={handleDecrement}
       >
         <Minus className="h-4 w-4" />
       </Button>
 
-      <div className="flex flex-col flex-1 items-center justify-center bg-gray-50/50 h-full">
-        <span className="text-sm font-bold tabular-nums text-black">
+      <div className="flex flex-col flex-1 items-center justify-center bg-[#fbf7ed]/30 h-full">
+        <motion.span
+          key={quantityInCart}
+          initial={{ y: -5, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="text-sm font-bold tabular-nums"
+        >
           {quantityInCart}
-        </span>
-        {/* 🟢 NEW: Small label to show they hit the limit */}
+        </motion.span>
         {isAtMax && (
-          <span className="text-[8px] uppercase text-orange-600 font-bold">
-            Max
-          </span>
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-[7px] uppercase text-[#D4AF37] font-black tracking-tighter"
+          >
+            LIMIT
+          </motion.span>
         )}
       </div>
 
       <Button
         variant="ghost"
         size="icon"
-        // 🟢 DISABLE: The "+" button turns off when they reach 8
         className={cn(
-          "h-full flex-1 rounded-none hover:bg-gray-50 text-black border-l border-gray-100",
+          "h-full flex-1 rounded-none hover:bg-gray-50 text-[#1B2A4E] border-l border-gray-50 active:bg-gray-100 transition-colors",
           isAtMax && "opacity-20 cursor-not-allowed bg-gray-100",
         )}
         onClick={handleAdd}
@@ -121,6 +161,6 @@ export function AddToCartButton({
       >
         <Plus className="h-4 w-4" />
       </Button>
-    </div>
+    </motion.div>
   );
 }
