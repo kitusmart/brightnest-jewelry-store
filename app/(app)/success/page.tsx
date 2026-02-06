@@ -45,7 +45,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
 
         <p className="text-gray-400 text-[11px] uppercase tracking-[0.3em] mb-12 max-w-md leading-loose">
           Thank you for choosing{" "}
-          <span className="text-[#1B2A4E] font-black">BRIGHTNEST</span>. Your
+          <span className="text-[#1B2A4E] font-black">Elysia Luxe</span>. Your
           pieces are being carefully placed in our nest for their journey to
           you.
         </p>
