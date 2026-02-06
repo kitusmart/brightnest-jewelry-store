@@ -8,6 +8,7 @@ export default function ClearCart() {
 
   useEffect(() => {
     // This empties the shopping bag after a successful payment
+    // and won't show "module not found" errors.
     clearCart();
   }, [clearCart]);
 
