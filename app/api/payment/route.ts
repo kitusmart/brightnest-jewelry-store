@@ -4,11 +4,15 @@ import { stripe } from "@/lib/stripe";
 export async function POST(request: Request) {
   try {
     const { items } = await request.json();
+
+    // 🔍 THE DETECTIVE LINE:
+    // This will show us exactly what the cart is sending in your Vercel Logs.
+    console.log("DEBUG_CART_DATA:", JSON.stringify(items, null, 2));
+
     const baseUrl = "https://elysia-luxe.vercel.app";
 
     // 🟢 FINAL TRIPLE-CHECK:
     // We check _id, id, and _ref. One of these MUST contain your Sanity ID.
-    // This is why your Sanity order showed "No Items" before.
     const idList = items
       .map((item: any) => item._id || item.id || item._ref)
       .join(",");
@@ -29,7 +33,6 @@ export async function POST(request: Request) {
           currency: "aud",
           product_data: {
             name: item.name,
-            // Ensure image is a valid string or empty
             images: item.image ? [item.image] : [],
           },
           unit_amount: Math.round(item.price * 100),
