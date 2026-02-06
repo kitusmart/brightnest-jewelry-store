@@ -8,11 +8,12 @@ export async function POST(request: Request) {
     const baseUrl = "https://elysia-luxe.vercel.app";
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
+      // 🟢 FIX: We manually list the methods.
+      // This is "Old School" but 100% reliable and error-free.
+      payment_method_types: ["card", "afterpay_clearpay", "zip"],
+
       locale: "en",
       shipping_address_collection: {
-        // 🟢 CHANGED: Only Australia is allowed now.
-        // The dropdown will now ONLY show "Australia".
         allowed_countries: ["AU"],
       },
       phone_number_collection: {
