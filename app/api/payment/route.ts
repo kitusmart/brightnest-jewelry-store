@@ -4,11 +4,10 @@ import { stripe } from "@/lib/stripe";
 export async function POST(request: Request) {
   try {
     const { items } = await request.json();
-
     const baseUrl = "https://elysia-luxe.vercel.app";
 
-    // 1. PREPARE THE "PACKING SLIP" (This was missing!)
-    // We create a clean list of IDs so the Webhook knows exactly what to save to Sanity.
+    // 1. PREPARE THE "PACKING SLIP" (CRITICAL FOR INVENTORY!)
+    // This fixes the "Red Box" error in Sanity.
     const productIds = items.map((item: any) => ({
       _key: item._id,
       product: {
@@ -19,9 +18,7 @@ export async function POST(request: Request) {
     }));
 
     const session = await stripe.checkout.sessions.create({
-      // Payment Methods (Keep your manual list)
       payment_method_types: ["card", "afterpay_clearpay", "zip"],
-
       locale: "en",
       shipping_address_collection: {
         allowed_countries: ["AU"],
@@ -36,7 +33,6 @@ export async function POST(request: Request) {
             name: item.name,
             images: [item.image],
             metadata: {
-              // This is for Inventory Decrease
               sanityProductId: item._id,
             },
           },
@@ -47,13 +43,16 @@ export async function POST(request: Request) {
       mode: "payment",
       submit_type: "pay",
 
-      // 🟢 THE FIX: We put the Packing Slip back in!
-      // Without this, Sanity shows the "Red Box" error.
+      // 🟢 FIX 1: The "Packing Slip".
+      // This tells Sanity EXACTLY which products to update.
       metadata: {
         productIds: JSON.stringify(productIds),
       },
 
-      success_url: `${baseUrl}/success`,
+      // 🟢 FIX 2: The "Receipt Number".
+      // This fixes the "Securing Ref..." error on the website.
+      success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+
       cancel_url: `${baseUrl}/checkout`,
     });
 

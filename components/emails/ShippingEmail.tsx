@@ -32,15 +32,15 @@ export default function ShippingEmail({
       <Head />
       <Preview>
         {isShipped
-          ? "Your Brightnest Jewelry is on its way!"
-          : "Order Confirmation - Brightnest Jewelry"}
+          ? "Your Elysia Luxe Jewelry is on its way!"
+          : "Order Confirmation - Elysia Luxe Jewelry"}
       </Preview>
       <Body style={main}>
         <Container style={container}>
           {/* --- BRAND HEADER (Midnight Blue) --- */}
           <Section style={header}>
-            <Heading style={brandText}>BRIGHTNEST</Heading>
-            <Text style={tagline}>ELEVATE YOUR SHINE</Text>
+            <Heading style={brandText}>ELYSIA LUXE</Heading>
+            <Text style={tagline}>FOREVER DEFINED</Text>
           </Section>
 
           {/* --- MAIN CONTENT --- */}
@@ -58,7 +58,7 @@ export default function ShippingEmail({
             <Text style={text}>
               {isShipped
                 ? "Great news! Your luxury pieces have been carefully packed and are now on their way to you."
-                : "Thank you for choosing Brightnest. We have successfully received your payment and are getting your order ready. You will receive another email as soon as it ships."}
+                : "Thank you for choosing Elysia Luxe. We have successfully received your payment and are getting your order ready. You will receive another email as soon as it ships."}
             </Text>
 
             {/* --- GOLD TRACKING BOX --- */}
