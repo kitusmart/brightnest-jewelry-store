@@ -18,6 +18,8 @@ import {
 import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { useCartActions, useTotalItems } from "@/lib/store/cart-store-provider";
 import { useWishlistStore } from "@/store/wishlist-store";
+// 1. IMPORT ANIMATION LIBRARY
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -106,7 +108,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* --- BAND 2: BLUE ANNOUNCEMENT BAND --- */}
+      {/* --- BAND 2: BLUE ANNOUNCEMENT BAND (With Animation) --- */}
       <div className="bg-[#1B2A4E] border-b border-[#1B2A4E] text-[#D4AF37] text-[10px] md:text-[11px] font-semibold uppercase tracking-widest py-2.5 flex items-center justify-center relative z-50 w-full overflow-hidden">
         <button
           onClick={prevAnnouncement}
@@ -115,9 +117,22 @@ export default function Navbar() {
           <ChevronLeft size={14} />
         </button>
 
-        <span className="animate-fade-in text-center px-2 max-w-[70%] whitespace-nowrap overflow-hidden text-ellipsis">
-          {announcements[announcementIndex]}
-        </span>
+        {/* 2. SLIDING ANIMATION WRAPPER */}
+        {/* We use a fixed height container and AnimatePresence to handle the switch */}
+        <div className="relative h-[20px] w-full flex items-center justify-center overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={announcementIndex}
+              initial={{ y: 20, opacity: 0 }} // Start below
+              animate={{ y: 0, opacity: 1 }} // Slide to center
+              exit={{ y: -20, opacity: 0 }} // Slide up and out
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+              className="absolute text-center px-2 max-w-[70%] whitespace-nowrap overflow-hidden text-ellipsis"
+            >
+              {announcements[announcementIndex]}
+            </motion.span>
+          </AnimatePresence>
+        </div>
 
         <button
           onClick={nextAnnouncement}
@@ -128,9 +143,7 @@ export default function Navbar() {
       </div>
 
       {/* --- 3. MAIN NAVBAR --- */}
-      {/* FIXED: Removed transparency (bg-white/95) and added solid border to fix scrolling visibility */}
       <nav className="sticky top-0 z-[100] bg-white border-b border-gray-100 shadow-sm transition-all duration-300 w-full">
-        {/* FIXED: Increased px-3 to px-5 so icons aren't cut off on mobile edges */}
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 pb-3 md:pb-0">
           <div className="flex justify-between items-center relative gap-2 sm:gap-4 pt-2 md:pt-1">
             {/* Left Icons */}
