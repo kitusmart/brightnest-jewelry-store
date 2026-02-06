@@ -49,7 +49,6 @@ export async function POST(req: Request) {
       // AUTOMATED EMAIL: Fire receipt immediately
       if (session.customer_details?.email) {
         await resend.emails.send({
-          // 🟢 FIX 1: Changed "Brightnest" to "Elysia Luxe"
           from: "Elysia Luxe <onboarding@resend.dev>",
           to: [session.customer_details.email],
           subject: "Your Shine is Secured | Order Confirmation",
@@ -84,25 +83,25 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
     payment_intent,
     customer_details,
     total_details,
+    metadata, // 🟢 WE GRAB THE METADATA (YOUR PACKING SLIP)
   } = session;
 
-  // We retrieve the session again to get the product details
-  const { line_items } = await stripe.checkout.sessions.retrieve(id, {
-    expand: ["line_items.data.price.product"],
-  });
+  // 🟢 SAFETY FIX: We stop guessing. We use the data YOU sent.
+  // This parses the list of IDs directly from the metadata.
+  // NO MORE "RED BOX" because this data comes from your cart, not Stripe's internal database.
+  const packedProductIds = metadata?.productIds
+    ? JSON.parse(metadata.productIds)
+    : [];
 
-  const orderItems = line_items?.data?.map((item) => {
-    const product = item.price?.product as Stripe.Product;
-    return {
-      _key: crypto.randomUUID(),
-      product: {
-        _type: "reference",
-        // This relies on payment/route.ts sending the metadata correctly!
-        _ref: product?.metadata?.sanityProductId,
-      },
-      quantity: item.quantity,
-    };
-  });
+  // Use the packed data to build the Sanity items
+  const orderItems = packedProductIds.map((item: any) => ({
+    _key: crypto.randomUUID(),
+    product: {
+      _type: "reference",
+      _ref: item.product._ref, // 🟢 DIRECT ID. No lookups required.
+    },
+    quantity: item.quantity || 1,
+  }));
 
   const order = await backendClient.create({
     _type: "order",
@@ -119,7 +118,7 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
     totalPrice: amount_total ? amount_total / 100 : 0,
     status: "paid",
     orderDate: new Date().toISOString(),
-    items: orderItems,
+    items: orderItems, // We use our safe list
     shippingAddress: {
       city: customer_details?.address?.city,
       country: customer_details?.address?.country,
@@ -136,7 +135,6 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
       if (item.product._ref) {
         await backendClient
           .patch(item.product._ref)
-          // 🟢 FIX 2: Changed "stock" to "quantity" (Standard Sanity Field)
           .dec({ quantity: item.quantity ?? 1 })
           .commit();
 
