@@ -5,11 +5,9 @@ export async function POST(request: Request) {
   try {
     const { items } = await request.json();
 
-    // 🟢 SMART URL SELECTION
-    // This checks if you have a setting in Vercel.
-    // If not (or if it's broken), it uses your hardcoded link as a safety net.
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL || "https://elysia-luxe.vercel.app";
+    // 🟢 FORCE FIX: We are strictly using the new domain name.
+    // We removed the "process.env" check to stop Vercel from using the old link.
+    const baseUrl = "https://elysia-luxe.vercel.app";
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -36,7 +34,6 @@ export async function POST(request: Request) {
       })),
       mode: "payment",
       submit_type: "pay",
-      // 🟢 USES THE SMART VARIABLE
       success_url: `${baseUrl}/success`,
       cancel_url: `${baseUrl}/checkout`,
     });
