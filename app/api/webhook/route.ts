@@ -34,26 +34,19 @@ export async function POST(req: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
 
     try {
-      // 🟢 1. UNPACK THE SHORT CODES
       const sanityIds = session.metadata?.sanityIds
         ? session.metadata.sanityIds.split(",")
         : [];
-
       const quantities = session.metadata?.quantities
         ? session.metadata.quantities.split(",").map(Number)
         : [];
 
-      // 🟢 2. CREATE SANITY ITEMS
       const orderItems = sanityIds.map((id, index) => ({
         _key: crypto.randomUUID(),
-        product: {
-          _type: "reference",
-          _ref: id,
-        },
+        product: { _type: "reference", _ref: id },
         quantity: quantities[index] || 1,
       }));
 
-      // 🟢 3. CREATE ORDER
       const order = await backendClient.create({
         _type: "order",
         orderNumber:
@@ -69,8 +62,6 @@ export async function POST(req: Request) {
         status: "paid",
         orderDate: new Date().toISOString(),
         items: orderItems,
-        // 🟢 FIX: We use 'customer_details' to fix the red TypeScript errors.
-        // This contains the exact same address data but TypeScript accepts it.
         shippingAddress: {
           line1: session.customer_details?.address?.line1,
           line2: session.customer_details?.address?.line2,
@@ -81,22 +72,30 @@ export async function POST(req: Request) {
         },
       });
 
-      console.log("Order created:", order._id);
-
-      // 🟢 4. DECREASE INVENTORY
+      // 🟢 FIX 1: INVENTORY UPDATE (Safely)
       for (const item of orderItems) {
         if (item.product._ref) {
-          await backendClient
-            .patch(item.product._ref)
-            .dec({ quantity: item.quantity })
-            .commit();
+          try {
+            await backendClient
+              .patch(item.product._ref)
+              // Ensure this matches your Sanity field name (stock or quantity)
+              .dec({ stock: item.quantity })
+              .commit();
+          } catch (invErr) {
+            console.error(
+              "Inventory Update Failed for:",
+              item.product._ref,
+              invErr,
+            );
+            // We don't 'throw' here so the email still sends!
+          }
         }
       }
 
-      // 🟢 5. SEND EMAIL
+      // 🟢 FIX 2: SEND EMAIL
       if (session.customer_details?.email) {
         await resend.emails.send({
-          from: "Elysia Luxe <onboarding@resend.dev>",
+          from: "Elysia Luxe <onboarding@resend.dev>", // Change this once you verify your domain
           to: [session.customer_details.email],
           subject: "Your Shine is Secured | Order Confirmation",
           react: ShippingEmail({
@@ -107,8 +106,8 @@ export async function POST(req: Request) {
         });
       }
     } catch (err: any) {
-      console.error("Webhook Error:", err);
-      return NextResponse.json({ error: "Error" }, { status: 500 });
+      console.error("Webhook Logic Error:", err);
+      return NextResponse.json({ error: "Logic Error" }, { status: 500 });
     }
   }
 
