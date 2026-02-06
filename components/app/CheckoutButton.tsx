@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Loader2, Lock, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useCartItems } from "@/lib/store/cart-store-provider";
-import { createCheckoutSession } from "@/lib/actions/checkout";
 
 interface CheckoutButtonProps {
   disabled?: boolean;
@@ -12,45 +11,53 @@ interface CheckoutButtonProps {
 
 export function CheckoutButton({ disabled }: CheckoutButtonProps) {
   const items = useCartItems();
-  const [isPending, startTransition] = useTransition();
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     setError(null);
+    setLoading(true);
 
-    startTransition(async () => {
-      try {
-        // Calls the server action which is hardcoded to AUD
-        const result = await createCheckoutSession(items);
+    try {
+      // 🟢 CHANGED: We now fetch your new "clean" API route directly
+      const response = await fetch("/api/payment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ items }),
+      });
 
-        if (result.success && result.url) {
-          // Trigger the secure external redirect
-          window.location.href = result.url;
-        } else {
-          const errorMsg = result.error ?? "The vault is temporarily locked.";
-          setError(errorMsg);
-          toast.error("Boutique Error", {
-            description: errorMsg,
-          });
-        }
-      } catch (err) {
-        const fallbackError = "Unable to reach the payment vault.";
-        setError(fallbackError);
-        toast.error("Connection Error", {
-          description: fallbackError,
-        });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Network error");
       }
-    });
+
+      if (data.url) {
+        // 🟢 REDIRECT: Go to the clean Stripe URL
+        window.location.href = data.url;
+      } else {
+        throw new Error("No payment URL received");
+      }
+    } catch (err: any) {
+      const fallbackError = err.message || "Unable to reach the payment vault.";
+      setError(fallbackError);
+      toast.error("Connection Error", {
+        description: fallbackError,
+      });
+      setLoading(false);
+    }
   };
 
   return (
     <div className="space-y-4">
       <button
         onClick={handleCheckout}
-        disabled={disabled || isPending || items.length === 0}
+        disabled={disabled || loading || items.length === 0}
         className="w-full bg-[#1B2A4E] text-white py-5 text-[11px] font-black uppercase tracking-[0.5em] hover:bg-[#D4AF37] transition-all duration-700 flex items-center justify-center gap-3 disabled:bg-gray-100 disabled:text-gray-400 shadow-xl active:scale-[0.98] group"
       >
-        {isPending ? (
+        {loading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin text-[#D4AF37]" />
             <span className="animate-pulse">Opening Secure Vault...</span>
