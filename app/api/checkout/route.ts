@@ -5,11 +5,17 @@ export async function POST(request: Request) {
   try {
     const { items } = await request.json();
 
+    // 🟢 SMART URL SELECTION
+    // This checks if you have a setting in Vercel.
+    // If not (or if it's broken), it uses your hardcoded link as a safety net.
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL || "https://elysia-luxe.vercel.app";
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       locale: "en",
       shipping_address_collection: {
-        allowed_countries: ["AU", "US", "GB", "CA", "IN"], // Add your countries
+        allowed_countries: ["AU", "US", "GB", "CA", "IN"],
       },
       phone_number_collection: {
         enabled: true,
@@ -21,7 +27,7 @@ export async function POST(request: Request) {
             name: item.name,
             images: [item.image],
             metadata: {
-              sanityProductId: item._id, // 🟢 IMPORTANT: Passes ID to Webhook later
+              sanityProductId: item._id,
             },
           },
           unit_amount: Math.round(item.price * 100),
@@ -30,8 +36,9 @@ export async function POST(request: Request) {
       })),
       mode: "payment",
       submit_type: "pay",
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
+      // 🟢 USES THE SMART VARIABLE
+      success_url: `${baseUrl}/success`,
+      cancel_url: `${baseUrl}/checkout`,
     });
 
     return NextResponse.json({ url: session.url });
