@@ -2,21 +2,23 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useCartActions, useCartItem } from "@/lib/store/cart-store-provider";
 import {
   Truck,
   ShieldCheck,
   Lock,
-  Sparkles,
   ChevronRight,
   ShoppingCart,
+  CreditCard,
 } from "lucide-react";
 
 export function ProductInfo({ product }: { product: any }) {
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const { addItem, openCart } = useCartActions();
+  const router = useRouter();
 
   const existingItem = useCartItem(product._id);
   const currentInCart = existingItem?.quantity || 0;
@@ -30,13 +32,12 @@ export function ProductInfo({ product }: { product: any }) {
       )
     : 0;
 
+  // --- ADD TO CART HANDLER ---
   const handleAddToCart = () => {
     if (currentInCart + quantity > product.stock) {
       toast.error(
         `Limit reached. You already have ${currentInCart} in your cart.`,
-        {
-          id: "stock-limit",
-        },
+        { id: "stock-limit" },
       );
       return;
     }
@@ -59,13 +60,48 @@ export function ProductInfo({ product }: { product: any }) {
     setTimeout(() => setIsAdded(false), 2000);
   };
 
+  // --- BUY NOW HANDLER (FIXED) ---
+  const handleBuyNow = async () => {
+    if (currentInCart + quantity > product.stock) {
+      toast.error(
+        `Limit reached. You already have ${currentInCart} in your cart.`,
+        { id: "stock-limit" },
+      );
+      return;
+    }
+
+    // 1. Add item to cart
+    addItem(
+      {
+        productId: product._id,
+        name: product.name,
+        price: product.price,
+        image: product.images?.[0]?.asset?.url || product.image,
+        slug: product.slug.current || product.slug,
+      },
+      quantity,
+    );
+
+    // 2. FORCE REDIRECT WITH AUTO-DISMISS
+    // CHANGED: Using toast.success with a duration instead of toast.loading
+    // This prevents it from getting stuck on the screen.
+    toast.success("Redirecting to Checkout...", {
+      id: "checkout-redirect", // Prevents duplicates
+      duration: 1500, // Disappears automatically after 1.5s
+      icon: <CreditCard size={14} />,
+    });
+
+    setTimeout(() => {
+      router.push("/checkout");
+    }, 500);
+  };
+
   const categoryName = product.category || "Collection";
   const categorySlug = categoryName.toLowerCase();
 
   return (
-    /* CHANGED: Reduced gap-8 to gap-5 for a tighter layout */
     <div className="flex flex-col gap-4 md:gap-5 w-full lg:max-w-[520px] xl:max-w-[580px]">
-      {/* Breadcrumb - Slightly smaller margin */}
+      {/* Breadcrumb */}
       <nav className="hidden sm:flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.3em] text-gray-400 mb-0">
         <Link href="/" className="hover:text-[#D4AF37] transition-colors">
           Home
@@ -84,14 +120,12 @@ export function ProductInfo({ product }: { product: any }) {
       </nav>
 
       <div className="flex flex-col gap-3">
-        {/* CHANGED: lg:text-5xl -> lg:text-3xl to stop it from taking half the screen */}
         <h1 className="text-2xl md:text-3xl font-serif text-[#1B2A4E] tracking-tight uppercase leading-tight">
           {product.name}
         </h1>
 
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
-            {/* CHANGED: Reduced price size slightly */}
             <p className="text-xl md:text-2xl font-bold text-[#1B2A4E]">
               ${product.price?.toLocaleString()}
             </p>
@@ -114,7 +148,6 @@ export function ProductInfo({ product }: { product: any }) {
         </div>
       </div>
 
-      {/* CHANGED: Reduced vertical padding from py-6 to py-4 */}
       <div className="grid grid-cols-3 gap-4 border-y border-gray-100 py-4">
         <DetailItem label="Material" value={product.material} />
         <DetailItem label="Color" value={product.color} />
@@ -122,7 +155,7 @@ export function ProductInfo({ product }: { product: any }) {
       </div>
 
       <div className="flex flex-col gap-4">
-        {/* CHANGED: Reduced padding from py-4 to py-3 */}
+        {/* Quantity Selector */}
         <div
           className={`flex items-center justify-between border border-gray-100 px-5 py-3 bg-[#fbf7ed]/20 ${isOutOfStock ? "opacity-30 pointer-events-none" : ""}`}
         >
@@ -151,7 +184,7 @@ export function ProductInfo({ product }: { product: any }) {
           </div>
         </div>
 
-        {/* CHANGED: Reduced padding from py-5 to py-3.5 */}
+        {/* --- ADD TO CART BUTTON --- */}
         <button
           onClick={handleAddToCart}
           disabled={isAdded || isOutOfStock}
@@ -176,13 +209,16 @@ export function ProductInfo({ product }: { product: any }) {
           )}
         </button>
 
-        {/* CHANGED: Reduced padding from py-4 to py-3 */}
-        <button className="w-full bg-white border border-[#1B2A4E]/10 text-[#1B2A4E] py-3 rounded-none font-bold text-[9px] uppercase tracking-[0.3em] hover:bg-[#1B2A4E] hover:text-white transition-all duration-500 flex items-center justify-center gap-3">
-          <Sparkles size={14} className="text-[#D4AF37]" /> Ask AI for Style
-          Guidance
-        </button>
+        {/* --- BUY NOW BUTTON (UPDATED) --- */}
+        {!isOutOfStock && (
+          <button
+            onClick={handleBuyNow}
+            className="w-full bg-[#1B2A4E] text-white py-3.5 rounded-none font-bold uppercase tracking-[0.4em] text-[10px] hover:bg-[#D4AF37] transition-all duration-500 flex items-center justify-center gap-3 active:scale-95 shadow-xl"
+          >
+            BUY NOW <CreditCard size={14} />
+          </button>
+        )}
 
-        {/* CHANGED: Reduced top margin */}
         <div className="grid grid-cols-3 gap-2 mt-1 pt-4 border-t border-gray-50">
           <TrustIcon Icon={Truck} label="Insured Delivery" />
           <TrustIcon Icon={ShieldCheck} label="Luster Guarantee" />
