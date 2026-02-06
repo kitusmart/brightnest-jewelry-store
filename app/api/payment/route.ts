@@ -5,16 +5,15 @@ export async function POST(request: Request) {
   try {
     const { items } = await request.json();
 
-    // 🔍 THE DETECTIVE LINE:
-    // This will show us exactly what the cart is sending in your Vercel Logs.
+    // Keep this to verify one last time in Vercel Logs
     console.log("DEBUG_CART_DATA:", JSON.stringify(items, null, 2));
 
     const baseUrl = "https://elysia-luxe.vercel.app";
 
-    // 🟢 FINAL TRIPLE-CHECK:
-    // We check _id, id, and _ref. One of these MUST contain your Sanity ID.
+    // 🟢 THE WINNING FIX: We now include 'productId' in the search.
+    // This ensures the ID '3d0d7d53...' is actually captured.
     const idList = items
-      .map((item: any) => item._id || item.id || item._ref)
+      .map((item: any) => item.productId || item._id || item.id || item._ref)
       .join(",");
 
     const quantityList = items.map((item: any) => item.quantity).join(",");
