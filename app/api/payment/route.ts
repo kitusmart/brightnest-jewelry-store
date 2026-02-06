@@ -7,9 +7,19 @@ export async function POST(request: Request) {
 
     const baseUrl = "https://elysia-luxe.vercel.app";
 
+    // 1. PREPARE THE "PACKING SLIP" (This was missing!)
+    // We create a clean list of IDs so the Webhook knows exactly what to save to Sanity.
+    const productIds = items.map((item: any) => ({
+      _key: item._id,
+      product: {
+        _type: "reference",
+        _ref: item._id,
+      },
+      quantity: item.quantity,
+    }));
+
     const session = await stripe.checkout.sessions.create({
-      // 🟢 FIX: We manually list the methods.
-      // This is "Old School" but 100% reliable and error-free.
+      // Payment Methods (Keep your manual list)
       payment_method_types: ["card", "afterpay_clearpay", "zip"],
 
       locale: "en",
@@ -26,6 +36,7 @@ export async function POST(request: Request) {
             name: item.name,
             images: [item.image],
             metadata: {
+              // This is for Inventory Decrease
               sanityProductId: item._id,
             },
           },
@@ -35,6 +46,13 @@ export async function POST(request: Request) {
       })),
       mode: "payment",
       submit_type: "pay",
+
+      // 🟢 THE FIX: We put the Packing Slip back in!
+      // Without this, Sanity shows the "Red Box" error.
+      metadata: {
+        productIds: JSON.stringify(productIds),
+      },
+
       success_url: `${baseUrl}/success`,
       cancel_url: `${baseUrl}/checkout`,
     });

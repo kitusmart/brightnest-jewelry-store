@@ -4,7 +4,6 @@ import { stripe } from "@/lib/stripe";
 import { backendClient } from "@/sanity/lib/backendClient";
 import Stripe from "stripe";
 import { Resend } from "resend";
-// Fixed the import path to match your folder structure:
 import ShippingEmail from "@/components/emails/ShippingEmail";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -47,16 +46,17 @@ export async function POST(req: Request) {
       const order = await createOrderInSanity(session);
       console.log("Order created in Sanity:", order._id);
 
-      // AUTOMATED EMAIL: Fire receipt immediately after Sanity order creation
+      // AUTOMATED EMAIL: Fire receipt immediately
       if (session.customer_details?.email) {
         await resend.emails.send({
-          from: "Brightnest <onboarding@resend.dev>",
+          // 🟢 FIX 1: Changed "Brightnest" to "Elysia Luxe"
+          from: "Elysia Luxe <onboarding@resend.dev>",
           to: [session.customer_details.email],
           subject: "Your Shine is Secured | Order Confirmation",
           react: ShippingEmail({
             customerName: session.customer_details.name || "Valued Customer",
             orderNumber: order.orderNumber,
-            trackingNumber: "Preparing for dispatch...", // Initial status
+            trackingNumber: "Preparing for dispatch...",
           }),
         });
         console.log(
@@ -86,6 +86,7 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
     total_details,
   } = session;
 
+  // We retrieve the session again to get the product details
   const { line_items } = await stripe.checkout.sessions.retrieve(id, {
     expand: ["line_items.data.price.product"],
   });
@@ -96,6 +97,7 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
       _key: crypto.randomUUID(),
       product: {
         _type: "reference",
+        // This relies on payment/route.ts sending the metadata correctly!
         _ref: product?.metadata?.sanityProductId,
       },
       quantity: item.quantity,
@@ -128,12 +130,14 @@ async function createOrderInSanity(session: Stripe.Checkout.Session) {
     },
   });
 
+  // Decrease Inventory
   if (orderItems) {
     for (const item of orderItems) {
       if (item.product._ref) {
         await backendClient
           .patch(item.product._ref)
-          .dec({ stock: item.quantity ?? 1 })
+          // 🟢 FIX 2: Changed "stock" to "quantity" (Standard Sanity Field)
+          .dec({ quantity: item.quantity ?? 1 })
           .commit();
 
         console.log(`Stock updated for product: ${item.product._ref}`);
