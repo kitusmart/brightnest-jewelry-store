@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AlertTriangle, Loader2, ShoppingBag, X } from "lucide-react"; // Added X icon
+import { AlertTriangle, Loader2, ShoppingBag, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sheet,
@@ -35,8 +35,11 @@ export function CartSheet() {
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && closeCart()}>
-      <SheetContent className="flex w-full flex-col sm:max-w-lg gap-0 border-l border-gray-100 bg-white p-0 overflow-hidden">
-        {/* HEADER - Added explicit close button */}
+      {/* 🔥 CRITICAL FIX: Added 'z-[9999]' to force the Cart Sheet 
+         to appear ON TOP of the Sticky Navbar (which is z-[100]). 
+      */}
+      <SheetContent className="flex w-full flex-col sm:max-w-lg gap-0 border-l border-gray-100 bg-white p-0 overflow-hidden z-[9999]">
+        {/* HEADER */}
         <SheetHeader className="px-6 py-8 border-b border-gray-50 bg-[#1B2A4E] z-10 relative">
           <SheetTitle className="flex items-center justify-between text-white">
             <div className="flex items-center gap-3">
@@ -50,7 +53,6 @@ export function CartSheet() {
             )}
           </SheetTitle>
 
-          {/* 🟢 NEW: High-contrast close button for all pixels */}
           <button
             onClick={() => closeCart()}
             className="absolute top-8 right-6 text-white/70 hover:text-[#D4AF37] transition-all hover:rotate-90"

@@ -33,7 +33,7 @@ export function Footer() {
         {/* 1. BRAND STORY */}
         <div className="flex flex-col gap-6">
           <h2 className="text-2xl font-serif text-[#D4AF37] tracking-[0.3em] uppercase">
-            Brightnest
+            Elysia Luxe
           </h2>
           <p className="text-gray-400 text-sm leading-relaxed font-light italic">
             Crafting timeless elegance for the modern woman. Our jewelry is
@@ -152,7 +152,7 @@ export function Footer() {
 
       <div className="max-w-7xl mx-auto pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-gray-500">
         <p className="text-[10px] uppercase tracking-[0.2em]">
-          © 2026 Brightnest Jewelry. All Rights Reserved.
+          © 2026 Elysia Luxe Jewelry. All Rights Reserved.
         </p>
         <div className="flex items-center gap-6 text-[10px] uppercase tracking-[0.2em]">
           <Link href="/policies" className="hover:text-white transition-colors">

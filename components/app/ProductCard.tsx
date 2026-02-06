@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCartActions, useCartItem } from "@/lib/store/cart-store-provider";
-import { Heart } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { useWishlistStore } from "@/store/wishlist-store";
 
@@ -69,8 +69,9 @@ export function ProductCard({ product }: { product: any }) {
     e.stopPropagation();
 
     if (isLimitReached || isOutOfStock) {
+      // CHANGED TEXT: basket -> cart
       toast.error(
-        `All ${product.stock} available items are already in your basket.`,
+        `All ${product.stock} available items are already in your cart.`,
         { id: "cart-toggle" },
       );
       return;
@@ -85,7 +86,8 @@ export function ProductCard({ product }: { product: any }) {
     });
 
     setIsAdded(true);
-    toast.success("Added to Basket", { id: "cart-toggle" });
+    // CHANGED TEXT: Added to Basket -> Added to Cart
+    toast.success("Added to Cart", { id: "cart-toggle" });
     setTimeout(() => setIsAdded(false), 2000);
   };
 
@@ -99,13 +101,11 @@ export function ProductCard({ product }: { product: any }) {
   }
 
   return (
-    /* Added flex-shrink-0 and w-full to prevent Chrome layout wobble at 768px */
     <div className="group relative flex flex-col w-full flex-shrink-0 bg-white transition-all duration-500 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-gray-200/50 hover:-translate-y-1">
       <Link
         href={productUrl}
         className="relative block overflow-hidden bg-[#F9F9F9]"
       >
-        {/* Main Image - Used aspect-square for better 768px grid consistency */}
         <img
           src={mainImage}
           alt={product.name}
@@ -117,7 +117,6 @@ export function ProductCard({ product }: { product: any }) {
           className="absolute inset-0 w-full h-auto aspect-[4/5] object-cover opacity-0 transition-all duration-700 group-hover:opacity-100 scale-105 group-hover:scale-100"
         />
 
-        {/* Wishlist Button - Fixed positioning for Chrome */}
         <button
           type="button"
           onClick={toggleWishlist}
@@ -145,7 +144,6 @@ export function ProductCard({ product }: { product: any }) {
         </div>
       </Link>
 
-      {/* Info Section - Tightened padding for better 3-column fit at 768px */}
       <div className="pt-2 pb-3 md:pt-3 md:pb-4 flex flex-col items-center text-center px-2 md:px-3 flex-grow">
         <Link href={productUrl} className="w-full">
           <h3 className="text-[#1B2A4E] text-[11px] md:text-[12px] font-bold leading-tight mb-1 line-clamp-1 uppercase tracking-widest group-hover:text-[#D4AF37] transition-colors duration-300">
@@ -168,21 +166,27 @@ export function ProductCard({ product }: { product: any }) {
           type="button"
           onClick={handleQuickAdd}
           disabled={isOutOfStock || isLimitReached}
-          className={`w-full py-2 md:py-2.5 rounded-lg text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 transform active:scale-95 shadow-sm ${
+          className={`w-full py-2 md:py-2.5 rounded-lg text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 transform active:scale-95 shadow-sm flex items-center justify-center gap-2 ${
             isAdded
               ? "bg-[#D4AF37] text-white"
               : isOutOfStock || isLimitReached
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-[#1B2A4E] text-white hover:bg-[#2a3f6e]"
+                : "bg-[#1B2A4E] text-white hover:bg-[#D4AF37] hover:text-white"
           }`}
         >
-          {isAdded
-            ? "In Cart"
-            : isOutOfStock
-              ? "Sold Out"
-              : isLimitReached
-                ? "Limit Reached"
-                : "Add to Basket"}
+          {isAdded ? (
+            <>
+              IN CART <ShoppingCart size={12} />
+            </>
+          ) : isOutOfStock ? (
+            "SOLD OUT"
+          ) : isLimitReached ? (
+            "LIMIT REACHED"
+          ) : (
+            <>
+              ADD TO CART <ShoppingCart size={12} />
+            </>
+          )}
         </button>
       </div>
     </div>

@@ -4,7 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useCartActions, useCartItem } from "@/lib/store/cart-store-provider";
-import { Truck, ShieldCheck, Lock, Sparkles, ChevronRight } from "lucide-react";
+import {
+  Truck,
+  ShieldCheck,
+  Lock,
+  Sparkles,
+  ChevronRight,
+  ShoppingCart,
+} from "lucide-react";
 
 export function ProductInfo({ product }: { product: any }) {
   const [quantity, setQuantity] = useState(1);
@@ -26,7 +33,7 @@ export function ProductInfo({ product }: { product: any }) {
   const handleAddToCart = () => {
     if (currentInCart + quantity > product.stock) {
       toast.error(
-        `Limit reached. You already have ${currentInCart} in your basket.`,
+        `Limit reached. You already have ${currentInCart} in your cart.`,
         {
           id: "stock-limit",
         },
@@ -45,7 +52,7 @@ export function ProductInfo({ product }: { product: any }) {
       quantity,
     );
     setIsAdded(true);
-    toast.success("Added to Basket", {
+    toast.success("Added to Cart", {
       id: "cart-action",
       action: { label: "View Cart", onClick: () => openCart() },
     });
@@ -56,9 +63,10 @@ export function ProductInfo({ product }: { product: any }) {
   const categorySlug = categoryName.toLowerCase();
 
   return (
-    /* ADJUSTED: lg:max-w-[520px] locks the width on Edge 1024px to prevent "floating" content */
-    <div className="flex flex-col gap-6 md:gap-8 w-full lg:max-w-[520px] xl:max-w-[580px]">
-      <nav className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400 mb-2">
+    /* CHANGED: Reduced gap-8 to gap-5 for a tighter layout */
+    <div className="flex flex-col gap-4 md:gap-5 w-full lg:max-w-[520px] xl:max-w-[580px]">
+      {/* Breadcrumb - Slightly smaller margin */}
+      <nav className="hidden sm:flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.3em] text-gray-400 mb-0">
         <Link href="/" className="hover:text-[#D4AF37] transition-colors">
           Home
         </Link>
@@ -75,49 +83,53 @@ export function ProductInfo({ product }: { product: any }) {
         </span>
       </nav>
 
-      <div className="flex flex-col gap-4">
-        <h1 className="text-2xl md:text-3xl lg:text-5xl font-serif text-[#1B2A4E] tracking-tight uppercase leading-tight">
+      <div className="flex flex-col gap-3">
+        {/* CHANGED: lg:text-5xl -> lg:text-3xl to stop it from taking half the screen */}
+        <h1 className="text-2xl md:text-3xl font-serif text-[#1B2A4E] tracking-tight uppercase leading-tight">
           {product.name}
         </h1>
 
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
-            <p className="text-2xl md:text-3xl font-bold text-[#1B2A4E]">
+          <div className="flex items-center gap-3">
+            {/* CHANGED: Reduced price size slightly */}
+            <p className="text-xl md:text-2xl font-bold text-[#1B2A4E]">
               ${product.price?.toLocaleString()}
             </p>
             {hasDiscount && (
-              <div className="flex items-center gap-3">
-                <span className="text-lg text-gray-300 line-through font-light italic">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-300 line-through font-light italic">
                   ${product.compareAtPrice?.toLocaleString()}
                 </span>
-                <span className="bg-[#1B2A4E] text-[#D4AF37] text-[9px] font-black px-3 py-1 uppercase border border-[#D4AF37]/30">
+                <span className="bg-[#1B2A4E] text-[#D4AF37] text-[8px] font-black px-2 py-0.5 uppercase border border-[#D4AF37]/30">
                   {discountPercentage}% OFF
                 </span>
               </div>
             )}
           </div>
           <div
-            className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm ${isOutOfStock ? "bg-red-50 text-red-600 border-red-100" : "bg-white text-[#D4AF37] border-[#D4AF37]/20"}`}
+            className={`px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] border shadow-sm ${isOutOfStock ? "bg-red-50 text-red-600 border-red-100" : "bg-white text-[#D4AF37] border-[#D4AF37]/20"}`}
           >
-            {isOutOfStock ? "Archive Piece" : `${product.stock} Available`}
+            {isOutOfStock ? "Archive" : `${product.stock} Available`}
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 border-y border-gray-100 py-6 md:py-8">
+      {/* CHANGED: Reduced vertical padding from py-6 to py-4 */}
+      <div className="grid grid-cols-3 gap-4 border-y border-gray-100 py-4">
         <DetailItem label="Material" value={product.material} />
         <DetailItem label="Color" value={product.color} />
         <DetailItem label="Weight" value={product.weight} />
       </div>
 
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
+        {/* CHANGED: Reduced padding from py-4 to py-3 */}
         <div
-          className={`flex items-center justify-between border border-gray-100 px-6 py-4 bg-[#fbf7ed]/20 ${isOutOfStock ? "opacity-30 pointer-events-none" : ""}`}
+          className={`flex items-center justify-between border border-gray-100 px-5 py-3 bg-[#fbf7ed]/20 ${isOutOfStock ? "opacity-30 pointer-events-none" : ""}`}
         >
           <span className="text-[10px] font-black text-[#1B2A4E] uppercase tracking-[0.3em]">
             Quantity
           </span>
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-6">
             <QtyBtn
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
               label="−"
@@ -139,10 +151,11 @@ export function ProductInfo({ product }: { product: any }) {
           </div>
         </div>
 
+        {/* CHANGED: Reduced padding from py-5 to py-3.5 */}
         <button
           onClick={handleAddToCart}
           disabled={isAdded || isOutOfStock}
-          className={`w-full py-5 rounded-none font-bold uppercase tracking-[0.4em] text-[11px] transition-all duration-700 shadow-xl active:scale-95 flex items-center justify-center gap-3 ${
+          className={`w-full py-3.5 rounded-none font-bold uppercase tracking-[0.4em] text-[10px] transition-all duration-700 shadow-xl active:scale-95 flex items-center justify-center gap-3 ${
             isOutOfStock
               ? "bg-gray-100 text-gray-400 cursor-not-allowed"
               : isAdded
@@ -150,30 +163,38 @@ export function ProductInfo({ product }: { product: any }) {
                 : "bg-[#1B2A4E] text-white hover:bg-[#D4AF37]"
           }`}
         >
-          {isOutOfStock
-            ? "Request Restoration"
-            : isAdded
-              ? "Safe in Basket ✓"
-              : "Add to Basket"}
+          {isOutOfStock ? (
+            "Request Restoration"
+          ) : isAdded ? (
+            <>
+              ADDED TO CART <ShoppingCart size={14} />
+            </>
+          ) : (
+            <>
+              ADD TO CART <ShoppingCart size={14} />
+            </>
+          )}
         </button>
 
-        <button className="w-full bg-white border border-[#1B2A4E]/10 text-[#1B2A4E] py-4 rounded-none font-bold text-[10px] uppercase tracking-[0.3em] hover:bg-[#1B2A4E] hover:text-white transition-all duration-500 flex items-center justify-center gap-3">
+        {/* CHANGED: Reduced padding from py-4 to py-3 */}
+        <button className="w-full bg-white border border-[#1B2A4E]/10 text-[#1B2A4E] py-3 rounded-none font-bold text-[9px] uppercase tracking-[0.3em] hover:bg-[#1B2A4E] hover:text-white transition-all duration-500 flex items-center justify-center gap-3">
           <Sparkles size={14} className="text-[#D4AF37]" /> Ask AI for Style
           Guidance
         </button>
 
-        <div className="grid grid-cols-3 gap-2 mt-2 pt-6 border-t border-gray-50">
+        {/* CHANGED: Reduced top margin */}
+        <div className="grid grid-cols-3 gap-2 mt-1 pt-4 border-t border-gray-50">
           <TrustIcon Icon={Truck} label="Insured Delivery" />
           <TrustIcon Icon={ShieldCheck} label="Luster Guarantee" />
           <TrustIcon Icon={Lock} label="Encrypted Pay" />
         </div>
       </div>
 
-      <div className="pt-6 border-t border-gray-50">
-        <h3 className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.4em] mb-4">
+      <div className="pt-4 border-t border-gray-50">
+        <h3 className="text-[9px] font-black text-[#D4AF37] uppercase tracking-[0.4em] mb-2">
           The Story
         </h3>
-        <p className="text-[13px] text-[#1B2A4E] leading-loose font-light italic">
+        <p className="text-[12px] text-[#1B2A4E] leading-loose font-light italic line-clamp-3">
           {product.description ||
             "A masterfully crafted piece designed to capture the essence of light and luxury."}
         </p>
@@ -185,10 +206,10 @@ export function ProductInfo({ product }: { product: any }) {
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">
+      <span className="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em]">
         {label}
       </span>
-      <span className="text-[12px] md:text-[13px] font-medium text-[#1B2A4E] capitalize truncate">
+      <span className="text-[11px] md:text-[12px] font-medium text-[#1B2A4E] capitalize truncate">
         {value || "Pure Gold"}
       </span>
     </div>
@@ -199,7 +220,7 @@ function QtyBtn({ onClick, label }: { onClick: () => void; label: string }) {
   return (
     <button
       onClick={onClick}
-      className="w-8 h-8 flex items-center justify-center text-[#1B2A4E] hover:text-[#D4AF37] text-xl transition-all"
+      className="w-8 h-8 flex items-center justify-center text-[#1B2A4E] hover:text-[#D4AF37] text-lg transition-all"
     >
       {label}
     </button>
@@ -208,8 +229,8 @@ function QtyBtn({ onClick, label }: { onClick: () => void; label: string }) {
 
 function TrustIcon({ Icon, label }: { Icon: any; label: string }) {
   return (
-    <div className="flex flex-col items-center gap-2">
-      <Icon size={18} className="text-[#D4AF37] stroke-[1.5]" />
+    <div className="flex flex-col items-center gap-1.5">
+      <Icon size={16} className="text-[#D4AF37] stroke-[1.5]" />
       <span className="text-[7px] font-bold uppercase tracking-widest text-gray-400 text-center leading-tight">
         {label}
       </span>

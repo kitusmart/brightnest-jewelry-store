@@ -1,10 +1,16 @@
+import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "sonner";
 
-export const metadata = {
-  title: "Brightnest | Elevate Your Shine",
-  description:
-    "Crafting timeless elegance for the modern woman. Our jewelry is designed to elevate your everyday radiance.",
+// 1. Metadata MUST be in a Server Component
+export const metadata: Metadata = {
+  title: "Elysia Luxe | Forever Defined",
+  description: "Premium Jewelry for the Modern Woman",
+  icons: {
+    icon: "/favicon.png?v=6",
+    shortcut: "/favicon.png?v=6",
+    apple: "/favicon.png?v=6",
+  },
 };
 
 export default function RootLayout({
@@ -13,25 +19,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="light" style={{ colorScheme: "light" }}>
+    <html lang="en">
       <body className="bg-white text-black antialiased">
-        {/* ⭐ ULTIMATE FIX: This version uses the correct props to kill the bottom toast */}
+        {/* 2. UPDATED TOASTER CONFIGURATION */}
         <Toaster
-          position="top-right"
-          visibleToasts={1}
-          expand={false}
-          // ⭐ We use className or style to override the container
-          style={{ top: "20px", right: "20px" }}
+          // CHANGED: Moved to "bottom-right" so it doesn't block the Navbar icons
+          position="bottom-right"
           toastOptions={{
             style: {
-              background: "#1B2A4E",
-              color: "#FFFFFF",
-              border: "1px solid #D4AF37",
-              borderRadius: "0px",
+              background: "#1B2A4E", // Navy Blue
+              color: "#FFFFFF", // White Text
+              border: "1px solid #D4AF37", // Gold Border
               fontFamily: "serif",
-              fontSize: "12px",
-              letterSpacing: "0.1em",
               textTransform: "uppercase",
+              fontSize: "12px", // Added slightly smaller font for elegance
+              letterSpacing: "0.1em", // Added spacing for "Luxe" look
             },
           }}
         />

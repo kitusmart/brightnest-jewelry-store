@@ -57,8 +57,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
       <div className="mx-auto w-full max-w-[100vw] px-4 py-6 md:py-12 lg:py-16 md:px-10 lg:px-14 overflow-hidden">
-        {/* HERO SECTION CONTAINER: Added max-h-screen for 1024px to prevent vertical stretching */}
-        <div className="grid gap-8 md:gap-12 lg:gap-20 md:grid-cols-2 items-start mb-16 md:mb-32 max-w-7xl mx-auto lg:max-h-[90vh]">
+        {/* HERO SECTION CONTAINER: 
+            REMOVED 'lg:max-h-[90vh]' to fix the overlap issue.
+            Now the container will grow with your content. 
+        */}
+        <div className="grid gap-8 md:gap-12 lg:gap-20 md:grid-cols-2 items-start mb-16 md:mb-32 max-w-7xl mx-auto">
           <div className="md:sticky md:top-24 w-full">
             <ProductGallery
               images={product.images}
