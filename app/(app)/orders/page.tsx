@@ -15,14 +15,16 @@ async function getOrders(email: string) {
       "items": items[] {
         ...,
         "product": product-> {
+          _id,
           name,
-          "image": image.asset->url,
-          slug
+          // 🟢 FIXED: Correctly pulls the first image from the 'images' array
+          "image": images[0].asset->url, 
+          "slug": slug.current
         }
       }
     }`,
     { email: email.trim() },
-    { next: { revalidate: 0 } },
+    { next: { revalidate: 0 } }, // Ensures you see new orders immediately
   );
 }
 

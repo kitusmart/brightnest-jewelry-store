@@ -10,7 +10,7 @@ export const orderType = defineType({
     { name: "details", title: "Order Details", default: true },
     { name: "customer", title: "Customer" },
     { name: "payment", title: "Payment" },
-    { name: "shipping", title: "Shipping" }, // 🟢 New Group
+    { name: "shipping", title: "Shipping" },
   ],
   fields: [
     defineField({
@@ -62,7 +62,6 @@ export const orderType = defineType({
         { name: "state", type: "string" },
       ],
     }),
-    // 🟢 NEW SHIPPING FIELDS
     defineField({
       name: "trackingNumber",
       title: "Tracking Number",
@@ -96,7 +95,8 @@ export const orderType = defineType({
             select: {
               product: "product.name",
               quantity: "quantity",
-              image: "product.image",
+              // 🟢 FIXED: Points to your product image array
+              image: "product.images.0",
             },
             prepare({ product, quantity, image }) {
               return {
@@ -152,15 +152,18 @@ export const orderType = defineType({
       orderId: "orderNumber",
       email: "email",
       currency: "currency",
+      // 🟢 FIXED: Selects the first image of the first product for the list view
+      mainImage: "items.0.product.images.0",
     },
-    prepare({ name, amount, orderId, email, currency }) {
-      const orderIdSnippet = `${orderId?.slice(0, 10)}...` || "New Order";
+    prepare({ name, amount, orderId, email, currency, mainImage }) {
+      const orderIdSnippet = orderId || "New Order";
       const currencySymbol = currency?.toUpperCase() === "AUD" ? "$" : "₹";
 
       return {
         title: `${name || email || "Unknown Customer"}`,
         subtitle: `${currencySymbol}${amount || 0} - ${orderIdSnippet}`,
-        media: BasketIcon,
+        // 🟢 FIXED: Uses product image if available, otherwise basket icon
+        media: mainImage || BasketIcon,
       };
     },
   },
