@@ -6,10 +6,14 @@ export default function ClearCart() {
   const clearCart = useCartStore((state) => state.clearCart);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      clearCart();
-    }, 1000); // 1 second delay
-    return () => clearTimeout(timer);
+    // 1. Clear the Zustand store
+    clearCart();
+
+    // 2. Clear the browser's persistent storage
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("shopping-cart");
+      window.dispatchEvent(new Event("storage"));
+    }
   }, [clearCart]);
 
   return null;
