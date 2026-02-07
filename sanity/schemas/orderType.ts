@@ -95,8 +95,9 @@ export const orderType = defineType({
             select: {
               productName: "product.name",
               quantity: "quantity",
-              image: "product.image",
-              images: "product.images.0",
+              // 🟢 FIXED: Use .asset for the individual item images
+              image: "product.image.asset",
+              images: "product.images.0.asset",
             },
             prepare({ productName, quantity, image, images }) {
               return {
@@ -153,8 +154,9 @@ export const orderType = defineType({
       email: "email",
       currency: "currency",
       productName: "items.0.product.name",
-      mainImage: "items.0.product.image",
-      mainImages: "items.0.product.images.0",
+      // 🟢 FIXED: Added .asset for the main order list preview
+      mainImage: "items.0.product.image.asset",
+      mainImages: "items.0.product.images.0.asset",
     },
     prepare({
       name,
@@ -170,10 +172,9 @@ export const orderType = defineType({
       const currencySymbol = currency?.toUpperCase() === "AUD" ? "$" : "₹";
 
       return {
-        // 🟢 FIXED: This now shows "Name (Order ID)" so you can see who bought it
         title: `${name || email || "Unknown"} (${orderIdSnippet})`,
-        // 🟢 FIXED: Shows Price and the first product name in the list
         subtitle: `${currencySymbol}${amount || 0} - ${productName || "Order"}`,
+        // 🟢 Uses the asset thumbnail if available
         media: mainImages || mainImage || BasketIcon,
       };
     },
