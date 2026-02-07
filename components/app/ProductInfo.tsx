@@ -172,11 +172,17 @@ export function ProductInfo({ product }: { product: any }) {
             </span>
             <QtyBtn
               onClick={() => {
+                // We check the real product.stock here
                 const maxAllowed = product.stock - currentInCart;
                 if (quantity < maxAllowed) {
                   setQuantity((prev) => prev + 1);
                 } else {
-                  toast.error("Maximum reached", { id: "stock-limit" });
+                  toast.error(
+                    `Only ${product.stock} pieces in total available`,
+                    {
+                      id: "stock-limit",
+                    },
+                  );
                 }
               }}
               label="+"

@@ -7,7 +7,7 @@ import { ProductAccordion } from "@/components/app/ProductAccordion";
 import { ProductCard } from "@/components/app/ProductCard";
 import { ReviewSection } from "@/components/app/ReviewSection";
 
-export const revalidate = 60;
+export const revalidate = 0;
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
