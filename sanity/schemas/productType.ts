@@ -108,7 +108,6 @@ export const productType = defineType({
       description: 'e.g., "15g" or "0.5 carats"',
     }),
 
-    // ⭐ ENHANCED IMAGES ARRAY FOR GALLERY
     defineField({
       name: "images",
       title: "Product Images",
@@ -153,15 +152,16 @@ export const productType = defineType({
   preview: {
     select: {
       title: "name",
-      subtitle: "category.title",
+      // 🟢 FIXED: Using the image directly for the list thumbnail
       media: "images.0",
       price: "price",
       stock: "stock",
     },
-    prepare({ title, subtitle, media, price, stock }) {
+    prepare({ title, media, price, stock }) {
       return {
         title: title,
-        subtitle: `$${price} | Stock: ${stock}`,
+        // 🟢 FIXED: Cleaner subtitle that shows price and stock
+        subtitle: `$${price || 0} | Stock: ${stock || 0}`,
         media: media,
       };
     },
