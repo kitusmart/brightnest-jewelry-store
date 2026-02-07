@@ -1,3 +1,6 @@
+// 🟢 FIXED: Moved to the top to prevent the 'Modifiers cannot appear here' error
+export const dynamic = "force-dynamic";
+
 import { client } from "@/sanity/lib/client";
 import OrderHistory from "@/components/OrderHistory";
 import { currentUser } from "@clerk/nextjs/server";
@@ -24,7 +27,7 @@ async function getOrders(email: string) {
       }
     }`,
     { email: email.trim() },
-    { next: { revalidate: 0 } }, // Ensures you see new orders immediately
+    { next: { revalidate: 0 } },
   );
 }
 
@@ -62,7 +65,7 @@ export default async function OrdersPage() {
           <div className="h-px w-20 bg-[#D4AF37] mt-8 opacity-30 hidden lg:block" />
         </header>
 
-        {/* 2. HANDLE EMPTY STATE (The 'No Orders' View) */}
+        {/* 2. HANDLE EMPTY STATE */}
         {orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 border border-dashed border-[#fbf7ed] bg-[#fbf7ed]/20">
             <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-8 shadow-sm">
