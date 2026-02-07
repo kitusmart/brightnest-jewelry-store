@@ -9,7 +9,8 @@ import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 
 /**
- * Fetches orders from Sanity based on the lowercased email address
+ * Fetches orders from Sanity with a "Fallback" for the image field.
+ * This ensures that if the product has 'images' (array) or 'image' (single), it works.
  */
 async function getOrders(email: string) {
   return client.fetch(
@@ -20,8 +21,8 @@ async function getOrders(email: string) {
         "product": product-> {
           _id,
           name,
-          // 🟢 FIXED: Correctly pulls the first image from the 'images' array
-          "image": images[0].asset->url, 
+          // 🟢 FIXED: Use coalesce to check both possible image locations
+          "image": coalesce(images[0].asset->url, image.asset->url), 
           "slug": slug.current
         }
       }

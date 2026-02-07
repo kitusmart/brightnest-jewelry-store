@@ -93,15 +93,16 @@ export const orderType = defineType({
           ],
           preview: {
             select: {
-              product: "product.name",
+              productName: "product.name",
               quantity: "quantity",
-              // 🟢 FIXED: Points to your product image array
-              image: "product.images.0",
+              // 🟢 FIXED: Check both possible image field names
+              image: "product.image",
+              images: "product.images.0",
             },
-            prepare({ product, quantity, image }) {
+            prepare({ productName, quantity, image, images }) {
               return {
-                title: `${product || "Product"} x ${quantity}`,
-                media: image,
+                title: `${productName || "Product"} x ${quantity}`,
+                media: images || image,
               };
             },
           },
@@ -152,18 +153,19 @@ export const orderType = defineType({
       orderId: "orderNumber",
       email: "email",
       currency: "currency",
-      // 🟢 FIXED: Selects the first image of the first product for the list view
-      mainImage: "items.0.product.images.0",
+      // 🟢 FIXED: Check both 'image' and 'images' array for the main order list
+      mainImage: "items.0.product.image",
+      mainImages: "items.0.product.images.0",
     },
-    prepare({ name, amount, orderId, email, currency, mainImage }) {
+    prepare({ name, amount, orderId, email, currency, mainImage, mainImages }) {
       const orderIdSnippet = orderId || "New Order";
       const currencySymbol = currency?.toUpperCase() === "AUD" ? "$" : "₹";
 
       return {
         title: `${name || email || "Unknown Customer"}`,
         subtitle: `${currencySymbol}${amount || 0} - ${orderIdSnippet}`,
-        // 🟢 FIXED: Uses product image if available, otherwise basket icon
-        media: mainImage || BasketIcon,
+        // 🟢 FIXED: Show the product image if either field exists
+        media: mainImages || mainImage || BasketIcon,
       };
     },
   },
