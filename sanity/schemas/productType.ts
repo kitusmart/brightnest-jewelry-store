@@ -153,7 +153,7 @@ export const productType = defineType({
     select: {
       title: "name",
       // 🟢 FIXED: Using the image directly for the list thumbnail
-      media: "images.0",
+      media: "images.0.asset",
       price: "price",
       stock: "stock",
     },
