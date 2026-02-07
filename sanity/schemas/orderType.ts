@@ -95,7 +95,6 @@ export const orderType = defineType({
             select: {
               productName: "product.name",
               quantity: "quantity",
-              // 🟢 FIXED: Check both possible image field names
               image: "product.image",
               images: "product.images.0",
             },
@@ -153,18 +152,28 @@ export const orderType = defineType({
       orderId: "orderNumber",
       email: "email",
       currency: "currency",
-      // 🟢 FIXED: Check both 'image' and 'images' array for the main order list
+      productName: "items.0.product.name",
       mainImage: "items.0.product.image",
       mainImages: "items.0.product.images.0",
     },
-    prepare({ name, amount, orderId, email, currency, mainImage, mainImages }) {
+    prepare({
+      name,
+      amount,
+      orderId,
+      email,
+      currency,
+      productName,
+      mainImage,
+      mainImages,
+    }) {
       const orderIdSnippet = orderId || "New Order";
       const currencySymbol = currency?.toUpperCase() === "AUD" ? "$" : "₹";
 
       return {
-        title: `${name || email || "Unknown Customer"}`,
-        subtitle: `${currencySymbol}${amount || 0} - ${orderIdSnippet}`,
-        // 🟢 FIXED: Show the product image if either field exists
+        // 🟢 FIXED: This now shows "Name (Order ID)" so you can see who bought it
+        title: `${name || email || "Unknown"} (${orderIdSnippet})`,
+        // 🟢 FIXED: Shows Price and the first product name in the list
+        subtitle: `${currencySymbol}${amount || 0} - ${productName || "Order"}`,
         media: mainImages || mainImage || BasketIcon,
       };
     },
