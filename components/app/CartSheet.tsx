@@ -35,17 +35,14 @@ export function CartSheet() {
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && closeCart()}>
-      {/* 🔥 CRITICAL FIX: Added 'z-[9999]' to force the Cart Sheet 
-         to appear ON TOP of the Sticky Navbar (which is z-[100]). 
-      */}
       <SheetContent className="flex w-full flex-col sm:max-w-lg gap-0 border-l border-gray-100 bg-white p-0 overflow-hidden z-[9999]">
-        {/* HEADER */}
+        {/* HEADER - Updated to "Your Cart" */}
         <SheetHeader className="px-6 py-8 border-b border-gray-50 bg-[#1B2A4E] z-10 relative">
           <SheetTitle className="flex items-center justify-between text-white">
             <div className="flex items-center gap-3">
               <ShoppingBag className="h-5 w-5 text-[#D4AF37]" />
               <span className="font-serif text-xl tracking-[0.15em] uppercase">
-                Your Nest ({totalItems})
+                Your Cart ({totalItems})
               </span>
             </div>
             {isLoading && (
@@ -75,14 +72,18 @@ export function CartSheet() {
                 <div className="w-20 h-20 bg-[#fbf7ed] rounded-full flex items-center justify-center mb-6">
                   <ShoppingBag className="h-8 w-8 text-[#D4AF37] opacity-60" />
                 </div>
-                <h3 className="text-xl font-serif text-[#1B2A4E] uppercase tracking-widest">
-                  The Nest is Empty
+                {/* Updated Empty Cart Text */}
+                <h3 className="text-xl font-serif text-[#1B2A4E] uppercase tracking-widest leading-relaxed">
+                  Looks like your cart is feeling a little light! Time to add
+                  some treasures.
                 </h3>
+
+                {/* FIXED: Luxury Rounded Button for Empty State */}
                 <button
                   onClick={() => closeCart()}
-                  className="mt-10 text-[10px] font-bold uppercase tracking-[0.3em] text-[#1B2A4E] border-b border-[#D4AF37] pb-1 hover:text-[#D4AF37] transition-all"
+                  className="mt-10 px-10 py-4 bg-[#1B2A4E] text-white rounded-full text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-[#D4AF37] transition-all shadow-lg active:scale-95"
                 >
-                  Continue Browsing
+                  EXPLORE ELYSIA LUXE
                 </button>
               </motion.div>
             ) : (

@@ -37,6 +37,18 @@ export const orderType = defineType({
       type: "string",
       group: "customer",
     }),
+    // 🟢 NEW: Australian Phone Number Field
+    defineField({
+      name: "customerPhone",
+      title: "Customer Phone Number (AUS)",
+      type: "string",
+      group: "customer",
+      description: "Enter in format +61 4XX XXX XXX or 04XX XXX XXX",
+      validation: (Rule) =>
+        Rule.regex(/^(\+61|0)4\d{8}$/).error(
+          "Please enter a valid Australian mobile number (e.g., 0412345678)",
+        ),
+    }),
     defineField({
       name: "stripePaymentIntentId",
       type: "string",
@@ -61,6 +73,21 @@ export const orderType = defineType({
         { name: "postalCode", type: "string" },
         { name: "state", type: "string" },
       ],
+    }),
+    // 🟢 NEW: Shipping Partner List for Intelligent Tracking
+    defineField({
+      name: "courier",
+      title: "Shipping Partner",
+      type: "string",
+      group: "shipping",
+      options: {
+        list: [
+          { title: "Australia Post", value: "auspost" },
+          { title: "StarTrack", value: "startrack" },
+          { title: "Aramex", value: "aramex" },
+          { title: "CourierPlease", value: "couriersplease" },
+        ],
+      },
     }),
     defineField({
       name: "trackingNumber",
@@ -95,7 +122,6 @@ export const orderType = defineType({
             select: {
               productName: "product.name",
               quantity: "quantity",
-              // 🟢 FIXED: Use .asset for the individual item images
               image: "product.image.asset",
               images: "product.images.0.asset",
             },
@@ -154,7 +180,6 @@ export const orderType = defineType({
       email: "email",
       currency: "currency",
       productName: "items.0.product.name",
-      // 🟢 FIXED: Added .asset for the main order list preview
       mainImage: "items.0.product.image.asset",
       mainImages: "items.0.product.images.0.asset",
     },
@@ -174,7 +199,6 @@ export const orderType = defineType({
       return {
         title: `${name || email || "Unknown"} (${orderIdSnippet})`,
         subtitle: `${currencySymbol}${amount || 0} - ${productName || "Order"}`,
-        // 🟢 Uses the asset thumbnail if available
         media: mainImages || mainImage || BasketIcon,
       };
     },

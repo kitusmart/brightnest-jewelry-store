@@ -13,7 +13,7 @@ interface AddToCartButtonProps {
   name: string;
   price: number;
   image?: string;
-  slug: string; // 1. Added slug to interface to satisfy TS requirement
+  slug: string;
   stock: number;
   className?: string;
 }
@@ -23,7 +23,7 @@ export function AddToCartButton({
   name,
   price,
   image,
-  slug, // 2. Destructure slug
+  slug,
   stock,
   className,
 }: AddToCartButtonProps) {
@@ -44,9 +44,10 @@ export function AddToCartButton({
     }
 
     setIsAnimating(true);
-    // 3. Added slug here to fix the "Property 'slug' is missing" error
     addItem({ productId, name, price, image, slug }, 1);
-    toast.success(`Added ${name} to basket`, { id: "cart-success" });
+
+    // 🔥 UPDATED: Cleaner luxury notification for mobile
+    toast.success("ADDED ONE MORE ITEM", { id: "cart-success" });
 
     setTimeout(() => setIsAnimating(false), 1500);
   };
@@ -78,7 +79,7 @@ export function AddToCartButton({
         <Button
           onClick={handleAdd}
           className={cn(
-            "h-11 w-full bg-[#1B2A4E] text-white hover:bg-[#2a3f6e] uppercase text-[10px] tracking-[0.2em] font-bold transition-all duration-300 rounded-lg shadow-sm hover:shadow-md",
+            "h-11 w-full bg-[#1B2A4E] text-white hover:bg-[#D4AF37] uppercase text-[10px] tracking-[0.2em] font-bold transition-all duration-300 rounded-lg shadow-sm hover:shadow-md",
             className,
           )}
         >
@@ -89,10 +90,10 @@ export function AddToCartButton({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="flex items-center gap-2 text-[#D4AF37]"
+                className="flex items-center gap-2 text-white"
               >
                 <Check className="h-4 w-4" />
-                <span>Secured</span>
+                <span>Added</span>
               </motion.div>
             ) : (
               <motion.div

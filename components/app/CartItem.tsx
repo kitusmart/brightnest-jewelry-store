@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { X } from "lucide-react";
+import { X, Plus, Minus } from "lucide-react"; // Using cleaner icons for quantity
 import { useCartActions } from "@/lib/store/cart-store-provider";
 import { AddToCartButton } from "@/components/app/AddToCartButton";
 import { StockBadge } from "@/components/app/StockBadge";
@@ -26,14 +26,14 @@ export function CartItem({ item, stockInfo }: CartItemProps) {
   return (
     <div
       className={cn(
-        "flex gap-6 py-6 transition-all duration-500",
-        hasIssue && "bg-red-50/30 p-4 border-y border-red-100/50",
+        "flex gap-5 py-5 transition-all duration-500",
+        hasIssue && "bg-red-50/30 p-4 rounded-xl border border-red-100/50",
       )}
     >
-      {/* 1. Image Area */}
+      {/* 1. IMAGE AREA: Added soft shadow and rounded corners for "Pop" */}
       <div
         className={cn(
-          "relative h-24 w-20 shrink-0 overflow-hidden bg-[#F9F9F9] border border-gray-100",
+          "relative h-28 w-24 shrink-0 overflow-hidden rounded-xl bg-[#FDFDFD] shadow-sm border border-gray-50",
           isOutOfStock && "opacity-40 grayscale",
         )}
       >
@@ -42,8 +42,8 @@ export function CartItem({ item, stockInfo }: CartItemProps) {
             src={item.image}
             alt={item.name}
             fill
-            className="object-cover"
-            sizes="80px"
+            className="object-cover transition-transform duration-700 hover:scale-110"
+            sizes="100px"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-[10px] uppercase tracking-widest text-gray-300">
@@ -52,15 +52,14 @@ export function CartItem({ item, stockInfo }: CartItemProps) {
         )}
       </div>
 
-      {/* 2. Details Area */}
-      <div className="flex flex-1 flex-col">
+      {/* 2. DETAILS AREA */}
+      <div className="flex flex-1 flex-col justify-between py-1">
         <div className="flex justify-between items-start gap-4">
-          {/* FIXED: Using item.slug to prevent 404 errors */}
           <Link
             href={`/products/${item.slug}`}
             onClick={() => closeCart()}
             className={cn(
-              "font-serif text-[13px] leading-tight text-[#1B2A4E] uppercase tracking-wider hover:text-[#D4AF37] transition-colors",
+              "font-serif text-[14px] font-medium leading-tight text-[#1B2A4E] uppercase tracking-wide hover:text-[#D4AF37] transition-colors",
               isOutOfStock && "text-gray-400",
             )}
           >
@@ -68,35 +67,37 @@ export function CartItem({ item, stockInfo }: CartItemProps) {
           </Link>
 
           <button
-            className="text-gray-300 hover:text-[#1B2A4E] transition-colors p-1"
+            className="text-gray-300 hover:text-red-400 transition-colors p-1"
             onClick={() => removeItem(item.productId)}
           >
-            <X size={14} strokeWidth={1.5} />
-            <span className="sr-only">Remove</span>
+            <X size={16} strokeWidth={1.5} />
           </button>
         </div>
 
-        <p className="mt-2 text-[12px] font-bold text-[#D4AF37] tracking-[0.15em]">
-          {formatPrice(item.price)}
-        </p>
+        {/* PRICE: Bolder and cleaner */}
+        <div className="mt-2 flex items-baseline gap-2">
+          <span className="text-[14px] font-bold text-[#1B2A4E]">
+            {formatPrice(item.price)}
+          </span>
+          {/* If you ever have sale logic, you can add it here in Gold */}
+        </div>
 
-        {/* 3. Controls Area */}
-        <div className="mt-auto pt-4 flex flex-row justify-between items-center border-t border-gray-50/50">
-          <div className="scale-75 origin-left opacity-80">
+        {/* 3. CONTROLS AREA: Styled to look like Nimee Circular buttons */}
+        <div className="mt-4 flex flex-row justify-between items-center">
+          <div className="scale-90 origin-left">
             <StockBadge productId={item.productId} stock={currentStock} />
           </div>
 
           {!isOutOfStock && (
-            <div className="flex items-center gap-2 scale-90 origin-right">
-              <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 mr-1">
-                Qty
-              </span>
+            <div className="flex items-center gap-3">
+              {/* This AddToCartButton will now be wrapped in a cleaner UI */}
               <AddToCartButton
                 productId={item.productId}
                 name={item.name}
                 price={item.price}
                 image={item.image}
                 stock={currentStock}
+                slug={item.slug}
               />
             </div>
           )}
