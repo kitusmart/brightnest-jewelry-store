@@ -15,10 +15,16 @@ import {
   Instagram,
   Facebook,
 } from "lucide-react";
-import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+// Import useUser to get profile data
+import {
+  UserButton,
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  useUser,
+} from "@clerk/nextjs";
 import { useCartActions, useTotalItems } from "@/lib/store/cart-store-provider";
 import { useWishlistStore } from "@/store/wishlist-store";
-// 1. IMPORT ANIMATION LIBRARY
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Navbar() {
@@ -27,7 +33,9 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [announcementIndex, setAnnouncementIndex] = useState(0);
 
-  // Timer State
+  // Hook to access user data for the custom icon
+  const { user } = useUser();
+
   const [timeLeft, setTimeLeft] = useState({
     hours: 15,
     minutes: 45,
@@ -42,14 +50,12 @@ export default function Navbar() {
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  // ANNOUNCEMENTS DATA
   const announcements = [
     "Free Shipping On Orders Above ₹500",
     "New Collection Drops Every Friday",
     "Join Our VIP Club for 10% Off",
   ];
 
-  // Auto-rotate
   useEffect(() => {
     const interval = setInterval(() => {
       setAnnouncementIndex((prev) => (prev + 1) % announcements.length);
@@ -66,7 +72,6 @@ export default function Navbar() {
     );
   };
 
-  // Timer Logic
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -92,7 +97,6 @@ export default function Navbar() {
 
   return (
     <>
-      {/* --- BAND 1: BLACK TIMER BAND --- */}
       <div className="bg-black text-[#D4AF37] text-[10px] md:text-xs font-medium tracking-wide py-2 flex flex-wrap items-center justify-center gap-1.5 md:gap-2 relative z-50 w-full overflow-hidden">
         <Sparkles size={12} className="text-[#D4AF37] fill-[#D4AF37]" />
         <span className="text-white font-serif italic whitespace-nowrap">
@@ -108,7 +112,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* --- BAND 2: BLUE ANNOUNCEMENT BAND (With Animation) --- */}
       <div className="bg-[#1B2A4E] border-b border-[#1B2A4E] text-[#D4AF37] text-[10px] md:text-[11px] font-semibold uppercase tracking-widest py-2.5 flex items-center justify-center relative z-50 w-full overflow-hidden">
         <button
           onClick={prevAnnouncement}
@@ -117,15 +120,13 @@ export default function Navbar() {
           <ChevronLeft size={14} />
         </button>
 
-        {/* 2. SLIDING ANIMATION WRAPPER */}
-        {/* We use a fixed height container and AnimatePresence to handle the switch */}
         <div className="relative h-[20px] w-full flex items-center justify-center overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.span
               key={announcementIndex}
-              initial={{ y: 20, opacity: 0 }} // Start below
-              animate={{ y: 0, opacity: 1 }} // Slide to center
-              exit={{ y: -20, opacity: 0 }} // Slide up and out
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -20, opacity: 0 }}
               transition={{ duration: 0.5, ease: "easeInOut" }}
               className="absolute text-center px-2 max-w-[70%] whitespace-nowrap overflow-hidden text-ellipsis"
             >
@@ -142,11 +143,9 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* --- 3. MAIN NAVBAR --- */}
       <nav className="sticky top-0 z-[100] bg-white border-b border-gray-100 shadow-sm transition-all duration-300 w-full">
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 pb-3 md:pb-0">
           <div className="flex justify-between items-center relative gap-2 sm:gap-4 pt-2 md:pt-1">
-            {/* Left Icons */}
             <div className="flex items-center gap-3 sm:gap-6 flex-1 min-w-[40px] mt-2 md:mt-10">
               <button
                 onClick={toggleMenu}
@@ -165,7 +164,6 @@ export default function Navbar() {
               </button>
             </div>
 
-            {/* Center: LOGO AREA */}
             <div className="flex-shrink-0 flex justify-center items-center py-0">
               <Link href="/" className="block">
                 <div className="relative flex items-center justify-center">
@@ -179,7 +177,6 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* Right Icons */}
             <div className="flex items-center justify-end gap-3 sm:gap-6 flex-1 min-w-[100px] md:min-w-0 mt-2 md:mt-10">
               <div className="relative hidden md:flex items-center">
                 <SignedOut>
@@ -190,9 +187,28 @@ export default function Navbar() {
                   </SignInButton>
                 </SignedOut>
                 <SignedIn>
-                  <div className="scale-100 md:scale-110 opacity-90 hover:opacity-100 transition-opacity">
-                    <UserButton afterSignOutUrl="/" />
-                  </div>
+                  {/* FIXED: Replaced UserButton with direct link to /account */}
+                  <Link
+                    href="/account"
+                    className="relative group transition-transform hover:scale-105 active:scale-95"
+                  >
+                    <div className="w-8 h-8 rounded-full border border-[#D4AF37]/30 overflow-hidden flex items-center justify-center bg-[#F9F9F9] shadow-sm group-hover:border-[#D4AF37] transition-all">
+                      {user?.imageUrl ? (
+                        <img
+                          src={user.imageUrl}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-[10px] font-bold text-[#1B2A4E]">
+                          {user?.firstName?.charAt(0) || "U"}
+                        </span>
+                      )}
+                    </div>
+                    <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[8px] uppercase tracking-widest font-bold text-[#1B2A4E] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      My Account
+                    </span>
+                  </Link>
                 </SignedIn>
               </div>
 
@@ -222,7 +238,6 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex justify-center pb-5 pt-2">
             <div className="flex items-center gap-6 lg:gap-12 text-[11px] font-bold tracking-[0.2em] text-[#1B2A4E] uppercase">
               <NavLinks />
@@ -230,7 +245,6 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* --- SEARCH BAR SLIDE-DOWN --- */}
         <div
           className={`overflow-hidden transition-all duration-300 ease-in-out ${isSearchOpen ? "max-h-20 opacity-100 mt-2" : "max-h-0 opacity-0"}`}
         >
@@ -255,10 +269,8 @@ export default function Navbar() {
           </form>
         </div>
 
-        {/* --- MOBILE MENU --- */}
         {isOpen && (
           <div className="md:hidden absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-xl py-6 flex flex-col justify-between z-50 h-[calc(100vh-140px)] overflow-y-auto">
-            {/* Top Section */}
             <div className="flex flex-col items-center gap-8 w-full px-6">
               <form onSubmit={handleSearch} className="w-full relative">
                 <input
@@ -281,7 +293,6 @@ export default function Navbar() {
               </div>
             </div>
 
-            {/* Bottom Section */}
             <div className="flex flex-col items-center gap-6 pb-10 w-full px-6 mt-8">
               <div className="w-20 h-[1px] bg-[#D4AF37]/30 mb-2"></div>
 
@@ -297,25 +308,30 @@ export default function Navbar() {
                 </SignInButton>
               </SignedOut>
               <SignedIn>
-                <div className="flex flex-col items-center gap-2">
-                  <UserButton
-                    afterSignOutUrl="/"
-                    showName={true}
-                    appearance={{
-                      elements: {
-                        userButtonBox: "flex-row-reverse",
-                        userButtonOuterIdentifier:
-                          "text-[#1B2A4E] font-serif uppercase tracking-widest",
-                      },
-                    }}
-                  />
-                  <span className="text-[10px] text-gray-400 uppercase tracking-widest">
-                    My Account
-                  </span>
-                </div>
+                {/* FIXED: Mobile Account Link */}
+                <Link
+                  href="/account"
+                  onClick={() => setIsOpen(false)}
+                  className="flex flex-col items-center gap-2"
+                >
+                  <div className="w-12 h-12 rounded-full border-2 border-[#D4AF37] overflow-hidden shadow-md">
+                    <img
+                      src={user?.imageUrl}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[#1B2A4E] font-serif text-xs uppercase tracking-[0.2em]">
+                      {user?.firstName || "My Account"}
+                    </p>
+                    <span className="text-[9px] text-gray-400 uppercase tracking-widest border-b border-[#D4AF37]/30 pb-0.5">
+                      View Profile
+                    </span>
+                  </div>
+                </Link>
               </SignedIn>
 
-              {/* Social Icons */}
               <div className="flex items-center gap-6 text-[#1B2A4E] mt-2">
                 <a
                   href="#"

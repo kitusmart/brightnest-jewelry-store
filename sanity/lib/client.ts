@@ -1,17 +1,19 @@
 import { createClient } from "next-sanity";
-
 import { apiVersion, dataset, projectId } from "../env";
 
-// Read-only client (for fetching data)
+// 🟢 UPDATED: Main client now uses a token to see orders on localhost
 export const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: false, // Set to false if statically generating pages, using ISR or tag-based revalidation
+  useCdn: false,
   perspective: "published",
+  // Adding the token here allows localhost to bypass public restrictions
+  token:
+    process.env.SANITY_API_READ_TOKEN || process.env.SANITY_API_WRITE_TOKEN,
 });
 
-// Write client (for mutations - used in webhooks/server actions)
+// Write client (remains the same for mutations/server actions)
 export const writeClient = createClient({
   projectId,
   dataset,

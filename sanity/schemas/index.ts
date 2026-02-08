@@ -6,6 +6,7 @@ import { orderType } from "./orderType";
 import { productType } from "./productType";
 // 1. Import the review schema you created
 import { reviewType } from "./reviewType";
+import address from "./address";
 
 // This is a NAMED export
 export const schemaTypes = [
@@ -14,4 +15,5 @@ export const schemaTypes = [
   orderType,
   productType,
   reviewType, // 2. Add it here to the array
+  address,
 ];

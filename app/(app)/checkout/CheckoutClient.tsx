@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react"; // 🟢 Added for Address Fetching
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -10,6 +11,7 @@ import {
   Lock,
   Truck,
   ShieldCheck,
+  MapPin, // 🟢 Added for Address UI
 } from "lucide-react";
 import { CheckoutButton } from "@/components/app/CheckoutButton";
 import { formatPrice } from "@/lib/utils";
@@ -19,12 +21,35 @@ import {
   useTotalItems,
 } from "@/lib/store/cart-store-provider";
 import { useCartStock } from "@/lib/hooks/useCartStock";
+// 🟢 IMPORT FETCHING LOGIC
+import { getAddresses } from "@/app/actions/saveAddress";
+import { useUser } from "@clerk/nextjs";
 
 export function CheckoutClient() {
+  const { isLoaded, user } = useUser();
   const items = useCartItems();
   const totalPrice = useTotalPrice();
   const totalItems = useTotalItems();
   const { stockMap, isLoading, hasStockIssues } = useCartStock(items);
+
+  // 🟢 STATE FOR DEFAULT ADDRESS
+  const [defaultAddress, setDefaultAddress] = useState<any>(null);
+  const [isAddressLoading, setIsAddressLoading] = useState(true);
+
+  // 🟢 FETCH DEFAULT ADDRESS ON LOAD
+  useEffect(() => {
+    async function fetchDefault() {
+      if (isLoaded && user?.primaryEmailAddress?.emailAddress) {
+        const addresses = await getAddresses(
+          user.primaryEmailAddress.emailAddress,
+        );
+        const primary = addresses.find((addr: any) => addr.isDefault === true);
+        setDefaultAddress(primary);
+        setIsAddressLoading(false);
+      }
+    }
+    fetchDefault();
+  }, [isLoaded, user]);
 
   // 1. EMPTY NEST STATE
   if (items.length === 0) {
@@ -52,7 +77,7 @@ export function CheckoutClient() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 min-h-screen">
-        {/* 2. LEFT COLUMN: ITEMS & STOCK VERIFICATION */}
+        {/* 2. LEFT COLUMN: ITEMS & SHIPPING */}
         <div className="p-8 lg:p-16 border-r border-gray-50 bg-white">
           <Link
             href="/"
@@ -70,6 +95,60 @@ export function CheckoutClient() {
               Handpicked Items
             </p>
           </header>
+
+          {/* 🟢 NEW: SHIPPING ADDRESS SUMMARY (AUSTRALIA) */}
+          <div className="mb-12 border-b border-gray-50 pb-12">
+            <h2 className="text-[11px] font-black text-[#1B2A4E] uppercase tracking-[0.4em] mb-6">
+              Shipping Destination
+            </h2>
+
+            {isAddressLoading ? (
+              <div className="flex items-center gap-2 text-[10px] text-gray-400 uppercase tracking-widest animate-pulse">
+                <Loader2 size={12} className="animate-spin" /> Locating default
+                nest...
+              </div>
+            ) : defaultAddress ? (
+              <div className="bg-[#fbf7ed]/40 p-6 border border-[#D4AF37]/10 relative group transition-all">
+                <div className="flex items-start gap-4">
+                  <MapPin size={18} className="text-[#D4AF37] mt-1" />
+                  <div>
+                    <p className="text-[11px] font-black text-[#1B2A4E] uppercase tracking-wider mb-1">
+                      {defaultAddress.firstName} {defaultAddress.lastName}
+                    </p>
+                    <p className="text-[12px] text-gray-500 leading-relaxed">
+                      {defaultAddress.addressLine}
+                      {defaultAddress.apartment
+                        ? `, ${defaultAddress.apartment}`
+                        : ""}
+                      <br />
+                      {defaultAddress.city}, {defaultAddress.state}{" "}
+                      {defaultAddress.postcode}
+                      <br />
+                      Australia (+61) {defaultAddress.phone}
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/account"
+                  className="absolute top-6 right-6 text-[9px] font-bold text-[#D4AF37] uppercase tracking-widest hover:underline"
+                >
+                  Change
+                </Link>
+              </div>
+            ) : (
+              <div className="bg-red-50/50 p-6 border border-red-100 flex items-center justify-between">
+                <p className="text-[10px] font-bold text-red-800 uppercase tracking-widest">
+                  No default address found
+                </p>
+                <Link
+                  href="/account"
+                  className="bg-[#1B2A4E] text-white px-4 py-2 text-[9px] font-black uppercase tracking-widest shadow-lg"
+                >
+                  Add Now
+                </Link>
+              </div>
+            )}
+          </div>
 
           {/* Stock Issues Warning */}
           {hasStockIssues && !isLoading && (
@@ -186,7 +265,17 @@ export function CheckoutClient() {
           </div>
 
           <div className="mt-10">
-            <CheckoutButton disabled={hasStockIssues || isLoading} />
+            {/* 🟢 THE BUTTON IS NOW DISABLED IF NO ADDRESS EXISTS */}
+            <CheckoutButton
+              disabled={hasStockIssues || isLoading || !defaultAddress}
+            />
+
+            {!defaultAddress && !isAddressLoading && (
+              <p className="mt-3 text-[9px] text-red-500 uppercase tracking-widest text-center font-bold">
+                Please add a shipping address in your profile to proceed.
+              </p>
+            )}
+
             <p className="mt-6 text-center text-[9px] text-gray-400 uppercase tracking-[0.3em] flex items-center justify-center gap-2">
               <Lock size={10} className="text-[#D4AF37]" /> Encrypted via Stripe
               Secure
