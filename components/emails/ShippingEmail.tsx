@@ -70,20 +70,23 @@ export default function ShippingEmail({
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
-            <Img
-              src="https://elysia-luxe.vercel.app/new-email-logo.png"
-              width="260"
-              height="auto"
-              alt="Elysia Luxe"
-              style={{
-                margin: "0 auto",
-                display: "block",
-                pointerEvents: "none", // 🟢 Tells Gmail this is NOT a clickable file
-                WebkitUserSelect: "none", // 🟢 Stops the "blue" selection box
-                msUserSelect: "none",
-                userSelect: "none",
-              }}
-            />
+            <Link href="https://elysia-luxe.vercel.app">
+              {" "}
+              {/** 🟢 Wrapping in a link stops the download/open glitch **/}
+              <Img
+                src="https://elysia-luxe.vercel.app/new-email-logo.png"
+                width="260"
+                height="auto"
+                alt="Elysia Luxe"
+                style={{
+                  margin: "0 auto",
+                  display: "block",
+                  border: "none",
+                  outline: "none",
+                  textDecoration: "none",
+                }}
+              />
+            </Link>
           </Section>
           <Section style={content}>
             <Heading style={h1}>
