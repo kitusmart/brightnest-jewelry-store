@@ -51,8 +51,13 @@ export default function ShippingEmail({
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
-            <Heading style={brandText}>ELYSIA LUXE</Heading>
-            <Text style={tagline}>FOREVER DEFINED</Text>
+            <Img
+              src="https://elysia-luxe.vercel.app/new-email-logo.png"
+              width="180"
+              height="auto"
+              alt="Elysia Luxe"
+              style={{ margin: "0 auto", display: "block" }}
+            />
           </Section>
 
           <Section style={content}>
