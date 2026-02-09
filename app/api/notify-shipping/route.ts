@@ -19,8 +19,6 @@ export async function POST(req: Request) {
       orderItems,
     } = body;
 
-    console.log("Full Webhook Data:", JSON.stringify(body, null, 2));
-
     // 🟢 Allows both "shipped" and "confirmed" status
     if (status !== "shipped") {
       return NextResponse.json({
@@ -49,7 +47,6 @@ export async function POST(req: Request) {
     if (error) return NextResponse.json({ error }, { status: 500 });
     return NextResponse.json({ message: "Email Sent" });
   } catch (error: any) {
-    console.error("Route Error:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }
