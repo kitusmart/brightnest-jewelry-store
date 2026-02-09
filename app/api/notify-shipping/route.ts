@@ -19,33 +19,38 @@ export async function POST(req: Request) {
       orderItems,
     } = body;
 
-    // 🟢 Allows both "shipped" and "confirmed" status
+    // 🟢 Keep your existing status check
     if (status !== "shipped") {
       return NextResponse.json({
         message: "Ignoring confirmed status to prevent duplicate",
       });
     }
 
-    const { error } = await resend.emails.send({
-      from: "Elysia Luxe <onboarding@resend.dev>",
-      to: [email],
-      // 🟢 Dynamic subject line based on status
-      subject:
-        status === "shipped"
-          ? `Your Luxury Pieces are on Their Way! (Order: ${orderNumber}) ⭐`
-          : `Order Confirmed: ${orderNumber} ⭐`,
-      react: ShippingEmail({
-        customerName: customerName || "Valued Customer",
-        orderNumber: orderNumber,
-        trackingNumber: trackingNumber || "Preparing for dispatch...",
-        courier: courier || "Australia Post",
-        totalPrice: totalPrice || 0,
-        orderItems: orderItems || [],
-      }),
-    });
+    // 🟢 THE FIX: We send a 'Success' response immediately to stop the double-firing
+    const response = NextResponse.json({ message: "Processing Email" });
 
-    if (error) return NextResponse.json({ error }, { status: 500 });
-    return NextResponse.json({ message: "Email Sent" });
+    // 🟢 Run the email sending in the background so it doesn't block the server
+    (async () => {
+      try {
+        await resend.emails.send({
+          from: "Elysia Luxe <onboarding@resend.dev>",
+          to: [email],
+          subject: `Your Luxury Pieces are on Their Way! (Order: ${orderNumber}) ⭐`,
+          react: ShippingEmail({
+            customerName: customerName || "Valued Customer",
+            orderNumber: orderNumber,
+            trackingNumber: trackingNumber || "Preparing for dispatch...",
+            courier: courier || "Australia Post", // 🟢 Ensure courier is passed correctly
+            totalPrice: totalPrice || 0,
+            orderItems: orderItems || [],
+          }),
+        });
+      } catch (e) {
+        console.error("Background Email Error:", e);
+      }
+    })();
+
+    return response; // 🟢 Immediate response stops the duplicate
   } catch (error: any) {
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
