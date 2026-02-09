@@ -8,35 +8,39 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // 🟢 Updated Extraction: Get the new fields from the Sanity Webhook
     const {
       email,
       customerName,
       orderNumber,
       trackingNumber,
       status,
-      courier, // Re-mapped from shippingPartner in Sanity
-      totalPrice, // 🟢 NEW
-      orderItems, // 🟢 NEW (The array of products)
+      courier,
+      totalPrice,
+      orderItems,
     } = body;
 
     console.log("Full Webhook Data:", JSON.stringify(body, null, 2));
 
-    // Only send the email if the status is "shipped"
-    if (status !== "shipped")
-      return NextResponse.json({ message: "Not shipped" });
+    // 🟢 Allows both "shipped" and "confirmed" status
+    if (status !== "shipped" && status !== "confirmed") {
+      return NextResponse.json({ message: "Invalid status" });
+    }
 
     const { error } = await resend.emails.send({
       from: "Elysia Luxe <onboarding@resend.dev>",
       to: [email],
-      subject: `Your Luxury Pieces are on Their Way! (Order: ${orderNumber}) ⭐`,
+      // 🟢 Dynamic subject line based on status
+      subject:
+        status === "shipped"
+          ? `Your Luxury Pieces are on Their Way! (Order: ${orderNumber}) ⭐`
+          : `Order Confirmed: ${orderNumber} ⭐`,
       react: ShippingEmail({
         customerName: customerName || "Valued Customer",
         orderNumber: orderNumber,
-        trackingNumber: trackingNumber || "TBA",
+        trackingNumber: trackingNumber || "Preparing for dispatch...",
         courier: courier || "Australia Post",
-        totalPrice: totalPrice || 0, // 🟢 Pass to template
-        orderItems: orderItems || [], // 🟢 Pass to template
+        totalPrice: totalPrice || 0,
+        orderItems: orderItems || [],
       }),
     });
 
