@@ -53,7 +53,7 @@ export default function ShippingEmail({
           <Section style={header}>
             <Img
               src="https://elysia-luxe.vercel.app/new-email-logo.png"
-              width="180"
+              width="260"
               height="auto"
               alt="Elysia Luxe"
               style={{ margin: "0 auto", display: "block" }}
