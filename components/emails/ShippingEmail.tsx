@@ -10,6 +10,7 @@ import {
   Text,
   Button,
   Img,
+  Link,
 } from "@react-email/components";
 import * as React from "react";
 
@@ -39,34 +40,13 @@ export default function ShippingEmail({
 }: ShippingEmailProps) {
   const isShipped =
     trackingNumber && trackingNumber !== "Preparing for dispatch...";
-
-  const getTrackingUrl = (partnerName: string, trackingNum: string) => {
-    const name = partnerName?.toLowerCase() || "";
-    if (name.includes("post"))
-      return `https://auspost.com.au/mypost/track/#/details/${trackingNum}`;
-    if (name.includes("star"))
-      return `https://startrack.com.au/track/details?id=${trackingNum}`;
-    if (name.includes("please"))
-      return `https://www.couriersplease.com.au/tools-track/tracking-results?id=${trackingNum}`;
-    if (name.includes("aramex"))
-      return `https://www.aramex.com.au/tools/track?l=${trackingNum}`;
-    return `https://www.google.com/search?q=${trackingNum}`;
-  };
-
-  const trackingUrl = getTrackingUrl(courier, trackingNumber);
-
-  const waMessage = encodeURIComponent(
-    "Hello Elysia Luxe, I have a question about my shipped item.",
-  );
-  const waUrl = `https://wa.me/61414002636?text=${waMessage}`;
+  const waUrl = `https://wa.me/61414002636?text=${encodeURIComponent("Hello Elysia Luxe, I have a question about my order.")}`;
 
   return (
     <Html>
       <Head />
       <Preview>
-        {isShipped
-          ? "Your Elysia Luxe Jewelry is on its way!"
-          : "Order Confirmation"}
+        {isShipped ? "Your luxury pieces are on their way!" : "Order Confirmed"}
       </Preview>
       <Body style={main}>
         <Container style={container}>
@@ -89,41 +69,52 @@ export default function ShippingEmail({
             </Text>
 
             <Section style={itemsContainer}>
-              <Section style={itemHeaderRow}>
-                {/* 🟢 FIXED: Matches your Sanity screenshot exactly */}
-                <Text style={sectionTitle}>Products Ordered</Text>
-
-                <Button href={waUrl} style={whatsappLink}>
-                  <Img
-                    src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-                    width="16"
-                    height="16"
-                    style={waIcon}
-                  />
-                  <span style={{ verticalAlign: "middle" }}>
-                    Chat on WhatsApp
-                  </span>
-                </Button>
+              {/* 🟢 FIXED: WhatsApp Layout using standard spacing */}
+              <Section style={{ marginBottom: "15px" }}>
+                <table width="100%">
+                  <tr>
+                    <td align="left" style={sectionTitle}>
+                      Products Ordered
+                    </td>
+                    <td align="right">
+                      <Link href={waUrl} style={whatsappLink}>
+                        <Img
+                          src="https://cdn-icons-png.flaticon.com/512/3670/3670051.png"
+                          width="14"
+                          height="14"
+                          style={waIcon}
+                        />
+                        <span style={waText}>Chat on WhatsApp</span>
+                      </Link>
+                    </td>
+                  </tr>
+                </table>
               </Section>
 
               {orderItems && orderItems.length > 0 ? (
                 orderItems.map((item, index) => (
                   <Section key={index} style={itemRow}>
-                    <Section style={imageColumn}>
-                      <Img
-                        src={item.image}
-                        width="70"
-                        height="70"
-                        alt={item.productName}
-                        style={productImg}
-                      />
-                    </Section>
-                    <Section style={detailsColumn}>
-                      <Text style={productNameText}>{item.productName}</Text>
-                      <Text style={productMeta}>
-                        Qty: {item.quantity} | ${item.price}
-                      </Text>
-                    </Section>
+                    <table width="100%">
+                      <tr>
+                        <td width="70" style={{ verticalAlign: "top" }}>
+                          <Img
+                            src={item.image}
+                            width="70"
+                            height="70"
+                            style={productImg}
+                            alt={item.productName}
+                          />
+                        </td>
+                        <td style={detailsColumn}>
+                          <Text style={productNameText}>
+                            {item.productName}
+                          </Text>
+                          <Text style={productMeta}>
+                            Qty: {item.quantity} | ${item.price}
+                          </Text>
+                        </td>
+                      </tr>
+                    </table>
                   </Section>
                 ))
               ) : (
@@ -133,11 +124,9 @@ export default function ShippingEmail({
               )}
 
               <Hr style={summaryHr} />
-              <Section style={{ textAlign: "right" as const }}>
-                <Text style={summaryText}>
-                  Total Paid: <strong style={goldPrice}>${totalPrice}</strong>
-                </Text>
-              </Section>
+              <Text style={summaryText}>
+                Total Paid: <strong style={goldPrice}>${totalPrice}</strong>
+              </Text>
             </Section>
 
             <Section style={trackingBox}>
@@ -146,7 +135,10 @@ export default function ShippingEmail({
               </Text>
               <Text style={trackingId}>{trackingNumber}</Text>
               {isShipped && (
-                <Button style={button} href={trackingUrl}>
+                <Button
+                  style={button}
+                  href={`https://www.google.com/search?q=${trackingNumber}`}
+                >
                   Track Your Order
                 </Button>
               )}
@@ -163,6 +155,7 @@ export default function ShippingEmail({
   );
 }
 
+// --- STYLES ---
 const main = {
   backgroundColor: "#f4f7f9",
   fontFamily: "sans-serif",
@@ -173,7 +166,6 @@ const container = {
   margin: "0 auto",
   maxWidth: "560px",
   borderRadius: "12px",
-  overflow: "hidden",
   boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
 };
 const header = {
@@ -220,41 +212,22 @@ const itemsContainer = {
   padding: "15px",
   margin: "15px 0",
 };
-const itemHeaderRow = { display: "table", width: "100%", marginBottom: "15px" };
-const sectionTitle = {
-  display: "table-cell",
-  fontSize: "13px",
-  fontWeight: "bold",
-  color: "#1B2A4E",
-  verticalAlign: "middle",
-};
-const whatsappLink = {
-  display: "table-cell",
-  textAlign: "right" as const,
-  fontSize: "12px",
-  color: "#25D366",
-  textDecoration: "none",
-  fontWeight: "bold",
-  verticalAlign: "middle",
-};
+const sectionTitle = { fontSize: "13px", fontWeight: "bold", color: "#1B2A4E" };
+const whatsappLink = { textDecoration: "none", display: "inline-block" };
 const waIcon = {
   display: "inline-block",
   verticalAlign: "middle",
-  marginRight: "6px",
+  marginRight: "4px",
 };
-const itemRow = { display: "table", width: "100%", marginBottom: "12px" };
-const imageColumn = {
-  display: "table-cell",
-  width: "70px",
-  verticalAlign: "top",
-};
-const productImg = { borderRadius: "4px", border: "1px solid #f0f0f0" };
-const detailsColumn = {
-  display: "table-cell",
-  paddingLeft: "12px",
-  textAlign: "left" as const,
+const waText = {
+  fontSize: "12px",
+  color: "#25D366",
+  fontWeight: "bold",
   verticalAlign: "middle",
 };
+const itemRow = { marginBottom: "12px" };
+const productImg = { borderRadius: "4px", border: "1px solid #f0f0f0" };
+const detailsColumn = { paddingLeft: "12px", verticalAlign: "middle" };
 const productNameText = {
   fontSize: "13px",
   fontWeight: "bold",
@@ -269,7 +242,12 @@ const emptyText = {
   padding: "10px 0",
 };
 const summaryHr = { borderColor: "#f0f0f0", margin: "10px 0" };
-const summaryText = { fontSize: "14px", color: "#1B2A4E", margin: "0" };
+const summaryText = {
+  textAlign: "right" as const,
+  fontSize: "14px",
+  color: "#1B2A4E",
+  margin: "0",
+};
 const goldPrice = { color: "#D4AF37" };
 const trackingBox = {
   backgroundColor: "#f9fafb",

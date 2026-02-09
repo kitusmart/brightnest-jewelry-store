@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { CheckCircle, Package, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,11 +32,42 @@ interface SuccessClientProps {
 
 export function SuccessClient({ session }: SuccessClientProps) {
   const { clearCart } = useCartActions();
+  const hasSentEmail = useRef(false); // 🟢 Prevents sending multiple emails on refresh
 
-  // Clear cart on mount
   useEffect(() => {
+    // 1. Clear the local cart
     clearCart();
-  }, [clearCart]);
+
+    // 2. 🟢 Trigger the "Order Confirmed" email immediately with real data
+    if (!hasSentEmail.current && session.paymentStatus === "paid") {
+      const sendConfirmation = async () => {
+        try {
+          await fetch("/api/notify-shipping", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: session.customerEmail,
+              customerName: session.customerName || "Valued Customer",
+              orderNumber: session.id.slice(-8).toUpperCase(),
+              status: "confirmed", // 🟢 This ensures the template shows "Order Confirmed"
+              totalPrice: (session.amountTotal ?? 0) / 100, // 🟢 Correct Price from Stripe
+              orderItems:
+                session.lineItems?.map((item) => ({
+                  productName: item.name,
+                  quantity: item.quantity,
+                  price: item.amount / 100,
+                  image: "", // Note: Stripe line items don't include image URLs by default
+                })) || [],
+            }),
+          });
+          hasSentEmail.current = true;
+        } catch (err) {
+          console.error("Failed to send confirmation email:", err);
+        }
+      };
+      sendConfirmation();
+    }
+  }, [clearCart, session]);
 
   const address = session.shippingAddress;
 
@@ -53,21 +84,16 @@ export function SuccessClient({ session }: SuccessClientProps) {
         </p>
       </div>
 
-      {/* Order Details */}
       <div className="mt-10 rounded-lg border border-gray-200 bg-white shadow-sm">
         <div className="border-b border-gray-200 px-6 py-4">
           <h2 className="font-semibold text-black">Order Details</h2>
         </div>
 
         <div className="px-6 py-4">
-          {/* Items */}
           {session.lineItems && session.lineItems.length > 0 && (
             <div className="space-y-3">
-              {session.lineItems.map((item) => (
-                <div
-                  key={`${item.name}-${item.quantity}-${item.amount}`}
-                  className="flex justify-between text-sm"
-                >
+              {session.lineItems.map((item, index) => (
+                <div key={index} className="flex justify-between text-sm">
                   <span className="text-gray-600">
                     {item.name} × {item.quantity}
                   </span>
@@ -79,7 +105,6 @@ export function SuccessClient({ session }: SuccessClientProps) {
             </div>
           )}
 
-          {/* Total */}
           <div className="mt-4 border-t border-gray-200 pt-4">
             <div className="flex justify-between text-base font-semibold">
               <span className="text-black">Total</span>
@@ -90,7 +115,6 @@ export function SuccessClient({ session }: SuccessClientProps) {
           </div>
         </div>
 
-        {/* Shipping Address */}
         {address && (
           <div className="border-t border-gray-200 px-6 py-4">
             <h3 className="text-sm font-medium text-black">Shipping to</h3>
@@ -107,22 +131,8 @@ export function SuccessClient({ session }: SuccessClientProps) {
             </div>
           </div>
         )}
-
-        {/* Payment Status */}
-        <div className="border-t border-gray-200 px-6 py-4">
-          <div className="flex items-center gap-2">
-            <Package className="h-5 w-5 text-gray-400" />
-            <span className="text-sm text-gray-600">
-              Payment status:{" "}
-              <span className="font-medium capitalize text-green-600">
-                {session.paymentStatus}
-              </span>
-            </span>
-          </div>
-        </div>
       </div>
 
-      {/* Actions */}
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
         <Button
           asChild
