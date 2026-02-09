@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     const { error } = await resend.emails.send({
       from: "Elysia Luxe <onboarding@resend.dev>",
       to: [email],
-      subject: `Your Luxury Pieces are on Their Way! ⭐`,
+      subject: `Your Luxury Pieces are on Their Way! (Order: ${orderNumber}) ⭐`,
       react: ShippingEmail({
         customerName: customerName || "Valued Customer",
         orderNumber: orderNumber,

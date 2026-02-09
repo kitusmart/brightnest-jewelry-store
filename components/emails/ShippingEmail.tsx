@@ -9,11 +9,10 @@ import {
   Section,
   Text,
   Button,
-  Img, // 🟢 Added Img for product photos
+  Img,
 } from "@react-email/components";
 import * as React from "react";
 
-// 🟢 NEW: Interface for individual items
 interface OrderItem {
   productName: string;
   quantity: number;
@@ -26,8 +25,8 @@ interface ShippingEmailProps {
   orderNumber: string;
   trackingNumber: string;
   courier?: string;
-  totalPrice: number; // 🟢 Added for summary
-  orderItems: OrderItem[]; // 🟢 Added for the list
+  totalPrice: number;
+  orderItems: OrderItem[];
 }
 
 export default function ShippingEmail({
@@ -66,13 +65,11 @@ export default function ShippingEmail({
       </Preview>
       <Body style={main}>
         <Container style={container}>
-          {/* BRAND HEADER */}
           <Section style={header}>
             <Heading style={brandText}>ELYSIA LUXE</Heading>
             <Text style={tagline}>FOREVER DEFINED</Text>
           </Section>
 
-          {/* MAIN CONTENT */}
           <Section style={content}>
             <Heading style={h1}>
               {isShipped ? "Order Dispatched" : "Order Confirmed"}
@@ -82,13 +79,22 @@ export default function ShippingEmail({
             </Text>
             <Text style={text}>
               {isShipped
-                ? "Great news! Your luxury pieces have been carefully packed and are now on their way to you."
-                : "Thank you for choosing Elysia Luxe. We are getting your order ready."}
+                ? "Great news! Your luxury pieces have been carefully packed and are now on their way."
+                : "We are getting your order ready."}
             </Text>
 
-            {/* 🟢 NEW: ITEMS ORDERED LIST SECTION */}
+            {/* ITEMS ORDERED SECTION WITH WHATSAPP */}
             <Section style={itemsContainer}>
-              <Text style={sectionTitle}>Items Ordered</Text>
+              <Section style={itemHeaderRow}>
+                <Text style={sectionTitle}>Items Ordered</Text>
+                <Button
+                  href="https://wa.me/YOUR_PHONE_NUMBER"
+                  style={whatsappLink}
+                >
+                  Chat on WhatsApp
+                </Button>
+              </Section>
+
               {orderItems.map((item, index) => (
                 <Section key={index} style={itemRow}>
                   <Section style={imageColumn}>
@@ -111,7 +117,7 @@ export default function ShippingEmail({
               ))}
             </Section>
 
-            {/* 🟢 NEW: ORDER SUMMARY (TOTAL) */}
+            {/* ORDER SUMMARY */}
             <Section style={summaryBox}>
               <Hr style={summaryHr} />
               <Text style={summaryText}>
@@ -119,7 +125,7 @@ export default function ShippingEmail({
               </Text>
             </Section>
 
-            {/* GOLD TRACKING BOX */}
+            {/* TRACKING BOX */}
             <Section style={trackingBox}>
               <Text style={trackingLabel}>
                 {isShipped ? `${courier.toUpperCase()} TRACKING` : "STATUS"}
@@ -128,17 +134,11 @@ export default function ShippingEmail({
             </Section>
 
             {isShipped && (
-              <>
-                <Text style={text}>
-                  You can track your package using the button below. Please
-                  allow 24 hours for the status to update.
-                </Text>
-                <Section style={btnContainer}>
-                  <Button style={button} href={trackingUrl}>
-                    Track Your Order
-                  </Button>
-                </Section>
-              </>
+              <Section style={btnContainer}>
+                <Button style={button} href={trackingUrl}>
+                  Track Your Order
+                </Button>
+              </Section>
             )}
 
             <Hr style={hr} />
@@ -153,14 +153,18 @@ export default function ShippingEmail({
   );
 }
 
-// --- UPDATED LUXURY STYLES ---
-const main = { backgroundColor: "#f6f9fc", fontFamily: "sans-serif" };
+const main = {
+  backgroundColor: "#f4f7f9",
+  fontFamily: "sans-serif",
+  padding: "40px 0",
+};
 const container = {
   backgroundColor: "#ffffff",
   margin: "0 auto",
   maxWidth: "600px",
-  borderRadius: "5px",
+  borderRadius: "12px",
   overflow: "hidden",
+  boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
 };
 const header = {
   backgroundColor: "#1B2A4E",
@@ -169,19 +173,17 @@ const header = {
 };
 const brandText = {
   color: "#D4AF37",
-  margin: "0",
   fontSize: "28px",
   fontWeight: "bold",
   textTransform: "uppercase" as const,
 };
 const tagline = {
   color: "#ffffff",
-  margin: "5px 0 0",
   fontSize: "10px",
   letterSpacing: "3px",
   textTransform: "uppercase" as const,
 };
-const content = { padding: "40px 40px" };
+const content = { padding: "40px" };
 const h1 = { color: "#1B2A4E", fontSize: "24px", textAlign: "center" as const };
 const text = {
   color: "#525f7f",
@@ -190,19 +192,33 @@ const text = {
   textAlign: "center" as const,
 };
 
-// 🟢 NEW ITEM STYLES
 const itemsContainer = {
   border: "1px solid #e6ebf1",
   borderRadius: "8px",
   padding: "20px",
   margin: "20px 0",
 };
+const itemHeaderRow = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: "10px",
+};
 const sectionTitle = {
+  display: "table-cell",
   fontSize: "14px",
   fontWeight: "bold",
   color: "#1B2A4E",
-  margin: "0 0 15px 0",
 };
+const whatsappLink = {
+  display: "table-cell",
+  textAlign: "right" as const,
+  fontSize: "12px",
+  color: "#25D366",
+  textDecoration: "none",
+  fontWeight: "bold",
+};
+
 const itemRow = { display: "table", width: "100%", marginBottom: "15px" };
 const imageColumn = {
   display: "table-cell",
@@ -213,7 +229,6 @@ const productImg = { borderRadius: "4px", border: "1px solid #f0f0f0" };
 const detailsColumn = {
   display: "table-cell",
   paddingLeft: "15px",
-  verticalAlign: "top",
   textAlign: "left" as const,
 };
 const productNameText = {
@@ -222,18 +237,16 @@ const productNameText = {
   color: "#1B2A4E",
   margin: "0",
 };
-const productQuantity = { fontSize: "12px", color: "#8898aa", margin: "4px 0" };
+const productQuantity = { fontSize: "12px", color: "#8898aa" };
 const productPriceText = {
   fontSize: "14px",
   fontWeight: "bold",
   color: "#1B2A4E",
-  margin: "0",
 };
 
-// SUMMARY STYLES
-const summaryBox = { textAlign: "right" as const, marginTop: "10px" };
+const summaryBox = { textAlign: "right" as const };
 const summaryHr = { borderColor: "#e6ebf1", margin: "10px 0" };
-const summaryText = { fontSize: "16px", color: "#1B2A4E", margin: "0" };
+const summaryText = { fontSize: "16px", color: "#1B2A4E" };
 const goldPrice = { color: "#D4AF37" };
 
 const trackingBox = {
@@ -242,16 +255,15 @@ const trackingBox = {
   borderRadius: "8px",
   border: "1px dashed #D4AF37",
   textAlign: "center" as const,
-  margin: "25px 0",
+  margin: "20px 0",
 };
 const trackingLabel = {
   color: "#8898aa",
   fontSize: "11px",
   fontWeight: "bold",
-  textTransform: "uppercase" as const,
 };
 const trackingId = { color: "#1B2A4E", fontSize: "20px", fontWeight: "bold" };
-const btnContainer = { textAlign: "center" as const, margin: "30px 0" };
+const btnContainer = { textAlign: "center" as const, margin: "20px 0" };
 const button = {
   backgroundColor: "#D4AF37",
   color: "#ffffff",
@@ -259,7 +271,6 @@ const button = {
   borderRadius: "4px",
   fontWeight: "bold",
   textDecoration: "none",
-  display: "inline-block",
 };
 const hr = { borderColor: "#e6ebf1", margin: "20px 0" };
 const footer = {
