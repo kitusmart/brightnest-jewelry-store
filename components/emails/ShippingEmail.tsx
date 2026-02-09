@@ -55,11 +55,10 @@ export default function ShippingEmail({
 
   const trackingUrl = getTrackingUrl(courier, trackingNumber);
 
-  // 🟢 Fixed WhatsApp Link with Automatic Message
   const waMessage = encodeURIComponent(
     "Hello Elysia Luxe, I have a question about my shipped item.",
   );
-  const waUrl = `https://wa.me/6301130497?text=${waMessage}`;
+  const waUrl = `https://wa.me/61414002636?text=${waMessage}`;
 
   return (
     <Html>
@@ -89,17 +88,25 @@ export default function ShippingEmail({
                 : "We are getting your order ready."}
             </Text>
 
-            {/* 🟢 CONDENSED ITEMS BOX */}
             <Section style={itemsContainer}>
               <Section style={itemHeaderRow}>
-                <Text style={sectionTitle}>Items Ordered</Text>
-                {/* 🟢 Floating-style WhatsApp Link */}
+                {/* 🟢 FIXED: Matches your Sanity screenshot exactly */}
+                <Text style={sectionTitle}>Products Ordered</Text>
+
                 <Button href={waUrl} style={whatsappLink}>
-                  <span style={{ fontSize: "14px" }}>💬</span> Chat on WhatsApp
+                  <Img
+                    src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                    width="16"
+                    height="16"
+                    style={waIcon}
+                  />
+                  <span style={{ verticalAlign: "middle" }}>
+                    Chat on WhatsApp
+                  </span>
                 </Button>
               </Section>
 
-              {orderItems.length > 0 ? (
+              {orderItems && orderItems.length > 0 ? (
                 orderItems.map((item, index) => (
                   <Section key={index} style={itemRow}>
                     <Section style={imageColumn}>
@@ -120,7 +127,9 @@ export default function ShippingEmail({
                   </Section>
                 ))
               ) : (
-                <Text style={emptyText}>Order details loading...</Text>
+                <Text style={emptyText}>
+                  Click "Reply" to ask about your items
+                </Text>
               )}
 
               <Hr style={summaryHr} />
@@ -131,7 +140,6 @@ export default function ShippingEmail({
               </Section>
             </Section>
 
-            {/* TRACKING BOX */}
             <Section style={trackingBox}>
               <Text style={trackingLabel}>
                 {isShipped ? `${courier.toUpperCase()} TRACKING` : "STATUS"}
@@ -155,7 +163,6 @@ export default function ShippingEmail({
   );
 }
 
-// --- UPDATED CONDENSED STYLES ---
 const main = {
   backgroundColor: "#f4f7f9",
   fontFamily: "sans-serif",
@@ -188,7 +195,7 @@ const tagline = {
   textTransform: "uppercase" as const,
   margin: "5px 0 0",
 };
-const content = { padding: "25px" }; // Reduced padding
+const content = { padding: "25px" };
 const h1 = {
   color: "#1B2A4E",
   fontSize: "22px",
@@ -207,19 +214,19 @@ const subText = {
   textAlign: "center" as const,
   margin: "0 0 20px 0",
 };
-
 const itemsContainer = {
   border: "1px solid #e6ebf1",
   borderRadius: "8px",
   padding: "15px",
   margin: "15px 0",
 };
-const itemHeaderRow = { display: "table", width: "100%", marginBottom: "10px" };
+const itemHeaderRow = { display: "table", width: "100%", marginBottom: "15px" };
 const sectionTitle = {
   display: "table-cell",
   fontSize: "13px",
   fontWeight: "bold",
   color: "#1B2A4E",
+  verticalAlign: "middle",
 };
 const whatsappLink = {
   display: "table-cell",
@@ -228,9 +235,14 @@ const whatsappLink = {
   color: "#25D366",
   textDecoration: "none",
   fontWeight: "bold",
+  verticalAlign: "middle",
 };
-
-const itemRow = { display: "table", width: "100%", marginBottom: "10px" };
+const waIcon = {
+  display: "inline-block",
+  verticalAlign: "middle",
+  marginRight: "6px",
+};
+const itemRow = { display: "table", width: "100%", marginBottom: "12px" };
 const imageColumn = {
   display: "table-cell",
   width: "70px",
@@ -252,14 +264,13 @@ const productNameText = {
 const productMeta = { fontSize: "12px", color: "#8898aa", margin: "2px 0" };
 const emptyText = {
   fontSize: "12px",
-  color: "#ccc",
+  color: "#8898aa",
   textAlign: "center" as const,
+  padding: "10px 0",
 };
-
 const summaryHr = { borderColor: "#f0f0f0", margin: "10px 0" };
 const summaryText = { fontSize: "14px", color: "#1B2A4E", margin: "0" };
 const goldPrice = { color: "#D4AF37" };
-
 const trackingBox = {
   backgroundColor: "#f9fafb",
   padding: "20px",
