@@ -8,19 +8,21 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // 🟢 STEP 1: Extract 'courier' from the body
+    // 🟢 Updated Extraction: Get the new fields from the Sanity Webhook
     const {
       email,
       customerName,
       orderNumber,
       trackingNumber,
       status,
-      courier,
+      courier, // Re-mapped from shippingPartner in Sanity
+      totalPrice, // 🟢 NEW
+      orderItems, // 🟢 NEW (The array of products)
     } = body;
 
-    // 🟢 STEP 2: Log it (using 'courier')
     console.log("Webhook Received:", orderNumber, status, courier);
 
+    // Only send the email if the status is "shipped"
     if (status !== "shipped")
       return NextResponse.json({ message: "Not shipped" });
 
@@ -32,14 +34,16 @@ export async function POST(req: Request) {
         customerName: customerName || "Valued Customer",
         orderNumber: orderNumber,
         trackingNumber: trackingNumber || "TBA",
-        // 🟢 STEP 3: Pass 'courier' to the email
         courier: courier || "Australia Post",
+        totalPrice: totalPrice || 0, // 🟢 Pass to template
+        orderItems: orderItems || [], // 🟢 Pass to template
       }),
     });
 
     if (error) return NextResponse.json({ error }, { status: 500 });
     return NextResponse.json({ message: "Email Sent" });
   } catch (error: any) {
+    console.error("Route Error:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }

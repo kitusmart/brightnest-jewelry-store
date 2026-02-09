@@ -9,26 +9,38 @@ import {
   Section,
   Text,
   Button,
+  Img, // 🟢 Added Img for product photos
 } from "@react-email/components";
 import * as React from "react";
+
+// 🟢 NEW: Interface for individual items
+interface OrderItem {
+  productName: string;
+  quantity: number;
+  price: number;
+  image: string;
+}
 
 interface ShippingEmailProps {
   customerName: string;
   orderNumber: string;
   trackingNumber: string;
-  courier?: string; // 🟢 Matches your Sanity field name
+  courier?: string;
+  totalPrice: number; // 🟢 Added for summary
+  orderItems: OrderItem[]; // 🟢 Added for the list
 }
 
 export default function ShippingEmail({
   customerName,
   orderNumber,
   trackingNumber,
-  courier = "Australia Post", // 🟢 Fallback if Sanity field is empty
+  courier = "Australia Post",
+  totalPrice = 0,
+  orderItems = [],
 }: ShippingEmailProps) {
   const isShipped =
     trackingNumber && trackingNumber !== "Preparing for dispatch...";
 
-  // 🟢 Dynamic Tracking Logic
   const getTrackingUrl = (partnerName: string, trackingNum: string) => {
     const name = partnerName?.toLowerCase() || "";
     if (name.includes("post"))
@@ -39,8 +51,7 @@ export default function ShippingEmail({
       return `https://www.couriersplease.com.au/tools-track/tracking-results?id=${trackingNum}`;
     if (name.includes("aramex"))
       return `https://www.aramex.com.au/tools/track?l=${trackingNum}`;
-
-    return `https://www.google.com/search?q=${trackingNum}`; // Final fallback
+    return `https://www.google.com/search?q=${trackingNum}`;
   };
 
   const trackingUrl = getTrackingUrl(courier, trackingNumber);
@@ -74,6 +85,39 @@ export default function ShippingEmail({
                 ? "Great news! Your luxury pieces have been carefully packed and are now on their way to you."
                 : "Thank you for choosing Elysia Luxe. We are getting your order ready."}
             </Text>
+
+            {/* 🟢 NEW: ITEMS ORDERED LIST SECTION */}
+            <Section style={itemsContainer}>
+              <Text style={sectionTitle}>Items Ordered</Text>
+              {orderItems.map((item, index) => (
+                <Section key={index} style={itemRow}>
+                  <Section style={imageColumn}>
+                    <Img
+                      src={item.image}
+                      width="80"
+                      height="80"
+                      alt={item.productName}
+                      style={productImg}
+                    />
+                  </Section>
+                  <Section style={detailsColumn}>
+                    <Text style={productNameText}>{item.productName}</Text>
+                    <Text style={productQuantity}>
+                      Quantity: {item.quantity}
+                    </Text>
+                    <Text style={productPriceText}>${item.price}</Text>
+                  </Section>
+                </Section>
+              ))}
+            </Section>
+
+            {/* 🟢 NEW: ORDER SUMMARY (TOTAL) */}
+            <Section style={summaryBox}>
+              <Hr style={summaryHr} />
+              <Text style={summaryText}>
+                Total Paid: <strong style={goldPrice}>${totalPrice}</strong>
+              </Text>
+            </Section>
 
             {/* GOLD TRACKING BOX */}
             <Section style={trackingBox}>
@@ -109,7 +153,7 @@ export default function ShippingEmail({
   );
 }
 
-// --- LUXURY STYLES ---
+// --- UPDATED LUXURY STYLES ---
 const main = { backgroundColor: "#f6f9fc", fontFamily: "sans-serif" };
 const container = {
   backgroundColor: "#ffffff",
@@ -145,6 +189,53 @@ const text = {
   lineHeight: "24px",
   textAlign: "center" as const,
 };
+
+// 🟢 NEW ITEM STYLES
+const itemsContainer = {
+  border: "1px solid #e6ebf1",
+  borderRadius: "8px",
+  padding: "20px",
+  margin: "20px 0",
+};
+const sectionTitle = {
+  fontSize: "14px",
+  fontWeight: "bold",
+  color: "#1B2A4E",
+  margin: "0 0 15px 0",
+};
+const itemRow = { display: "table", width: "100%", marginBottom: "15px" };
+const imageColumn = {
+  display: "table-cell",
+  width: "80px",
+  verticalAlign: "top",
+};
+const productImg = { borderRadius: "4px", border: "1px solid #f0f0f0" };
+const detailsColumn = {
+  display: "table-cell",
+  paddingLeft: "15px",
+  verticalAlign: "top",
+  textAlign: "left" as const,
+};
+const productNameText = {
+  fontSize: "14px",
+  fontWeight: "bold",
+  color: "#1B2A4E",
+  margin: "0",
+};
+const productQuantity = { fontSize: "12px", color: "#8898aa", margin: "4px 0" };
+const productPriceText = {
+  fontSize: "14px",
+  fontWeight: "bold",
+  color: "#1B2A4E",
+  margin: "0",
+};
+
+// SUMMARY STYLES
+const summaryBox = { textAlign: "right" as const, marginTop: "10px" };
+const summaryHr = { borderColor: "#e6ebf1", margin: "10px 0" };
+const summaryText = { fontSize: "16px", color: "#1B2A4E", margin: "0" };
+const goldPrice = { color: "#D4AF37" };
+
 const trackingBox = {
   backgroundColor: "#f9f9f9",
   padding: "20px",
