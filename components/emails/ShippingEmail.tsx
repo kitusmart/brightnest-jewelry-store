@@ -78,8 +78,11 @@ export default function ShippingEmail({
               style={{
                 margin: "0 auto",
                 display: "block",
-                pointerEvents: "none",
-              }} // 🟢 Added hint to stop hover icons
+                pointerEvents: "none", // 🟢 Tells Gmail this is NOT a clickable file
+                WebkitUserSelect: "none", // 🟢 Stops the "blue" selection box
+                msUserSelect: "none",
+                userSelect: "none",
+              }}
             />
           </Section>
           <Section style={content}>
