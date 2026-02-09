@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       orderItems, // 🟢 NEW (The array of products)
     } = body;
 
-    console.log("Webhook Received:", orderNumber, status, courier);
+    console.log("Full Webhook Data:", JSON.stringify(body, null, 2));
 
     // Only send the email if the status is "shipped"
     if (status !== "shipped")
