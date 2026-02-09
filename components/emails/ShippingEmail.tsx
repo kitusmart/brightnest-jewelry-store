@@ -55,6 +55,12 @@ export default function ShippingEmail({
 
   const trackingUrl = getTrackingUrl(courier, trackingNumber);
 
+  // 🟢 Fixed WhatsApp Link with Automatic Message
+  const waMessage = encodeURIComponent(
+    "Hello Elysia Luxe, I have a question about my shipped item.",
+  );
+  const waUrl = `https://wa.me/6301130497?text=${waMessage}`;
+
   return (
     <Html>
       <Head />
@@ -77,52 +83,52 @@ export default function ShippingEmail({
             <Text style={text}>
               Hello <strong>{customerName}</strong>,
             </Text>
-            <Text style={text}>
+            <Text style={subText}>
               {isShipped
-                ? "Great news! Your luxury pieces have been carefully packed and are now on their way."
+                ? "Your luxury pieces have been carefully packed and are now on their way."
                 : "We are getting your order ready."}
             </Text>
 
-            {/* ITEMS ORDERED SECTION WITH WHATSAPP */}
+            {/* 🟢 CONDENSED ITEMS BOX */}
             <Section style={itemsContainer}>
               <Section style={itemHeaderRow}>
                 <Text style={sectionTitle}>Items Ordered</Text>
-                <Button
-                  href="https://wa.me/YOUR_PHONE_NUMBER"
-                  style={whatsappLink}
-                >
-                  Chat on WhatsApp
+                {/* 🟢 Floating-style WhatsApp Link */}
+                <Button href={waUrl} style={whatsappLink}>
+                  <span style={{ fontSize: "14px" }}>💬</span> Chat on WhatsApp
                 </Button>
               </Section>
 
-              {orderItems.map((item, index) => (
-                <Section key={index} style={itemRow}>
-                  <Section style={imageColumn}>
-                    <Img
-                      src={item.image}
-                      width="80"
-                      height="80"
-                      alt={item.productName}
-                      style={productImg}
-                    />
+              {orderItems.length > 0 ? (
+                orderItems.map((item, index) => (
+                  <Section key={index} style={itemRow}>
+                    <Section style={imageColumn}>
+                      <Img
+                        src={item.image}
+                        width="70"
+                        height="70"
+                        alt={item.productName}
+                        style={productImg}
+                      />
+                    </Section>
+                    <Section style={detailsColumn}>
+                      <Text style={productNameText}>{item.productName}</Text>
+                      <Text style={productMeta}>
+                        Qty: {item.quantity} | ${item.price}
+                      </Text>
+                    </Section>
                   </Section>
-                  <Section style={detailsColumn}>
-                    <Text style={productNameText}>{item.productName}</Text>
-                    <Text style={productQuantity}>
-                      Quantity: {item.quantity}
-                    </Text>
-                    <Text style={productPriceText}>${item.price}</Text>
-                  </Section>
-                </Section>
-              ))}
-            </Section>
+                ))
+              ) : (
+                <Text style={emptyText}>Order details loading...</Text>
+              )}
 
-            {/* ORDER SUMMARY */}
-            <Section style={summaryBox}>
               <Hr style={summaryHr} />
-              <Text style={summaryText}>
-                Total Paid: <strong style={goldPrice}>${totalPrice}</strong>
-              </Text>
+              <Section style={{ textAlign: "right" as const }}>
+                <Text style={summaryText}>
+                  Total Paid: <strong style={goldPrice}>${totalPrice}</strong>
+                </Text>
+              </Section>
             </Section>
 
             {/* TRACKING BOX */}
@@ -131,17 +137,13 @@ export default function ShippingEmail({
                 {isShipped ? `${courier.toUpperCase()} TRACKING` : "STATUS"}
               </Text>
               <Text style={trackingId}>{trackingNumber}</Text>
-            </Section>
-
-            {isShipped && (
-              <Section style={btnContainer}>
+              {isShipped && (
                 <Button style={button} href={trackingUrl}>
                   Track Your Order
                 </Button>
-              </Section>
-            )}
+              )}
+            </Section>
 
-            <Hr style={hr} />
             <Text style={footer}>
               Order ID: {orderNumber} <br />
               Need help? Reply directly to this email.
@@ -153,60 +155,69 @@ export default function ShippingEmail({
   );
 }
 
+// --- UPDATED CONDENSED STYLES ---
 const main = {
   backgroundColor: "#f4f7f9",
   fontFamily: "sans-serif",
-  padding: "40px 0",
+  padding: "20px 0",
 };
 const container = {
   backgroundColor: "#ffffff",
   margin: "0 auto",
-  maxWidth: "600px",
+  maxWidth: "560px",
   borderRadius: "12px",
   overflow: "hidden",
-  boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
 };
 const header = {
   backgroundColor: "#1B2A4E",
-  padding: "30px 20px",
+  padding: "25px 20px",
   textAlign: "center" as const,
 };
 const brandText = {
   color: "#D4AF37",
-  fontSize: "28px",
+  fontSize: "24px",
   fontWeight: "bold",
   textTransform: "uppercase" as const,
+  margin: "0",
 };
 const tagline = {
   color: "#ffffff",
-  fontSize: "10px",
+  fontSize: "9px",
   letterSpacing: "3px",
   textTransform: "uppercase" as const,
+  margin: "5px 0 0",
 };
-const content = { padding: "40px" };
-const h1 = { color: "#1B2A4E", fontSize: "24px", textAlign: "center" as const };
+const content = { padding: "25px" }; // Reduced padding
+const h1 = {
+  color: "#1B2A4E",
+  fontSize: "22px",
+  textAlign: "center" as const,
+  margin: "10px 0",
+};
 const text = {
   color: "#525f7f",
   fontSize: "15px",
-  lineHeight: "24px",
   textAlign: "center" as const,
+  margin: "5px 0",
+};
+const subText = {
+  color: "#8898aa",
+  fontSize: "14px",
+  textAlign: "center" as const,
+  margin: "0 0 20px 0",
 };
 
 const itemsContainer = {
   border: "1px solid #e6ebf1",
   borderRadius: "8px",
-  padding: "20px",
-  margin: "20px 0",
+  padding: "15px",
+  margin: "15px 0",
 };
-const itemHeaderRow = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: "10px",
-};
+const itemHeaderRow = { display: "table", width: "100%", marginBottom: "10px" };
 const sectionTitle = {
   display: "table-cell",
-  fontSize: "14px",
+  fontSize: "13px",
   fontWeight: "bold",
   color: "#1B2A4E",
 };
@@ -219,62 +230,67 @@ const whatsappLink = {
   fontWeight: "bold",
 };
 
-const itemRow = { display: "table", width: "100%", marginBottom: "15px" };
+const itemRow = { display: "table", width: "100%", marginBottom: "10px" };
 const imageColumn = {
   display: "table-cell",
-  width: "80px",
+  width: "70px",
   verticalAlign: "top",
 };
 const productImg = { borderRadius: "4px", border: "1px solid #f0f0f0" };
 const detailsColumn = {
   display: "table-cell",
-  paddingLeft: "15px",
+  paddingLeft: "12px",
   textAlign: "left" as const,
+  verticalAlign: "middle",
 };
 const productNameText = {
-  fontSize: "14px",
+  fontSize: "13px",
   fontWeight: "bold",
   color: "#1B2A4E",
   margin: "0",
 };
-const productQuantity = { fontSize: "12px", color: "#8898aa" };
-const productPriceText = {
-  fontSize: "14px",
-  fontWeight: "bold",
-  color: "#1B2A4E",
+const productMeta = { fontSize: "12px", color: "#8898aa", margin: "2px 0" };
+const emptyText = {
+  fontSize: "12px",
+  color: "#ccc",
+  textAlign: "center" as const,
 };
 
-const summaryBox = { textAlign: "right" as const };
-const summaryHr = { borderColor: "#e6ebf1", margin: "10px 0" };
-const summaryText = { fontSize: "16px", color: "#1B2A4E" };
+const summaryHr = { borderColor: "#f0f0f0", margin: "10px 0" };
+const summaryText = { fontSize: "14px", color: "#1B2A4E", margin: "0" };
 const goldPrice = { color: "#D4AF37" };
 
 const trackingBox = {
-  backgroundColor: "#f9f9f9",
+  backgroundColor: "#f9fafb",
   padding: "20px",
   borderRadius: "8px",
   border: "1px dashed #D4AF37",
   textAlign: "center" as const,
-  margin: "20px 0",
 };
 const trackingLabel = {
   color: "#8898aa",
-  fontSize: "11px",
+  fontSize: "10px",
   fontWeight: "bold",
+  marginBottom: "5px",
 };
-const trackingId = { color: "#1B2A4E", fontSize: "20px", fontWeight: "bold" };
-const btnContainer = { textAlign: "center" as const, margin: "20px 0" };
+const trackingId = {
+  color: "#1B2A4E",
+  fontSize: "18px",
+  fontWeight: "bold",
+  margin: "0 0 15px 0",
+};
 const button = {
   backgroundColor: "#D4AF37",
   color: "#ffffff",
-  padding: "12px 30px",
+  padding: "10px 20px",
   borderRadius: "4px",
   fontWeight: "bold",
   textDecoration: "none",
+  fontSize: "13px",
 };
-const hr = { borderColor: "#e6ebf1", margin: "20px 0" };
 const footer = {
-  color: "#8898aa",
+  color: "#b0adc5",
   fontSize: "11px",
   textAlign: "center" as const,
+  marginTop: "20px",
 };
