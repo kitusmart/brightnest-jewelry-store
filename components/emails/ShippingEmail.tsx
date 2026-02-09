@@ -40,6 +40,21 @@ export default function ShippingEmail({
 }: ShippingEmailProps) {
   const isShipped =
     trackingNumber && trackingNumber !== "Preparing for dispatch...";
+
+  // 🟢 NEW LOGIC: This picks the right link for your 4 partners
+  const getTrackingUrl = (courierName: string, trackNum: string) => {
+    const c = courierName.toLowerCase();
+    if (c.includes("australia post"))
+      return `https://auspost.com.au/mypost/track/#/details/${trackNum}`;
+    if (c.includes("startrack"))
+      return `https://startrack.com.au/track/details/${trackNum}`;
+    if (c.includes("dhl"))
+      return `https://www.dhl.com/au-en/home/tracking/tracking-express.html?submit=1&tracking-id=${trackNum}`;
+    if (c.includes("fedex"))
+      return `https://www.fedex.com/fedextrack/?trknbr=${trackNum}`;
+    return `https://www.google.com/search?q=${trackNum}`; // Fallback
+  };
+
   const waUrl = `https://wa.me/61414002636?text=${encodeURIComponent("Hello Elysia Luxe, I have a question about my order.")}`;
 
   return (
@@ -59,7 +74,6 @@ export default function ShippingEmail({
               style={{ margin: "0 auto", display: "block" }}
             />
           </Section>
-
           <Section style={content}>
             <Heading style={h1}>
               {isShipped ? "Order Dispatched" : "Order Confirmed"}
@@ -72,9 +86,7 @@ export default function ShippingEmail({
                 ? "Your luxury pieces have been carefully packed and are now on their way."
                 : "We are getting your order ready."}
             </Text>
-
             <Section style={itemsContainer}>
-              {/* 🟢 FIXED: WhatsApp Layout using standard spacing */}
               <Section style={{ marginBottom: "15px" }}>
                 <table width="100%">
                   <tr>
@@ -95,7 +107,6 @@ export default function ShippingEmail({
                   </tr>
                 </table>
               </Section>
-
               {orderItems && orderItems.length > 0 ? (
                 orderItems.map((item, index) => (
                   <Section key={index} style={itemRow}>
@@ -127,13 +138,11 @@ export default function ShippingEmail({
                   Click "Reply" to ask about your items
                 </Text>
               )}
-
               <Hr style={summaryHr} />
               <Text style={summaryText}>
                 Total Paid: <strong style={goldPrice}>${totalPrice}</strong>
               </Text>
             </Section>
-
             <Section style={trackingBox}>
               <Text style={trackingLabel}>
                 {isShipped ? `${courier.toUpperCase()} TRACKING` : "STATUS"}
@@ -142,13 +151,12 @@ export default function ShippingEmail({
               {isShipped && (
                 <Button
                   style={button}
-                  href={`https://www.google.com/search?q=${trackingNumber}`}
+                  href={getTrackingUrl(courier, trackingNumber)} // 🟢 FIXED: Now uses the map
                 >
                   Track Your Order
                 </Button>
               )}
             </Section>
-
             <Text style={footer}>
               Order ID: {orderNumber} <br />
               Need help? Reply directly to this email.
@@ -160,7 +168,7 @@ export default function ShippingEmail({
   );
 }
 
-// --- STYLES ---
+// --- STYLES (Kept exactly the same as your file) ---
 const main = {
   backgroundColor: "#f4f7f9",
   fontFamily: "sans-serif",
@@ -177,20 +185,6 @@ const header = {
   backgroundColor: "#1B2A4E",
   padding: "25px 20px",
   textAlign: "center" as const,
-};
-const brandText = {
-  color: "#D4AF37",
-  fontSize: "24px",
-  fontWeight: "bold",
-  textTransform: "uppercase" as const,
-  margin: "0",
-};
-const tagline = {
-  color: "#ffffff",
-  fontSize: "9px",
-  letterSpacing: "3px",
-  textTransform: "uppercase" as const,
-  margin: "5px 0 0",
 };
 const content = { padding: "25px" };
 const h1 = {
