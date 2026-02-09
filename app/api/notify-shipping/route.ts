@@ -22,8 +22,10 @@ export async function POST(req: Request) {
     console.log("Full Webhook Data:", JSON.stringify(body, null, 2));
 
     // 🟢 Allows both "shipped" and "confirmed" status
-    if (status !== "shipped" && status !== "confirmed") {
-      return NextResponse.json({ message: "Invalid status" });
+    if (status !== "shipped") {
+      return NextResponse.json({
+        message: "Ignoring confirmed status to prevent duplicate",
+      });
     }
 
     const { error } = await resend.emails.send({
