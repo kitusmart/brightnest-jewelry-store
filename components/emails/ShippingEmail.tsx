@@ -41,18 +41,22 @@ export default function ShippingEmail({
   const isShipped =
     trackingNumber && trackingNumber !== "Preparing for dispatch...";
 
-  // 🟢 NEW LOGIC: This picks the right link for your 4 partners
+  // 🟢 UPDATED: Now matches your actual dropdown
   const getTrackingUrl = (courierName: string, trackNum: string) => {
     const c = courierName.toLowerCase();
     if (c.includes("australia post"))
       return `https://auspost.com.au/mypost/track/#/details/${trackNum}`;
     if (c.includes("startrack"))
       return `https://startrack.com.au/track/details/${trackNum}`;
+    if (c.includes("aramex"))
+      return `https://www.aramex.com.au/tools/track?l=${trackNum}`;
+    if (c.includes("courierplease"))
+      return `https://www.couriersplease.com.au/tools-track/no/${trackNum}`;
     if (c.includes("dhl"))
-      return `https://www.dhl.com/au-en/home/tracking/tracking-express.html?submit=1&tracking-id=${trackNum}`;
+      return `https://www.dhl.com/au-en/home/tracking.html?tracking-id=${trackNum}`;
     if (c.includes("fedex"))
       return `https://www.fedex.com/fedextrack/?trknbr=${trackNum}`;
-    return `https://www.google.com/search?q=${trackNum}`; // Fallback
+    return `https://www.google.com/search?q=${trackNum}`;
   };
 
   const waUrl = `https://wa.me/61414002636?text=${encodeURIComponent("Hello Elysia Luxe, I have a question about my order.")}`;
@@ -71,7 +75,11 @@ export default function ShippingEmail({
               width="260"
               height="auto"
               alt="Elysia Luxe"
-              style={{ margin: "0 auto", display: "block" }}
+              style={{
+                margin: "0 auto",
+                display: "block",
+                pointerEvents: "none",
+              }} // 🟢 Added hint to stop hover icons
             />
           </Section>
           <Section style={content}>
@@ -151,7 +159,7 @@ export default function ShippingEmail({
               {isShipped && (
                 <Button
                   style={button}
-                  href={getTrackingUrl(courier, trackingNumber)} // 🟢 FIXED: Now uses the map
+                  href={getTrackingUrl(courier, trackingNumber)}
                 >
                   Track Your Order
                 </Button>
@@ -168,7 +176,7 @@ export default function ShippingEmail({
   );
 }
 
-// --- STYLES (Kept exactly the same as your file) ---
+// --- STYLES (NO CHANGES) ---
 const main = {
   backgroundColor: "#f4f7f9",
   fontFamily: "sans-serif",
