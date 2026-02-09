@@ -6,6 +6,8 @@ export async function POST(request: Request) {
     const { items } = await request.json();
     const baseUrl = "https://elysia-luxe.vercel.app";
 
+    console.log("TECHNICAL_CHECK_METADATA:", JSON.stringify(items));
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       locale: "en",
