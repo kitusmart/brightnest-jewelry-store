@@ -4,9 +4,6 @@ import { stripe } from "@/lib/stripe";
 export async function POST(request: Request) {
   try {
     const { items } = await request.json();
-
-    // 🟢 FORCE FIX: We are strictly using the new domain name.
-    // We removed the "process.env" check to stop Vercel from using the old link.
     const baseUrl = "https://elysia-luxe.vercel.app";
 
     const session = await stripe.checkout.sessions.create({
@@ -34,7 +31,17 @@ export async function POST(request: Request) {
       })),
       mode: "payment",
       submit_type: "pay",
-      success_url: `${baseUrl}/success`,
+      // 🟢 ADDED METADATA HERE: This ensures the success page can see the items
+      metadata: {
+        orderItems: JSON.stringify(
+          items.map((item: any) => ({
+            productName: item.name,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+        ),
+      },
+      success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/checkout`,
     });
 

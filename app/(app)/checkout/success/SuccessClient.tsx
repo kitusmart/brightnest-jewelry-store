@@ -14,6 +14,9 @@ interface SuccessClientProps {
     customerName?: string | null;
     amountTotal?: number | null;
     paymentStatus: string;
+    metadata?: {
+      orderItems?: string;
+    } | null;
     shippingAddress?: {
       line1?: string | null;
       line2?: string | null;
@@ -42,6 +45,19 @@ export function SuccessClient({ session }: SuccessClientProps) {
     if (!hasSentEmail.current && session.paymentStatus === "paid") {
       const sendConfirmation = async () => {
         try {
+          // 🟢 TECHNICAL FIX: Parse items from Metadata if session.lineItems is empty
+          let itemsToDisplay = [];
+
+          if (session.metadata?.orderItems) {
+            itemsToDisplay = JSON.parse(session.metadata.orderItems);
+          } else if (session.lineItems && session.lineItems.length > 0) {
+            itemsToDisplay = session.lineItems.map((item) => ({
+              productName: item.name,
+              quantity: item.quantity,
+              price: item.amount / 100,
+            }));
+          }
+
           await fetch("/api/notify-shipping", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -51,13 +67,7 @@ export function SuccessClient({ session }: SuccessClientProps) {
               orderNumber: session.id.slice(-8).toUpperCase(),
               status: "confirmed", // 🟢 This ensures the template shows "Order Confirmed"
               totalPrice: (session.amountTotal ?? 0) / 100, // 🟢 Correct Price from Stripe
-              orderItems:
-                session.lineItems?.map((item) => ({
-                  productName: item.name,
-                  quantity: item.quantity,
-                  price: item.amount / 100,
-                  image: "", // Note: Stripe line items don't include image URLs by default
-                })) || [],
+              orderItems: itemsToDisplay,
             }),
           });
           hasSentEmail.current = true;
@@ -90,7 +100,8 @@ export function SuccessClient({ session }: SuccessClientProps) {
         </div>
 
         <div className="px-6 py-4">
-          {session.lineItems && session.lineItems.length > 0 && (
+          {/* 🟢 Displaying Items on the UI page */}
+          {session.lineItems && session.lineItems.length > 0 ? (
             <div className="space-y-3">
               {session.lineItems.map((item, index) => (
                 <div key={index} className="flex justify-between text-sm">
@@ -103,6 +114,10 @@ export function SuccessClient({ session }: SuccessClientProps) {
                 </div>
               ))}
             </div>
+          ) : (
+            <p className="text-sm text-gray-500 italic">
+              Processing order details...
+            </p>
           )}
 
           <div className="mt-4 border-t border-gray-200 pt-4">
