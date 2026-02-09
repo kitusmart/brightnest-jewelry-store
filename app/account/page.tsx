@@ -8,7 +8,6 @@ import {
   SignedOut,
   RedirectToSignIn,
 } from "@clerk/nextjs";
-// 🟢 UPDATED IMPORTS: Added Trash2 and MapPin
 import {
   Edit2,
   Plus,
@@ -19,7 +18,6 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-// 🟢 UPDATED IMPORTS: Added deleteAddress
 import {
   saveAddress,
   getAddresses,
@@ -44,15 +42,11 @@ function AccountContent() {
   const { isLoaded, user } = useUser();
   const { signOut } = useClerk();
 
-  // STATE FOR ADDRESS MODAL AND LOADING
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
-  // 🟢 STATE FOR STORED ADDRESSES
   const [addresses, setAddresses] = useState<any[]>([]);
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
 
-  // 🟢 FETCH ADDRESSES FUNCTION
   const fetchUserAddresses = async () => {
     if (user?.primaryEmailAddress?.emailAddress) {
       const data = await getAddresses(user.primaryEmailAddress.emailAddress);
@@ -61,14 +55,12 @@ function AccountContent() {
     }
   };
 
-  // 🟢 TRIGGER FETCH ON LOAD
   useEffect(() => {
     if (isLoaded && user) {
       fetchUserAddresses();
     }
   }, [isLoaded, user]);
 
-  // 2. FORM SUBMISSION LOGIC
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSaving(true);
@@ -94,7 +86,7 @@ function AccountContent() {
     if (result.success) {
       toast.success("ADDRESS SAVED SUCCESSFULLY");
       setIsModalOpen(false);
-      fetchUserAddresses(); // 🟢 REFRESH LIST IMMEDIATELY
+      fetchUserAddresses();
     } else {
       toast.error("FAILED TO SAVE ADDRESS");
     }
@@ -110,62 +102,66 @@ function AccountContent() {
 
   return (
     <div className="min-h-screen bg-white relative">
-      {/* 1. TOP NAVIGATION BAR */}
-      <div className="border-b border-gray-100 py-6 px-6 md:px-12">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-12">
+      {/* 🟢 FINAL NAVIGATION: Stacked for Mobile, Row for Desktop */}
+      <div className="border-b border-gray-100 py-4 md:py-6 px-4 md:px-12">
+        <div className="max-w-7xl mx-auto space-y-4 md:space-y-0 md:flex md:items-center md:justify-between">
+          {/* LOGO & MAIN BUTTONS */}
+          <div className="flex items-center justify-between w-full">
             <Link href="/" className="hover:opacity-80 transition-opacity">
               <img
                 src="/full_logo.png"
                 alt="Elysia Luxe"
-                className="h-8 md:h-12 w-auto object-contain"
+                className="h-7 md:h-12 w-auto object-contain"
               />
             </Link>
 
-            <nav className="flex items-center gap-8">
+            <div className="flex items-center gap-3 md:gap-6">
               <Link
-                href="/orders"
-                className="text-gray-400 text-[11px] font-bold uppercase tracking-[0.2em] hover:text-[#1B2A4E] transition-colors"
+                href="/"
+                className="text-[9px] md:text-[10px] font-bold text-[#1B2A4E] uppercase tracking-[0.2em] px-3 py-2 md:px-4 md:py-2 border border-[#1B2A4E]/10 rounded-full hover:bg-[#1B2A4E] hover:text-white transition-all"
               >
-                Orders
+                <span className="md:hidden">Shop</span>
+                <span className="hidden md:inline">Go Shopping</span>
               </Link>
-              <Link
-                href="/account"
-                className="text-[#1B2A4E] border-b border-[#1B2A4E] pb-1 text-[11px] font-bold uppercase tracking-[0.2em]"
+
+              <button
+                onClick={async () => {
+                  await signOut();
+                  window.location.href = "/";
+                }}
+                className="text-red-400 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 hover:text-red-600 transition-colors"
               >
-                Profile
-              </Link>
-            </nav>
+                <LogOut size={14} />
+                <span>Sign out</span>
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          {/* SECONDARY NAV: Orders & Profile (Visible on all views now) */}
+          <nav className="flex items-center gap-8 pt-2 md:pt-0 md:absolute md:left-1/2 md:-translate-x-1/2">
             <Link
-              href="/"
-              className="text-[10px] font-bold text-[#1B2A4E] uppercase tracking-[0.2em] px-4 py-2 border border-[#1B2A4E]/10 rounded-full hover:bg-[#1B2A4E] hover:text-white transition-all"
+              href="/orders"
+              className="text-gray-400 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] hover:text-[#1B2A4E] transition-colors"
             >
-              Go Shopping
+              Orders
             </Link>
-            <button
-              onClick={async () => {
-                await signOut();
-                window.location.href = "/";
-              }}
-              className="text-red-400 text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 hover:text-red-600 transition-colors"
+            <Link
+              href="/account"
+              className="text-[#1B2A4E] border-b border-[#1B2A4E] pb-1 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em]"
             >
-              <LogOut size={12} />
-              Sign out
-            </button>
-          </div>
+              Profile
+            </Link>
+          </nav>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 pt-16 pb-20">
-        <h1 className="text-2xl font-serif text-[#1B2A4E] mb-10 uppercase tracking-widest">
+      <div className="max-w-4xl mx-auto px-6 pt-10 md:pt-16 pb-20">
+        <h1 className="text-xl md:text-2xl font-serif text-[#1B2A4E] mb-8 md:mb-10 uppercase tracking-widest">
           Profile
         </h1>
 
         <div className="space-y-6">
-          <div className="bg-[#F9F9F9] rounded-xl p-8 border border-gray-50 group">
+          <div className="bg-[#F9F9F9] rounded-xl p-6 md:p-8 border border-gray-50 group">
             <div className="space-y-6">
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -174,10 +170,10 @@ function AccountContent() {
                   </label>
                   <Edit2
                     size={14}
-                    className="text-[#D4AF37] opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity"
+                    className="text-[#D4AF37] md:opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity"
                   />
                 </div>
-                <p className="text-[#1B2A4E] font-medium text-lg">
+                <p className="text-[#1B2A4E] font-medium text-base md:text-lg">
                   {user?.fullName}
                 </p>
               </div>
@@ -185,15 +181,14 @@ function AccountContent() {
                 <label className="text-[10px] text-gray-400 uppercase tracking-[0.2em]">
                   Email
                 </label>
-                <p className="text-[#1B2A4E] font-medium">
+                <p className="text-[#1B2A4E] font-medium text-sm md:text-base break-all">
                   {user?.primaryEmailAddress?.emailAddress}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* 🟢 DYNAMIC ADDRESSES SECTION WITH DELETE */}
-          <div className="bg-[#F9F9F9] rounded-xl p-8 border border-gray-50">
+          <div className="bg-[#F9F9F9] rounded-xl p-6 md:p-8 border border-gray-50">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-[#1B2A4E] text-[11px] font-bold uppercase tracking-[0.2em]">
                 Addresses
@@ -223,7 +218,6 @@ function AccountContent() {
                     key={addr._id}
                     className={`bg-white p-6 rounded-xl border ${addr.isDefault ? "border-[#D4AF37]" : "border-gray-100"} shadow-sm relative group`}
                   >
-                    {/* 🟢 DELETE BUTTON: Visible on hover of the card */}
                     <button
                       onClick={async () => {
                         if (
@@ -240,7 +234,7 @@ function AccountContent() {
                           }
                         }
                       }}
-                      className="absolute top-4 right-4 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10"
+                      className="absolute top-4 right-4 text-gray-300 hover:text-red-500 md:opacity-0 group-hover:opacity-100 transition-all duration-300 z-10"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -280,10 +274,9 @@ function AccountContent() {
         </div>
       </div>
 
-      {/* 🟢 AUSTRALIA LUXURY ADDRESS MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+          <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 max-h-[90vh] overflow-y-auto">
             <div className="p-6 flex items-center justify-between border-b border-gray-50">
               <h2 className="text-xl font-medium text-gray-900 font-serif">
                 Add address
@@ -322,7 +315,7 @@ function AccountContent() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   name="firstName"
                   required
@@ -349,7 +342,7 @@ function AccountContent() {
                 className="w-full p-4 border border-gray-200 rounded-lg text-sm outline-none focus:border-black"
               />
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <input
                   name="city"
                   required

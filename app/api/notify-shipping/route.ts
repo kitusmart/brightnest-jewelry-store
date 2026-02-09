@@ -8,42 +8,38 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // 1. Read Data (Included 'status' to ensure we only mail when it's SHIPPED)
-    const { email, customerName, orderNumber, trackingNumber, status } = body;
+    // 🟢 STEP 1: Extract 'courier' from the body
+    const {
+      email,
+      customerName,
+      orderNumber,
+      trackingNumber,
+      status,
+      courier,
+    } = body;
 
-    console.log("Webhook Payload Received:", orderNumber, status);
+    // 🟢 STEP 2: Log it (using 'courier')
+    console.log("Webhook Received:", orderNumber, status, courier);
 
-    // 2. Safety Check: Only proceed if status is 'shipped'
-    if (status !== "shipped") {
-      console.log("Order is not shipped yet. Status:", status);
-      return NextResponse.json({ message: "Skipped: Not shipped status" });
-    }
+    if (status !== "shipped")
+      return NextResponse.json({ message: "Not shipped" });
 
-    if (!email || !orderNumber) {
-      console.log("Missing Email or Order ID.");
-      return NextResponse.json({ message: "Missing data" }, { status: 400 });
-    }
-
-    // 3. Send Email using the React component directly (Cleaner)
     const { error } = await resend.emails.send({
       from: "Elysia Luxe <onboarding@resend.dev>",
       to: [email],
-      subject: `Your Luxury Pieces are on Their Way! (Order: ${orderNumber})`,
+      subject: `Your Luxury Pieces are on Their Way! ⭐`,
       react: ShippingEmail({
         customerName: customerName || "Valued Customer",
         orderNumber: orderNumber,
         trackingNumber: trackingNumber || "TBA",
+        // 🟢 STEP 3: Pass 'courier' to the email
+        courier: courier || "Australia Post",
       }),
     });
 
-    if (error) {
-      console.error("Resend Error:", error);
-      return NextResponse.json({ error }, { status: 500 });
-    }
-
-    return NextResponse.json({ message: "Shipping Email Sent Successfully" });
+    if (error) return NextResponse.json({ error }, { status: 500 });
+    return NextResponse.json({ message: "Email Sent" });
   } catch (error: any) {
-    console.error("Server Error:", error.message);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }
