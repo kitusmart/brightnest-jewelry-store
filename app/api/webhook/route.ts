@@ -41,12 +41,14 @@ export async function POST(req: Request) {
         ? session.metadata.quantities.split(",").map(Number)
         : [];
 
+      // 1. Basic Order Items (for Inventory & Order Doc)
       const orderItems = sanityIds.map((id, index) => ({
         _key: crypto.randomUUID(),
         product: { _type: "reference", _ref: id },
         quantity: quantities[index] || 1,
       }));
 
+      // 2. Create Order in Sanity
       const order = await backendClient.create({
         _type: "order",
         orderNumber:
@@ -78,8 +80,7 @@ export async function POST(req: Request) {
           try {
             await backendClient
               .patch(item.product._ref)
-              // Ensure this matches your Sanity field name (stock or quantity)
-              .dec({ stock: item.quantity })
+              .dec({ stock: item.quantity }) // Ensure 'stock' matches your schema field
               .commit();
           } catch (invErr) {
             console.error(
@@ -87,21 +88,45 @@ export async function POST(req: Request) {
               item.product._ref,
               invErr,
             );
-            // We don't 'throw' here so the email still sends!
           }
         }
       }
 
-      // 🟢 FIX 2: SEND EMAIL
+      // 🟢 FIX 2: SEND EMAIL (With Real Data)
       if (session.customer_details?.email) {
+        // A. Fetch Product Details (Name & Image) from Sanity
+        // We need this because Stripe only gave us IDs, but the Email needs Names/Images.
+        const enrichedItems = await Promise.all(
+          orderItems.map(async (item) => {
+            const productData = await backendClient.fetch(
+              `*[_id == $id][0]{
+                  name, 
+                  "image": images[0].asset->url,
+                  price
+                }`,
+              { id: item.product._ref },
+            );
+            return {
+              productName: productData?.name || "Luxury Piece",
+              quantity: item.quantity,
+              price: productData?.price || 0,
+              image: productData?.image || "", // Passes the image URL
+            };
+          }),
+        );
+
+        // B. Send the Email with the enriched data
         await resend.emails.send({
-          from: "Elysia Luxe <onboarding@resend.dev>", // Change this once you verify your domain
+          from: "Elysia Luxe <onboarding@resend.dev>",
           to: [session.customer_details.email],
           subject: "Your Shine is Secured | Order Confirmation",
           react: ShippingEmail({
             customerName: session.customer_details.name || "Valued Customer",
             orderNumber: order.orderNumber,
             trackingNumber: "Preparing for dispatch...",
+            // 🟢 PASS THE MISSING DATA HERE:
+            totalPrice: session.amount_total ? session.amount_total / 100 : 0,
+            orderItems: enrichedItems,
           }),
         });
       }
