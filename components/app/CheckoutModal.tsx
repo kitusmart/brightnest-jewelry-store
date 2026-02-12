@@ -24,6 +24,9 @@ function CheckoutForm({ amount, onClose, defaultValues }: any) {
   const [message, setMessage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // 🟢 1. Track the email state (defaults to empty for guests)
+  const [email, setEmail] = useState(defaultValues.email || "");
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!stripe || !elements) return;
@@ -33,6 +36,8 @@ function CheckoutForm({ amount, onClose, defaultValues }: any) {
       elements,
       confirmParams: {
         return_url: `${window.location.origin}/checkout/success`,
+        // 🟢 3. CRITICAL: Force Stripe to use the typed email, not "guest_pending"
+        receipt_email: email,
       },
     });
 
@@ -49,6 +54,8 @@ function CheckoutForm({ amount, onClose, defaultValues }: any) {
           Contact
         </label>
         <LinkAuthenticationElement
+          // 🟢 2. Listen for typing changes
+          onChange={(e) => setEmail(e.value.email)}
           options={{ defaultValues: { email: defaultValues.email } }}
         />
       </div>
@@ -60,8 +67,6 @@ function CheckoutForm({ amount, onClose, defaultValues }: any) {
         <AddressElement
           options={{
             mode: "shipping",
-            // 🟢 1. THIS DISABLES THE "SMART" HIDING
-            // It stops Stripe from waiting for a search and shows all boxes immediately.
             autocomplete: {
               mode: "disabled",
             },
@@ -75,8 +80,6 @@ function CheckoutForm({ amount, onClose, defaultValues }: any) {
               name: defaultValues.name || "",
               address: {
                 line1: defaultValues.address.line1 || "",
-                // 🟢 2. Empty strings here, combined with 'disabled' autocomplete,
-                // force Suburb, State, and Postcode to stay visible.
                 city: defaultValues.address.city || "",
                 state: defaultValues.address.state || "",
                 postal_code: defaultValues.address.postal_code || "",
@@ -144,13 +147,11 @@ export function CheckoutModal({
     if (!isSignedIn || !user)
       return { email: "", name: "", address: { country: "AU" }, phone: "" };
 
-    // 🟢 CLERK DATA MAPPING
     const metadata = user.publicMetadata?.address as any;
 
     return {
       email: user.primaryEmailAddress?.emailAddress || "",
       name: user.fullName || "",
-      // Clean the phone number so Stripe's dropdown can handle the prefix correctly
       phone: user.primaryPhoneNumber?.phoneNumber?.replace("+61", "") || "",
       address: metadata
         ? {
