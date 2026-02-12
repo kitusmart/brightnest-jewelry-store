@@ -13,7 +13,7 @@ interface SuccessClientProps {
     customerEmail?: string | null;
     customerName?: string | null;
     amountTotal?: number | null;
-    status?: string; // 🟢 Updated for PaymentIntent
+    status?: string;
     metadata?: {
       sanityIds?: string;
       quantities?: string;
@@ -33,7 +33,6 @@ export function SuccessClient({ session }: SuccessClientProps) {
     }
   }, [clearCart]);
 
-  // 🟢 Parse items from metadata for the UI display
   const itemsToDisplay = session.metadata?.orderItems
     ? JSON.parse(session.metadata.orderItems)
     : [];
@@ -59,13 +58,30 @@ export function SuccessClient({ session }: SuccessClientProps) {
         </div>
 
         <div className="px-6 py-4">
-          <div className="space-y-4">
+          <div className="space-y-6">
             {itemsToDisplay.length > 0 ? (
               itemsToDisplay.map((item: any, index: number) => (
-                <div key={index} className="flex justify-between text-sm">
-                  <span className="text-gray-600">
-                    {item.productName || "Luxury Jewelry"} × {item.quantity}
-                  </span>
+                <div key={index} className="flex items-center gap-4 text-sm">
+                  {/* 🟢 NEW: Product Image Display */}
+                  {item.image && (
+                    <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+                      <img
+                        src={item.image}
+                        alt={item.productName}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">
+                      {item.productName || "Luxury Jewelry"}
+                    </p>
+                    <p className="text-gray-500 text-xs">
+                      Qty: {item.quantity}
+                    </p>
+                  </div>
+
                   <span className="font-medium text-black">
                     {formatPrice(item.price)}
                   </span>
@@ -78,7 +94,7 @@ export function SuccessClient({ session }: SuccessClientProps) {
             )}
           </div>
 
-          <div className="mt-4 border-t border-gray-100 pt-4">
+          <div className="mt-6 border-t border-gray-100 pt-4">
             <div className="flex justify-between text-base font-bold">
               <span className="text-[#1B2A4E]">Total Paid</span>
               <span className="text-[#D4AF37]">

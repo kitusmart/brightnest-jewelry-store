@@ -10,29 +10,23 @@ export async function POST(request: Request) {
       0,
     );
 
-    // 🟢 1. Prepare Data for the Webhook (Sanity Orders)
     const idList = items
       .map((item: any) => item.productId || item._id || item.id)
       .join(",");
     const quantityList = items.map((item: any) => item.quantity).join(",");
 
-    // 🟢 2. Prepare Data for the Success Page (Visuals)
-    // We create a lightweight version of the items to fit inside Stripe's metadata limit
+    // 🟢 FIX: Including 'image' for the Success Page visuals
     const orderItemsMinimal = items.map((item: any) => ({
       productName: item.title || item.name,
       price: item.price,
       quantity: item.quantity,
-      // We skip the image URL here to save space (Stripe metadata has a 500-char limit)
-      // The Success Page will show Name/Price/Qty perfectly.
+      image: item.image || "",
     }));
 
-    // 🟢 CLEAN MODE: paymentIntents
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100),
       currency: "aud",
       automatic_payment_methods: { enabled: true },
-
-      // 🟢 FIX 1: Pass the email directly to Stripe so it sends its own receipt too
       receipt_email: user_details?.email,
 
       metadata: {
@@ -40,7 +34,8 @@ export async function POST(request: Request) {
         quantities: quantityList,
         customerEmail: user_details?.email || "guest",
         customerName: user_details?.name || "Guest",
-        // 🟢 FIX 2: The "Bridge" - JSON stringify the items so Success Page can read them
+        // 🟢 FIX: Passing the Phone Number to the "Bridge"
+        customerPhone: user_details?.phone || "",
         orderItems: JSON.stringify(orderItemsMinimal),
       },
     });

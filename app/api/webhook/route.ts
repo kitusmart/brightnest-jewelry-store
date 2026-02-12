@@ -48,6 +48,10 @@ export async function POST(req: Request) {
         paymentIntent.shipping?.name || paymentIntent.metadata?.customerName;
       const customerEmail =
         paymentIntent.receipt_email || paymentIntent.metadata?.customerEmail;
+      const customerPhone =
+        paymentIntent.shipping?.phone ||
+        paymentIntent.metadata?.customerPhone ||
+        "";
 
       const orderItems = sanityIds.map((id, index) => ({
         _key: crypto.randomUUID(),
@@ -62,6 +66,7 @@ export async function POST(req: Request) {
         stripePaymentIntentId: paymentIntent.id,
         customerName: shippingName,
         email: customerEmail,
+        phoneNumber: customerPhone,
         currency: paymentIntent.currency,
         totalPrice: paymentIntent.amount ? paymentIntent.amount / 100 : 0,
         status: "paid",
