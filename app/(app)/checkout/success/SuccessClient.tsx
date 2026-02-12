@@ -6,6 +6,8 @@ import { CheckCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import { useCartActions } from "@/lib/store/cart-store-provider";
+// 🟢 1. Import Clerk hook to check if user is logged in
+import { useUser } from "@clerk/nextjs";
 
 interface SuccessClientProps {
   session: {
@@ -25,6 +27,8 @@ interface SuccessClientProps {
 export function SuccessClient({ session }: SuccessClientProps) {
   const { clearCart } = useCartActions();
   const hasCleared = useRef(false);
+  // 🟢 2. Get the sign-in status
+  const { isSignedIn } = useUser();
 
   useEffect(() => {
     if (!hasCleared.current) {
@@ -62,7 +66,7 @@ export function SuccessClient({ session }: SuccessClientProps) {
             {itemsToDisplay.length > 0 ? (
               itemsToDisplay.map((item: any, index: number) => (
                 <div key={index} className="flex items-center gap-4 text-sm">
-                  {/* 🟢 NEW: Product Image Display */}
+                  {/* Product Image Display */}
                   {item.image && (
                     <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
                       <img
@@ -106,16 +110,20 @@ export function SuccessClient({ session }: SuccessClientProps) {
       </div>
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-        <Button
-          asChild
-          variant="outline"
-          className="border-gray-200 text-[#1B2A4E] hover:bg-gray-50"
-        >
-          <Link href="/orders">
-            View Your Orders
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
+        {/* 🟢 3. CONDITIONAL RENDER: Only show this button if user is logged in */}
+        {isSignedIn && (
+          <Button
+            asChild
+            variant="outline"
+            className="border-gray-200 text-[#1B2A4E] hover:bg-gray-50"
+          >
+            <Link href="/orders">
+              View Your Orders
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        )}
+
         <Button
           asChild
           className="bg-[#1B2A4E] text-white hover:bg-[#D4AF37] transition-colors"
