@@ -66,7 +66,7 @@ export async function POST(req: Request) {
         stripePaymentIntentId: paymentIntent.id,
         customerName: shippingName,
         email: customerEmail,
-        phoneNumber: customerPhone,
+        customerPhone: customerPhone,
         currency: paymentIntent.currency,
         totalPrice: paymentIntent.amount ? paymentIntent.amount / 100 : 0,
         status: "paid",
