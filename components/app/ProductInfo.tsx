@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+// Removed useRouter since we stay on the page now
 import { toast } from "sonner";
 import { useCartActions, useCartItem } from "@/lib/store/cart-store-provider";
 import {
@@ -18,7 +18,6 @@ export function ProductInfo({ product }: { product: any }) {
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const { addItem, openCart } = useCartActions();
-  const router = useRouter();
 
   const existingItem = useCartItem(product._id);
   const currentInCart = existingItem?.quantity || 0;
@@ -60,8 +59,8 @@ export function ProductInfo({ product }: { product: any }) {
     setTimeout(() => setIsAdded(false), 2000);
   };
 
-  // --- BUY NOW HANDLER (FIXED) ---
-  const handleBuyNow = async () => {
+  // --- BUY NOW HANDLER (THE NEW LOGIC) ---
+  const handleBuyNow = () => {
     if (currentInCart + quantity > product.stock) {
       toast.error(
         `Limit reached. You already have ${currentInCart} in your cart.`,
@@ -82,18 +81,15 @@ export function ProductInfo({ product }: { product: any }) {
       quantity,
     );
 
-    // 2. FORCE REDIRECT WITH AUTO-DISMISS
-    // CHANGED: Using toast.success with a duration instead of toast.loading
-    // This prevents it from getting stuck on the screen.
-    toast.success("Redirecting to Checkout...", {
-      id: "checkout-redirect", // Prevents duplicates
-      duration: 1500, // Disappears automatically after 1.5s
-      icon: <CreditCard size={14} />,
-    });
+    // 2. Open the Cart Slide (Side Drawer)
+    openCart();
 
+    // 3. SEND SIGNAL: Tell the Cart Sheet to open the Checkout Popup
+    // We use a small timeout to ensure the cart is fully mounted and ready to listen.
     setTimeout(() => {
-      router.push("/checkout");
-    }, 500);
+      const event = new Event("trigger-checkout-modal");
+      window.dispatchEvent(event);
+    }, 100);
   };
 
   const categoryName = product.category || "Collection";
@@ -172,7 +168,6 @@ export function ProductInfo({ product }: { product: any }) {
             </span>
             <QtyBtn
               onClick={() => {
-                // We check the real product.stock here
                 const maxAllowed = product.stock - currentInCart;
                 if (quantity < maxAllowed) {
                   setQuantity((prev) => prev + 1);
@@ -215,7 +210,7 @@ export function ProductInfo({ product }: { product: any }) {
           )}
         </button>
 
-        {/* --- BUY NOW BUTTON (UPDATED) --- */}
+        {/* --- BUY NOW BUTTON --- */}
         {!isOutOfStock && (
           <button
             onClick={handleBuyNow}

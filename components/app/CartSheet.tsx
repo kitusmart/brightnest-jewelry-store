@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { AlertTriangle, Loader2, ShoppingBag, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useUser } from "@clerk/nextjs"; // Removed unnecessary imports
 import {
   Sheet,
   SheetContent,
@@ -18,117 +19,154 @@ import {
 import { useCartStock } from "@/lib/hooks/useCartStock";
 import { CartItem } from "./CartItem";
 import { CartSummary } from "./CartSummary";
+import { CheckoutModal } from "./CheckoutModal";
 
 export function CartSheet() {
   const [mounted, setMounted] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+
   const items = useCartItems();
   const isOpen = useCartIsOpen();
   const totalItems = useTotalItems();
   const { closeCart } = useCartActions();
   const { stockMap, isLoading, hasStockIssues } = useCartStock(items);
 
+  const { user, isLoaded } = useUser();
+
+  const triggerCheckout = () => {
+    if (!isLoaded) return;
+    setShowCheckoutModal(true);
+  };
+
   useEffect(() => {
     setMounted(true);
-  }, []);
+    const handleSignal = () => triggerCheckout();
+    window.addEventListener("trigger-checkout-modal", handleSignal);
+    return () =>
+      window.removeEventListener("trigger-checkout-modal", handleSignal);
+  }, [user, isLoaded]);
 
   if (!mounted) return null;
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && closeCart()}>
-      <SheetContent className="flex w-full flex-col sm:max-w-lg gap-0 border-l border-gray-100 bg-white p-0 overflow-hidden z-[9999]">
-        {/* HEADER - Updated to "Your Cart" */}
-        <SheetHeader className="px-6 py-8 border-b border-gray-50 bg-[#1B2A4E] z-10 relative">
-          <SheetTitle className="flex items-center justify-between text-white">
-            <div className="flex items-center gap-3">
-              <ShoppingBag className="h-5 w-5 text-[#D4AF37]" />
-              <span className="font-serif text-xl tracking-[0.15em] uppercase">
-                Your Cart ({totalItems})
-              </span>
-            </div>
-            {isLoading && (
-              <Loader2 className="h-4 w-4 animate-spin text-[#D4AF37]" />
-            )}
-          </SheetTitle>
+    <>
+      <Sheet
+        open={isOpen}
+        modal={!showCheckoutModal}
+        onOpenChange={(open) => {
+          if (!open && showCheckoutModal) {
+            return;
+          }
+          if (!open) closeCart();
+        }}
+      >
+        <SheetContent
+          className="flex w-full flex-col sm:max-w-lg gap-0 border-l border-gray-100 bg-white p-0 overflow-hidden z-[9000]"
+          onOpenAutoFocus={(e) => {
+            if (showCheckoutModal) e.preventDefault();
+          }}
+        >
+          {/* HEADER */}
+          <SheetHeader className="px-6 py-8 border-b border-gray-50 bg-[#1B2A4E] z-10 relative">
+            <SheetTitle className="flex items-center justify-between text-white">
+              <div className="flex items-center gap-3">
+                <ShoppingBag className="h-5 w-5 text-[#D4AF37]" />
+                <span className="font-serif text-xl tracking-[0.15em] uppercase">
+                  Your Cart ({totalItems})
+                </span>
+              </div>
+              {isLoading && (
+                <Loader2 className="h-4 w-4 animate-spin text-[#D4AF37]" />
+              )}
+            </SheetTitle>
 
-          <button
-            onClick={() => closeCart()}
-            className="absolute top-8 right-6 text-white/70 hover:text-[#D4AF37] transition-all hover:rotate-90"
-            aria-label="Close cart"
-          >
-            <X className="h-6 w-6" />
-          </button>
-        </SheetHeader>
+            <button
+              onClick={() => closeCart()}
+              className="absolute top-8 right-6 text-white/70 hover:text-[#D4AF37] transition-all hover:rotate-90"
+              aria-label="Close cart"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          <AnimatePresence mode="wait">
-            {items.length === 0 ? (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="flex h-full flex-col items-center justify-center text-center px-10 py-20"
-              >
-                <div className="w-20 h-20 bg-[#fbf7ed] rounded-full flex items-center justify-center mb-6">
-                  <ShoppingBag className="h-8 w-8 text-[#D4AF37] opacity-60" />
-                </div>
-                {/* Updated Empty Cart Text */}
-                <h3 className="text-xl font-serif text-[#1B2A4E] uppercase tracking-widest leading-relaxed">
-                  Looks like your cart is feeling a little light! Time to add
-                  some treasures.
-                </h3>
-
-                {/* FIXED: Luxury Rounded Button for Empty State */}
-                <button
-                  onClick={() => closeCart()}
-                  className="mt-10 px-10 py-4 bg-[#1B2A4E] text-white rounded-full text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-[#D4AF37] transition-all shadow-lg active:scale-95"
+          <div className="flex-1 overflow-y-auto overflow-x-hidden">
+            <AnimatePresence mode="wait">
+              {items.length === 0 ? (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="flex h-full flex-col items-center justify-center text-center px-10 py-20"
                 >
-                  EXPLORE ELYSIA LUXE
-                </button>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="items"
-                initial="hidden"
-                animate="visible"
-                variants={{
-                  visible: { transition: { staggerChildren: 0.1 } },
-                }}
-                className="px-6 py-4"
-              >
-                <div className="space-y-6 divide-y divide-gray-50">
-                  {items.map((item) => (
-                    <motion.div
-                      key={item.productId}
-                      variants={{
-                        hidden: { opacity: 0, x: 20 },
-                        visible: { opacity: 1, x: 0 },
-                      }}
-                      className="pt-6 first:pt-0"
-                    >
-                      <CartItem
-                        item={item}
-                        stockInfo={stockMap.get(item.productId)}
-                      />
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                  <div className="w-20 h-20 bg-[#fbf7ed] rounded-full flex items-center justify-center mb-6">
+                    <ShoppingBag className="h-8 w-8 text-[#D4AF37] opacity-60" />
+                  </div>
+                  <h3 className="text-xl font-serif text-[#1B2A4E] uppercase tracking-widest leading-relaxed">
+                    Looks like your cart is feeling a little light! Time to add
+                    some treasures.
+                  </h3>
+                  <button
+                    onClick={() => closeCart()}
+                    className="mt-10 px-10 py-4 bg-[#1B2A4E] text-white rounded-full text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-[#D4AF37] transition-all shadow-lg active:scale-95"
+                  >
+                    EXPLORE ELYSIA LUXE
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="items"
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    visible: { transition: { staggerChildren: 0.1 } },
+                  }}
+                  className="px-6 py-4"
+                >
+                  <div className="space-y-6 divide-y divide-gray-50">
+                    {items.map((item) => (
+                      <motion.div
+                        key={item.productId}
+                        variants={{
+                          hidden: { opacity: 0, x: 20 },
+                          visible: { opacity: 1, x: 0 },
+                        }}
+                        className="pt-6 first:pt-0"
+                      >
+                        <CartItem
+                          item={item}
+                          stockInfo={stockMap.get(item.productId)}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
-        {items.length > 0 && (
-          <motion.div
-            initial={{ y: 100 }}
-            animate={{ y: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="border-t border-gray-100 bg-[#fbf7ed]/30 p-6 z-10"
-          >
-            <CartSummary hasStockIssues={hasStockIssues} />
-          </motion.div>
-        )}
-      </SheetContent>
-    </Sheet>
+          {items.length > 0 && (
+            <motion.div
+              initial={{ y: 100 }}
+              animate={{ y: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="border-t border-gray-100 bg-[#fbf7ed]/30 p-6 z-10"
+            >
+              {/* CONNECT THE INTERNAL BUTTON */}
+              <CartSummary
+                hasStockIssues={hasStockIssues}
+                onCheckout={triggerCheckout}
+              />
+            </motion.div>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* THE MODAL */}
+      <CheckoutModal
+        isOpen={showCheckoutModal}
+        onClose={() => setShowCheckoutModal(false)}
+      />
+    </>
   );
 }

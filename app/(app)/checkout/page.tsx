@@ -1,8 +1,8 @@
 import { CheckoutClient } from "./CheckoutClient";
 
 export const metadata = {
-  title: "Checkout | Furniture Shop",
-  description: "Complete your purchase",
+  title: "Checkout | Elysia Luxe",
+  description: "Complete your luxury purchase",
 };
 
 export default function CheckoutPage() {

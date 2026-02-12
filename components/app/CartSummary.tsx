@@ -9,9 +9,13 @@ import {
 
 interface CartSummaryProps {
   hasStockIssues?: boolean;
+  onCheckout: () => void; // <--- NEW PROP: Accepts the signal from Parent
 }
 
-export function CartSummary({ hasStockIssues = false }: CartSummaryProps) {
+export function CartSummary({
+  hasStockIssues = false,
+  onCheckout,
+}: CartSummaryProps) {
   const totalPrice = useTotalPrice();
   const totalItems = useTotalItems();
   const { closeCart } = useCartActions();
@@ -47,8 +51,9 @@ export function CartSummary({ hasStockIssues = false }: CartSummaryProps) {
           <div className="flex flex-col items-center gap-4">
             <button
               onClick={() => {
-                closeCart();
-                window.location.href = "/checkout";
+                // We REMOVED the direct redirect here.
+                // Now we just tell the parent "User wants to buy"
+                onCheckout();
               }}
               className="group relative flex w-full items-center justify-center bg-[#1B2A4E] text-white py-5 rounded-full text-[12px] font-black uppercase tracking-[0.3em] hover:bg-[#D4AF37] transition-all duration-500 shadow-xl active:scale-[0.98]"
             >

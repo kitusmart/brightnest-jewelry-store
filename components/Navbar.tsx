@@ -180,7 +180,8 @@ export default function Navbar() {
             <div className="flex items-center justify-end gap-3 sm:gap-6 flex-1 min-w-[100px] md:min-w-0 mt-2 md:mt-10">
               <div className="relative hidden md:flex items-center">
                 <SignedOut>
-                  <SignInButton mode="modal">
+                  {/* 🟢 FIXED: Added forceRedirectUrl to Desktop Login */}
+                  <SignInButton mode="modal" forceRedirectUrl="/account">
                     <button className="relative text-[#1B2A4E] hover:text-[#D4AF37] transition-colors group">
                       <User size={24} strokeWidth={1.5} />
                     </button>
@@ -297,7 +298,8 @@ export default function Navbar() {
               <div className="w-20 h-[1px] bg-[#D4AF37]/30 mb-2"></div>
 
               <SignedOut>
-                <SignInButton mode="modal">
+                {/* 🟢 FIXED: Added forceRedirectUrl to Mobile Login */}
+                <SignInButton mode="modal" forceRedirectUrl="/account">
                   <button
                     onClick={() => setIsOpen(false)}
                     className="flex items-center gap-3 text-[#1B2A4E] font-medium tracking-widest text-xs uppercase hover:text-[#D4AF37] transition-colors border border-[#1B2A4E]/20 px-8 py-3 w-full justify-center"
